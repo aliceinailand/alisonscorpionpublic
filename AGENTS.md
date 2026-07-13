@@ -19,6 +19,7 @@ Portals:
 - Alice Commands. Scorpion Obeys.
 - FACT = LAW + RECORD (SV65H). Do not invent facts.
 - Always-on disclaimer: AI cannot guarantee anything; it does its best.
+- **ASX Math patent hold:** No implementable Alison Scorpion Math (formulas, tables, proofs, twin-kit math) on this public site. R4–R5 floor R4. Existence OK; payload refuse. Hold until Alice has patent/provisional direction.
 
 ## Deploy notes
 
