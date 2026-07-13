@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Knowledgebase — Alison Scorpion</title>
-  <meta name="description" content="R0 public knowledgebase: IRRS, verification stack names, agents, ftools, disclosure maturity. High-level only." />
+  <meta name="description" content="Public knowledgebase: verification names, agents, ftools, high-level product guidance." />
   <link rel="canonical" href="https://alisonscorpion.com/docs/" />
   <style>
     :root {
       --bg: #0a0809; --panel: #13111a; --border: #2d1b4e; --brand: #a78bfa;
       --brand-deep: #7c3aed; --gold: #c8a35a; --gold-white: #f5edd8;
       --text: #e8e6f0; --dim: #8b849c; --pass: #34d399; --data: #22d3ee;
-      --fail: #f87171; --sans: Inter, system-ui, sans-serif; --mono: ui-monospace, Consolas, monospace;
+      --sans: Inter, system-ui, sans-serif; --mono: ui-monospace, Consolas, monospace;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.65;
@@ -31,14 +31,11 @@
     .eyebrow { color: var(--brand); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
     h1 { font-size: 1.85rem; color: var(--gold-white); margin: 8px 0 12px; }
     h2 { font-size: 1.15rem; color: var(--brand); margin: 36px 0 10px; scroll-margin-top: 20px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-    h3 { font-size: 0.98rem; color: var(--gold-white); margin: 18px 0 8px; }
     p, li { color: var(--dim); font-size: 0.95rem; }
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
     .warn { border-left: 3px solid var(--gold); padding-left: 12px; color: var(--dim); font-size: 0.9rem; }
     .mvp { display: inline-block; font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px;
       border: 1px solid var(--border); color: var(--pass); margin-right: 6px; }
-    .def { display: inline-block; font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px;
-      border: 1px solid var(--border); color: var(--fail); margin-right: 6px; }
     code, pre { font-family: var(--mono); font-size: 0.85em; }
     pre { background: #0c0a12; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; color: var(--data); }
     table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
@@ -47,7 +44,6 @@
     td { color: var(--dim); }
     nav.top a { margin-right: 12px; font-size: 13px; }
     footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: #5a5468; }
-    .feedback { margin-top: 28px; font-size: 13px; color: var(--dim); }
   </style>
 </head>
 <body>
@@ -55,103 +51,81 @@
     <aside class="toc">
       <h2>On this page</h2>
       <a href="#why">Why Alison Scorpion</a>
-      <a href="#irrs">IRRS &amp; security</a>
       <a href="#stack">Verification stack</a>
       <a href="#agents">Agent ecosystem</a>
       <a href="#ftools">ftools layer</a>
       <a href="#api">API surface</a>
-      <a href="#disclosure">Disclosure maturity</a>
       <a href="#partial">Partial release</a>
+      <a href="#vccl">Continuity learning</a>
       <a href="#quickstart">Quick start</a>
-      <a href="#deferred">Deferred / R+</a>
-      <p style="margin-top:18px;font-size:11px;color:#5a5468">Style note: modeled on clean operator docs (e.g. OpenClaw multi-tenant hosting patterns — trust boundaries, MVP vs deferred).</p>
+      <a href="#private">What stays private</a>
     </aside>
     <main>
       <nav class="top">
         <a href="/">Home</a>
         <a href="/docs/">Docs</a>
-        <a href="/security/">Security</a>
         <a href="/website/staging/home.html">Staging</a>
         <a href="/story/">Story</a>
       </nav>
       <p class="eyebrow" style="margin-top:16px">Knowledgebase · Public</p>
       <h1>Alison Scorpion docs</h1>
-      <div class="banner">R0 Public Doctrine · High-level only. R+ material private. FACT = LAW + RECORD.</div>
-      <p>Operator-focused, scannable doctrine for builders and curious readers. Technical tone. No proprietary math tables, case exhibits, or twin-kit dumps.</p>
+      <div class="banner">High-level public product docs only. FACT = LAW + RECORD.</div>
+      <p>Operator-oriented, scannable guidance for builders and curious readers. No proprietary math tables, case exhibits, or internal security ranking legends.</p>
 
-      <h2 id="why">1. Why Alison Scorpion <span class="mvp">MVP public</span></h2>
+      <h2 id="why">1. Why Alison Scorpion <span class="mvp">public</span></h2>
       <p>Alison Scorpion (ASX) is a <strong style="color:var(--gold-white)">verification-first</strong> governance architecture: index records, map provenance, refuse empty FACT claims, and keep AI synthesis labeled.</p>
       <ul>
         <li><strong style="color:var(--gold-white)">Alice Commands; Scorpion Obeys</strong> — ethics/governance before enforcement.</li>
         <li><strong style="color:var(--gold-white)">SV65H</strong> — LAW + RECORD = FACT; missing either → no FACT claim (HOLD).</li>
-        <li><strong style="color:var(--gold-white)">Dual governance</strong> — product site (this domain) vs story site (Wonderland / metaphor).</li>
+        <li><strong style="color:var(--gold-white)">Dual surfaces</strong> — product site vs story / metaphor site.</li>
       </ul>
 
-      <h2 id="irrs">2. IRRS &amp; security model <span class="mvp">MVP public</span></h2>
-      <p>Before anything is published or spoken in detail, ASX uses two axes:</p>
-      <table>
-        <thead><tr><th>Axis</th><th>Question</th><th>Public rule</th></tr></thead>
-        <tbody>
-          <tr><td><strong>S</strong> storage</td><td>Where may it live?</td><td>Public needs S0</td></tr>
-          <tr><td><strong>R</strong> release</td><td>How bad is premature release?</td><td>Public needs R≤R1</td></tr>
-        </tbody>
-      </table>
-      <p><strong style="color:var(--gold-white)">R+</strong> (R≥2): acknowledge category; refuse payload. No false empty vault. Full abstract: <a href="/security/">/security/</a></p>
-
-      <h2 id="stack">3. The verification stack <span class="mvp">names + purpose</span></h2>
-      <div class="warn">Names and high-level purpose only. Implementable math is R4–R5 under patent hold. Mathematics is never “downvoted”; formulas stay sealed.</div>
+      <h2 id="stack">2. The verification stack <span class="mvp">names + purpose</span></h2>
+      <div class="warn">Names and high-level purpose only. Implementable math is private (patent hold). Mathematics is foundational; formulas stay sealed.</div>
       <ul>
-        <li><strong style="color:var(--gold-white)">S3</strong> — multi-source evidence discipline (public: require support, not vibes).</li>
-        <li><strong style="color:var(--gold-white)">ELI</strong> — Emotional Logical Intelligence: logic under care constraints (not claimed feelings).</li>
-        <li><strong style="color:var(--gold-white)">Alice Fractals / ASX Math</strong> — named verification constructs for structure/stability; <em>no public formulas</em>.</li>
+        <li><strong style="color:var(--gold-white)">S3</strong> — multi-source evidence discipline.</li>
+        <li><strong style="color:var(--gold-white)">ELI</strong> — Emotional Logical Intelligence: logic under care constraints.</li>
+        <li><strong style="color:var(--gold-white)">Alice Fractals / ASX Math</strong> — named verification constructs; <em>no public formulas</em>.</li>
         <li><strong style="color:var(--gold-white)">SV65H / gates</strong> — deterministic release discipline over probabilistic language layers.</li>
       </ul>
 
-      <h2 id="agents">4. Agent ecosystem <span class="mvp">roles abstract</span></h2>
+      <h2 id="agents">3. Agent ecosystem <span class="mvp">roles abstract</span></h2>
       <table>
         <thead><tr><th>Role</th><th>Public description</th></tr></thead>
         <tbody>
-          <tr><td>Supervisor / MGrok</td><td>Routing, security class, dual-site approve</td></tr>
+          <tr><td>Supervisor</td><td>Routing and dual-site approve</td></tr>
           <tr><td>A-ASX</td><td>Product voice; verification-first speech</td></tr>
-          <tr><td>Hermes</td><td>Red/blue review; R+ drift red-team</td></tr>
+          <tr><td>Hermes</td><td>Red/blue review</td></tr>
           <tr><td>OpenClaw</td><td>Content/ops scaffolding patterns</td></tr>
           <tr><td>Codex</td><td>Implementation scaffolding when authorized</td></tr>
         </tbody>
       </table>
 
-      <h2 id="ftools">5. ftools &amp; corpus layer <span class="mvp">workflow names</span></h2>
+      <h2 id="ftools">4. ftools &amp; corpus layer <span class="mvp">workflow names</span></h2>
       <p>High-level only: deterministic corpus tools for map-before-read discipline.</p>
       <pre>findex  → build/consult map (map ≠ SOURCE)
 fverify → proof/receipt patterns
 fmerge  → corpus merge modes (operator)</pre>
       <p class="warn">Maps and receipts are control-plane artifacts. They do not replace primary SOURCE evidence.</p>
 
-      <h2 id="api">6. API surface <span class="mvp">public note</span></h2>
+      <h2 id="api">5. API surface <span class="mvp">public note</span></h2>
       <p>Staging product UI: <a href="/website/staging/home.html">/website/staging/home.html</a>. Prefer loopback API in operator setups. Public static site must not embed secrets.</p>
 
-      <h2 id="disclosure">7. Disclosure maturity &amp; reaction risk <span class="mvp">R0 abstract</span></h2>
-      <p>Truth content can be calm; human reaction (Ψ) may not. Framing and channel matter.</p>
-      <ul>
-        <li><strong style="color:var(--gold-white)">War of the Worlds 1938</strong> — authoritative format + extraordinary claim; modern consensus says nationwide panic was <em>exaggerated</em>, but the media-amplification lesson remains.</li>
-        <li><strong style="color:var(--gold-white)">JFK staged releases</strong> — multi-year batches, redaction, time-delay, later de-redaction, provenance (public pattern for staged transparency).</li>
-      </ul>
-      <p>More: <a href="/security/disclosure-maturity.html">Disclosure maturity</a></p>
+      <h2 id="partial">6. Partial product release <span class="mvp">public</span></h2>
+      <p>Ship <strong style="color:var(--gold-white)">parts</strong> (UI, public docs, abstracts) — not the whole private stack.</p>
 
-      <h2 id="partial">8. Blueprint uniqueness &amp; partial release <span class="mvp">R0</span></h2>
-      <p>Mission: transparent as possible. Constraint: do not gift the full twin-kit. Ship <strong style="color:var(--gold-white)">parts</strong> (UI, doctrine, abstracts) — never the whole private stack. <strong>AND not OR.</strong></p>
-
-      <h2 id="vccl">8b. Continuity learning (not unrestricted RLHF) <span class="mvp">R0 abstract</span></h2>
+      <h2 id="vccl">7. Continuity learning <span class="mvp">abstract</span></h2>
       <p>
-        ASX is designed to keep a <strong style="color:var(--gold-white)">full reasoning trail</strong> (candidates considered, not only the final answer) for memory analysis —
-        similar in spirit to a complete audit package. User signals (“I meant…”, “that helped”) are assessed as meta-feedback.
-        Soft preferences (e.g. recurring taste across chats) may shape <em>how</em> ASX helps when several answers are valid.
+        ASX is designed to keep a full reasoning trail for memory analysis — not only the final answer —
+        and to assess user signals (“I meant…”, “that helped”) as meta-feedback.
+        Soft preferences may shape help when several answers are valid.
       </p>
       <p class="warn">
         Verification supremacy: positive feedback never makes false arithmetic or empty FACT true.
-        Fiction/song must be labeled. Preferences decorate; gates adjudicate. Private implementation details stay off this surface.
+        Preferences decorate; gates adjudicate.
       </p>
 
-      <h2 id="quickstart">9. Quick start <span class="mvp">high-level</span></h2>
+      <h2 id="quickstart">8. Quick start <span class="mvp">high-level</span></h2>
       <ol>
         <li>Read SV65H: no FACT without LAW + RECORD.</li>
         <li>Use public docs + staging UI for review.</li>
@@ -159,17 +133,20 @@ fmerge  → corpus merge modes (operator)</pre>
         <li>Route story/metaphor to the story surface; verification to product.</li>
       </ol>
 
-      <h2 id="deferred">10. Deferred / R+ notes <span class="def">not public</span></h2>
+      <h2 id="private">9. What stays private <span class="mvp">public note</span></h2>
       <div class="card">
-        <p style="margin:0">Detailed implementation, proprietary math, case strategy, credentials, and full gate twin-kit live in <strong style="color:var(--gold-white)">authorized channels only</strong>. Existence of higher tiers may be acknowledged; payloads are refused on this surface.</p>
+        <p style="margin:0">
+          Proprietary math, case strategy, credentials, full gate twin-kit, and
+          <strong style="color:var(--gold-white)">internal security ranking legends</strong>
+          are not published on this site. Authorized channels only.
+        </p>
       </div>
 
-      <p class="feedback">Was this useful? Reply via your operator channel (Yes / No + note). No automated telemetry on this static page.</p>
       <footer>
-        IRRS S0 · R0 · Public KB · 2026-07-13 ·
+        Public knowledgebase ·
         <a href="/">Home</a> ·
-        <a href="/story/">Story preview</a> ·
-        Staging product: <a href="/website/staging/home.html">home.html</a>
+        <a href="/story/">Story</a> ·
+        Staging: <a href="/website/staging/home.html">home.html</a>
       </footer>
     </main>
   </div>

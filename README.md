@@ -2,16 +2,20 @@
 
 Public GitHub Pages site for **[alisonscorpion.com](https://alisonscorpion.com)**.
 
-## IRRS
-
-Only **S0** and **R0–R1** material. No case exhibits, secrets, or R+ payloads.
+## Paths
 
 | Path | Purpose |
 |------|---------|
-| `/` | R0 product homepage |
-| `/security/` | IRRS classification abstract |
-| `/security/disclosure-maturity.html` | Disclosure maturity / reaction risk (R0) |
-| `/website/staging/` | Product UI (from monorepo `website/` deploy) |
+| `/` | Product homepage |
+| `/docs/` | Public knowledgebase (high-level) |
+| `/story/` | Story / TrippyAlice preview |
+| `/website/staging/home.html` | Product UI preview |
+
+## Do not publish on this site
+
+- Internal **security ranking legends** (IRRS and related private doctrine) — monorepo only  
+- Case exhibits, secrets, proprietary math formulas, twin-kit dumps  
+- Private monorepo wholesale  
 
 ## Dual site
 

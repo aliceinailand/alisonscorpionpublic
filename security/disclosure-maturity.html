@@ -3,133 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Disclosure Maturity &amp; Reaction Risk — Alison Scorpion</title>
-  <meta name="description" content="R0 abstract: truth content vs human reaction risk; redaction and time-delay patterns as operational analogies." />
-  <link rel="canonical" href="https://alisonscorpion.com/security/disclosure-maturity.html" />
+  <title>Redirect — Alison Scorpion</title>
+  <meta http-equiv="refresh" content="0;url=/" />
+  <link rel="canonical" href="https://alisonscorpion.com/" />
   <style>
-    :root {
-      --bg: #0a0809; --panel: #13111a; --border: #2d1b4e; --brand: #a78bfa;
-      --gold: #c8a35a; --gold-white: #f5edd8; --text: #e8e6f0; --dim: #8b849c;
-      --pass: #34d399; --data: #22d3ee;
-      --sans: Inter, system-ui, sans-serif; --mono: ui-monospace, Consolas, monospace;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.65;
-      background-image: radial-gradient(800px 360px at 0% 0%, rgba(200,163,90,0.08), transparent 50%); }
-    a { color: var(--brand); }
-    a:hover { color: var(--gold-white); }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 56px; }
-    .eyebrow { color: var(--brand); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
-    h1 { font-size: 1.65rem; margin: 10px 0 12px; color: var(--gold-white); }
-    h2 { font-size: 1.05rem; margin: 26px 0 10px; color: var(--brand); }
-    p, li { color: var(--dim); font-size: 0.95rem; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
-      background: rgba(167,139,250,0.12); color: var(--gold-white); font-family: var(--mono); font-size: 11px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
-    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
-    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
-    th { background: #0c0a12; color: var(--gold-white); }
-    td { color: var(--dim); }
-    footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: #5a5468; }
-    nav a { margin-right: 14px; font-size: 13px; }
-    .note { font-size: 12px; color: #5a5468; border-left: 2px solid var(--gold); padding-left: 12px; margin: 16px 0; }
+    body { font-family: system-ui, sans-serif; background: #0a0809; color: #8b849c; padding: 48px 24px; }
+    a { color: #a78bfa; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <nav>
-      <a href="/">← Home</a>
-      <a href="/security/">IRRS classification</a>
-      <a href="/website/staging/home.html">Product UI</a>
-      <a href="/docs/">Docs</a>
-      <a href="/story/">Story</a>
-    </nav>
-    <p class="eyebrow" style="margin-top:18px">Doctrine · R0</p>
-    <h1>Disclosure maturity &amp; reaction risk</h1>
-    <p class="badge">Public abstract · S0 · R0 · pattern only</p>
-
-    <div class="card">
-      <h2 style="margin-top:0">Core distinction</h2>
-      <p>
-        Some information is held back <strong style="color:var(--gold-white)">not because the truth itself is evil</strong>,
-        but because <strong style="color:var(--gold-white)">broadcast can break people or institutions</strong>
-        before they can receive it safely.
-      </p>
-      <p style="margin-bottom:0">
-        Truth content may be neutral or peaceful. The danger locus is often the
-        <strong style="color:var(--gold-white)">human reaction</strong> (Ψ dimension) — panic, rumor, market fracture —
-        not only the payload.
-      </p>
-    </div>
-
-    <h2>War of the Worlds pattern (1938-10-30)</h2>
-    <p>
-      Orson Welles / Mercury Theatre framed H.G. Wells as breaking news. Contemporary papers reported
-      mass panic. <strong style="color:var(--gold-white)">Modern consensus</strong> (e.g. W. Joseph Campbell;
-      Robert E. Bartholomew; BBC/Smithsonian summaries): nationwide hysteria was
-      <em>significantly exaggerated</em> — many recognized drama; print had incentives to amplify radio’s danger;
-      call volume ≠ street chaos.
-    </p>
-    <p>
-      ASX lesson: <strong style="color:var(--gold-white)">framing + medium + timing</strong> drive reaction risk (Ψ)
-      as much as content. Even fiction in authoritative format can create amplification stories.
-      Disclosure design must account for channel maturity — not only payload truth.
-    </p>
-
-    <h2>Archival redaction as operational analogy (JFK staged release)</h2>
-    <p>
-      The JFK Assassination Records Collection Act of 1992 and multi-year National Archives batches illustrate
-      <em>operational patterns</em> (not ASX case claims):
-    </p>
-    <ul>
-      <li><strong style="color:var(--gold-white)">Staged / batched</strong> — not one dump over decades</li>
-      <li><strong style="color:var(--gold-white)">Redaction + time-delay</strong> — living persons, process, sensitivity</li>
-      <li><strong style="color:var(--gold-white)">Later de-redaction</strong> — risk can fall; later waves open earlier holds</li>
-      <li><strong style="color:var(--gold-white)">Provenance</strong> — identifiers and “why held” documentation</li>
-    </ul>
-    <p class="note">
-      This page does not re-publish classified or private records. It describes <em>patterns of release design</em>
-      used in public policy debates, translated into ASX’s IRRS language.
-    </p>
-
-    <h2>ASX translation (R0)</h2>
-    <table>
-      <thead>
-        <tr><th>Pattern</th><th>ASX handling</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Redaction</td><td>Honest partial presence: “here is the file class” with R+ held back</td></tr>
-        <tr><td>Time-delay</td><td>Withhold state (W) with a clock — not permanent false absence</td></tr>
-        <tr><td>Maturity gate</td><td>Model truth content <em>and</em> reaction risk before full public dump</td></tr>
-        <tr><td>Partial product</td><td>Ship modules and surfaces; never the whole private twin-kit</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Four information states (public names)</h2>
-    <ul>
-      <li><strong style="color:var(--gold-white)">K</strong> — Known (grounded): speak at R0–R1 if public</li>
-      <li><strong style="color:var(--gold-white)">SK</strong> — Should be known, isn’t yet: research gap, don’t invent</li>
-      <li><strong style="color:var(--gold-white)">IK</strong> — Isn’t known, should be: HOLD + gap report</li>
-      <li><strong style="color:var(--gold-white)">W</strong> — Withheld for maturity / reaction risk: R+ speak; no panic dump</li>
-    </ul>
-    <p>
-      <strong style="color:var(--pass)">W is not gaslight.</strong>
-      W is: this class is not for full public detail on this channel; we will not invent; we will not pretend the category is empty if the system holds it.
-    </p>
-
-    <div class="card">
-      <h2 style="margin-top:0">Relation to IRRS</h2>
-      <p style="margin-bottom:0">
-        Full ranking tables and private scoring live in the private monorepo.
-        Public rule remains: only <strong>S0 and R≤R1</strong> on this domain.
-        See <a href="/security/">Security &amp; classification</a>.
-      </p>
-    </div>
-
-    <footer>
-      Disclosure maturity abstract · S0 R0 · 2026-07-13 · pattern / doctrine only ·
-      <a href="/">Home</a>
-    </footer>
-  </div>
+  <p>This page has been removed from the public site.</p>
+  <p><a href="/">← Home</a></p>
 </body>
 </html>
