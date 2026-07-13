@@ -15,7 +15,9 @@ Public GitHub Pages site for **alisonscorpion.com**.
 - FACT = LAW + RECORD (SV65H). Do not invent facts.
 - Always-on disclaimer: AI cannot guarantee anything; it does its best.
 - **ASX Math patent hold:** No implementable Alison Scorpion Math on this public site.
-- **IRRS / internal security ranking legends are PRIVATE.** Do **not** publish IRRS tables, R0–R5 scales, S0–S4 storage class legends, or “R+ speak” playbooks on this public site. That material stays in the private monorepo (`agents/Research/security/`). Publishing it is a security failure.
+- **IRRS / internal security ranking legends are not on the public site map.** Do **not** link them from homepage, docs, story, or staging nav (“public/exposed” = discoverable from main site chrome).
+- **Operator-view path (unlinked, noindex):** `https://alisonscorpion.com/ops/security/` and `…/ops/security/disclosure-maturity.html` — Alice/operators may open by direct URL; do not add main-nav links.
+- Full doctrine source remains in private monorepo `agents/Research/security/`.
 
 ## Deploy notes
 

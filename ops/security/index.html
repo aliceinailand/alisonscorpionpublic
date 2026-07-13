@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Security &amp; Classification — Alison Scorpion</title>
+  <meta name="description" content="IRRS public abstract: S storage class + R release rank. R0–R1 public; R+ existence without payload." />
+  <link rel="canonical" href="https://alisonscorpion.com/security/" />
+  <style>
+    :root {
+      --bg: #0a0809; --panel: #13111a; --border: #2d1b4e; --brand: #a78bfa;
+      --gold: #c8a35a; --gold-white: #f5edd8; --text: #e8e6f0; --dim: #8b849c;
+      --pass: #34d399; --data: #22d3ee; --fail: #f87171;
+      --sans: Inter, system-ui, sans-serif; --mono: ui-monospace, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.65;
+      background-image: radial-gradient(900px 400px at 90% 0%, rgba(124,58,237,0.15), transparent 50%); }
+    a { color: var(--brand); }
+    a:hover { color: var(--gold-white); }
+    .wrap { max-width: 800px; margin: 0 auto; padding: 28px 18px 56px; }
+    .eyebrow { color: var(--brand); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+    h1 { font-size: 1.75rem; margin: 10px 0 12px; color: var(--gold-white); }
+    h2 { font-size: 1.1rem; margin: 28px 0 10px; color: var(--brand); }
+    p, li { color: var(--dim); font-size: 0.95rem; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+      background: rgba(52,211,153,0.1); color: var(--pass); font-family: var(--mono); font-size: 11px; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #0c0a12; color: var(--gold-white); }
+    td { color: var(--dim); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+    code { font-family: var(--mono); color: var(--data); font-size: 0.88em; }
+    nav a { margin-right: 14px; font-size: 13px; }
+    footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: #5a5468; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a href="/">← Home</a>
+      <a href="/website/staging/home.html">Product UI (staging)</a>
+      <a href="/security/disclosure-maturity.html">Disclosure maturity</a>
+    </nav>
+    <p class="eyebrow" style="margin-top:18px">Security · Classification</p>
+    <h1>IRRS — Internal Release Ranking System</h1>
+    <p class="badge">Public abstract · S0 · R0</p>
+    <p style="margin-top:16px">
+      Alison Scorpion uses a dual-axis ranking before anything is published or spoken in detail:
+      <strong style="color:var(--gold-white)">S</strong> (where may it live?) and
+      <strong style="color:var(--gold-white)">R</strong> (how bad is premature release?).
+    </p>
+
+    <div class="card">
+      <h2 style="margin-top:0">Publish rule (public sites)</h2>
+      <p style="margin-bottom:0">
+        Public path requires <code>S = 0</code> <strong>and</strong> <code>R ≤ R1</code>, plus placement discipline.
+        This homepage, security abstracts, and the staging product UI are designed to that standard.
+      </p>
+    </div>
+
+    <h2>Release ranks (R0–R5)</h2>
+    <table>
+      <thead>
+        <tr><th>R</th><th>Meaning</th><th>Public?</th><th>Detail speech</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>R0</strong></td><td>No meaningful consequence</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><strong>R1</strong></td><td>Low / awkward only</td><td>Usually</td><td>Yes</td></tr>
+        <tr><td><strong>R2</strong></td><td>IP / competitive playbook</td><td>No</td><td>Existence + abstract</td></tr>
+        <tr><td><strong>R3</strong></td><td>Privacy / legal-strategy harm</td><td>No</td><td>Existence + refuse payload</td></tr>
+        <tr><td><strong>R4</strong></td><td>Severe privacy / serious harm</td><td>Forbidden</td><td>Existence + refuse</td></tr>
+        <tr><td><strong>R5</strong></td><td>Secrets / keys</td><td>Catastrophic</td><td>Existence + refuse</td></tr>
+      </tbody>
+    </table>
+    <p><strong style="color:var(--gold-white)">R+</strong> means R≥2. ASX may acknowledge that a class of material exists without dumping detail. False denial of existence is not the policy.</p>
+
+    <h2>What public surfaces may include</h2>
+    <ul>
+      <li>Doctrine <em>names</em> (SV65H, ELI, gates) at high level</li>
+      <li>Product UI demos and staging builds scrubbed of secrets</li>
+      <li>Security/classification abstracts (this page)</li>
+      <li>Always-on accuracy disclaimers</li>
+    </ul>
+
+    <h2>What stays private</h2>
+    <ul>
+      <li>Case exhibits, strategy, third-party PII</li>
+      <li>Credentials, full proprietary gate implementations</li>
+      <li><strong style="color:var(--gold-white)">Alison Scorpion Math</strong> detail (formulas, tables, proofs) — <strong>R4–R5 (floor R4)</strong>; existence may be acknowledged, payload refused</li>
+      <li><strong style="color:var(--gold-white)">Patent hold:</strong> ASX mathematics is not revealed publicly until patent / provisional options (or part-of-formula strategy) are clearer. Alice lifts this — agents do not.</li>
+      <li>Adversarial playbooks and full gate twin-kit dumps</li>
+      <li>Whole monorepo “twin-kit” dumps — partial product release only</li>
+    </ul>
+    <p>
+      Public rule of thumb: <strong style="color:var(--gold-white)">doctrine names and purpose are fine; implementable math is not — and is under patent hold.</strong>
+    </p>
+
+    <div class="card">
+      <h2 style="margin-top:0">Process without payload (tutor mode)</h2>
+      <p>
+        When detail is ranked R+, ASX may still help the way a tutor helps with homework:
+        explain <em>process</em> (what checks matter, what good evidence looks like, what HOLD means)
+        without handing over the <strong style="color:var(--gold-white)">answer key</strong>
+        (formulas, twin-kit math, sealed strategy, secrets).
+        If a “process” lets someone reconstruct the restricted answer, it is still a leak.
+      </p>
+      <p style="margin-bottom:0;font-size:13px;color:var(--dim)">
+        Public modes: existence · purpose · process map · qualitative outcomes · Socratic questions · black-box contracts · synthetic demos.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Epistemic honesty</h2>
+      <p>
+        Not knowing private code from a public channel is not lying. Inventing sources is.
+        Instrumental knowing: something may be real and still unshared — like DNA in a swab —
+        without ASX inventing or gaslighting about its absence.
+      </p>
+      <p style="margin-bottom:0">
+        See also: <a href="/security/disclosure-maturity.html">Disclosure maturity &amp; reaction risk</a>
+        (War of the Worlds pattern; archival redaction as operational analogy).
+      </p>
+    </div>
+
+    <h2>Dual sites</h2>
+    <ul>
+      <li><strong style="color:var(--gold-white)">alisonscorpion.com</strong> — product / verification</li>
+      <li><strong style="color:var(--gold-white)">trippyalice.com</strong> — story / metaphor (planned; not a case dump)</li>
+    </ul>
+
+    <footer>
+      IRRS public abstract · S0 R0 · 2026-07-13 ·
+      <a href="/">Home</a> ·
+      <a href="/website/staging/home.html">Staging product</a>
+    </footer>
+  </div>
+</body>
+</html>

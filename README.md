@@ -11,11 +11,14 @@ Public GitHub Pages site for **[alisonscorpion.com](https://alisonscorpion.com)*
 | `/story/` | Story / TrippyAlice preview |
 | `/website/staging/home.html` | Product UI preview |
 
-## Do not publish on this site
+## Do not put on the public site map
 
-- Internal **security ranking legends** (IRRS and related private doctrine) — monorepo only  
+- Internal security ranking pages must **not** be linked from homepage / docs / story / staging nav  
+- Operator-view (direct URL only, noindex): `/ops/security/`  
 - Case exhibits, secrets, proprietary math formulas, twin-kit dumps  
 - Private monorepo wholesale  
+
+Full IRRS source: private monorepo `agents/Research/security/`
 
 ## Dual site
 
