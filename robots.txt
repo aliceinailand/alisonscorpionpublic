@@ -1,0 +1,24 @@
+# Alison Scorpion public site
+# Operator-only paths: request no index / no archive. Not a guarantee —
+# third-party archives (e.g. Internet Archive) may not honor robots flags.
+
+User-agent: *
+Disallow: /ops/
+Disallow: /ops/security/
+Disallow: /security/
+
+# Internet Archive / common archive bots (best-effort; not cryptographically binding)
+User-agent: ia_archiver
+Disallow: /ops/
+Disallow: /ops/security/
+Disallow: /security/
+
+User-agent: archive.org_bot
+Disallow: /ops/
+Disallow: /ops/security/
+Disallow: /security/
+
+User-agent: Wayback
+Disallow: /ops/
+Disallow: /ops/security/
+Disallow: /security/

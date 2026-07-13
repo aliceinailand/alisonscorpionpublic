@@ -16,7 +16,8 @@ Public GitHub Pages site for **alisonscorpion.com**.
 - Always-on disclaimer: AI cannot guarantee anything; it does its best.
 - **ASX Math patent hold:** No implementable Alison Scorpion Math on this public site.
 - **IRRS / internal security ranking legends are not on the public site map.** Do **not** link them from homepage, docs, story, or staging nav (“public/exposed” = discoverable from main site chrome).
-- **Operator-view path (unlinked, noindex):** `https://alisonscorpion.com/ops/security/` and `…/ops/security/disclosure-maturity.html` — Alice/operators may open by direct URL; do not add main-nav links.
+- **Operator-view path (unlinked, noindex, nofollow, noarchive + robots.txt Disallow /ops/):** `https://alisonscorpion.com/ops/security/` and `…/ops/security/disclosure-maturity.html` — Alice/operators may open by direct URL; do not add main-nav links.
+- **Archive honesty:** `noarchive` + robots Disallow are **requests**, not guarantees. archive.org and similar may still capture pages. For material that must never appear on the public web at all, keep it monorepo-only (not on Pages).
 - Full doctrine source remains in private monorepo `agents/Research/security/`.
 
 ## Deploy notes
