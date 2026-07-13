@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alison Scorpion — Verification-first AI governance</title>
+  <meta name="description" content="Alison Scorpion (ASX): verification-first platform. Alice Commands; Scorpion Obeys. Public R0 doctrine only. FACT = LAW + RECORD." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://alisonscorpion.com/" />
+  <style>
+    :root {
+      --bg: #0a0809;
+      --panel: #13111a;
+      --border: #2d1b4e;
+      --brand: #a78bfa;
+      --brand-deep: #7c3aed;
+      --gold: #c8a35a;
+      --gold-white: #f5edd8;
+      --text: #e8e6f0;
+      --dim: #8b849c;
+      --pass: #34d399;
+      --data: #22d3ee;
+      --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --display: "Georgia", "Times New Roman", serif;
+      --mono: ui-monospace, "JetBrains Mono", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      background-image: radial-gradient(1000px 500px at 10% -10%, rgba(124,58,237,0.22), transparent 55%);
+    }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; color: var(--gold-white); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 64px; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
+      font-weight: 600;
+      margin: 10px 0 12px;
+      letter-spacing: -0.02em;
+    }
+    h1 span { color: var(--brand); }
+    .lead { color: var(--dim); font-size: 1.05rem; max-width: 40rem; }
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(167,139,250,0.12);
+      color: var(--gold-white);
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      min-height: 44px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none !important;
+    }
+    .btn-primary {
+      background: var(--brand-deep);
+      color: var(--gold-white);
+      border-color: rgba(245,237,216,0.22);
+      box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+    }
+    .btn-primary:hover { background: #8b5cf6; color: #fff; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--gold-white);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin: 16px 0;
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: var(--gold-white);
+    }
+    h3 { margin: 16px 0 8px; font-size: 0.95rem; color: var(--brand); }
+    p, li { color: var(--dim); font-size: 0.95rem; }
+    ul { padding-left: 1.2rem; }
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      background: #0c0a12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .card strong { color: var(--gold-white); display: block; margin-bottom: 6px; }
+    code, .mono { font-family: var(--mono); font-size: 0.85em; color: var(--data); }
+    footer {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--dim);
+    }
+    footer .irrs { color: var(--pass); font-family: var(--mono); font-size: 11px; }
+    .disclaimer {
+      background: rgba(15,12,20,0.9);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--dim);
+      margin: 18px 0;
+    }
+    .disclaimer strong {
+      color: var(--brand);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 10px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">♛ Alison Scorpion · ASX</div>
+      <h1>Verification-first platform for <span>human–AI alignment</span></h1>
+      <p class="lead">
+        Alice Commands. Scorpion Obeys. A local-first verification architecture:
+        gates, record discipline, and auditable decisions — not a general chatbot replacement.
+      </p>
+      <span class="badge">Public surface · IRRS S0 · R0–R1 only</span>
+      <nav>
+        <a class="btn btn-primary" href="/website/staging/">Open product UI (staging)</a>
+        <a class="btn btn-ghost" href="/security/">Security &amp; classification</a>
+        <a class="btn btn-ghost" href="/security/disclosure-maturity.html">Disclosure maturity</a>
+        <a class="btn btn-ghost" href="https://github.com/aliceinailand/alisonscorpionpublic">GitHub public</a>
+      </nav>
+    </header>
+
+    <div class="disclaimer">
+      <strong>Disclaimer</strong>
+      AI cannot guarantee anything. It does its best. 100% accuracy is not possible where infinite
+      uncertainty exists. <span class="mono">FACT = LAW + RECORD</span> (SV65H). Missing either → HOLD.
+      This site is high-level public doctrine only.
+    </div>
+
+    <section>
+      <h2>What this is</h2>
+      <p>
+        <strong style="color:var(--gold-white)">Alison Scorpion (ASX)</strong> is a verification-first
+        control framework: evidence maps, contradiction checks, ethical weighting (ELI), and multi-agent
+        review lanes — with provenance honesty. Symbolic names (Alice, Scorpion, Ouroboros) are routing
+        mnemonics for real gates and ledgers, not mysticism.
+      </p>
+      <div class="grid" style="margin-top:14px">
+        <div class="card">
+          <strong>Product site</strong>
+          alisonscorpion.com — instrument panel: UI, doctrine names, public abstracts.
+        </div>
+        <div class="card">
+          <strong>Story site (planned)</strong>
+          trippyalice.com — Wonderland / metaphor / origin narrative. Sibling, not competitor.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Doctrine (public names only)</h2>
+      <ul>
+        <li><strong style="color:var(--gold-white)">SV65H</strong> — LAW + RECORD = FACT; missing either → no FACT claim.</li>
+        <li><strong style="color:var(--gold-white)">Alice Commands; Scorpion Obeys</strong> — ethics/governance before enforcement.</li>
+        <li><strong style="color:var(--gold-white)">Provenance honesty</strong> — SOURCE ≠ map ≠ AI synthesis; labels stay distinct.</li>
+        <li><strong style="color:var(--gold-white)">IRRS / R+</strong> — public only when storage class S0 and release rank R0–R1; R+ may acknowledge existence without dumping payload.</li>
+        <li><strong style="color:var(--gold-white)">Partial product release</strong> — ship surfaces and modules; never the whole private monorepo twin-kit.</li>
+      </ul>
+      <p style="margin-bottom:0">
+        Detailed math, case records, gate prompt libraries, and R+ material are <em>not</em> on this public surface.
+        Authorized channels only.
+      </p>
+    </section>
+
+    <section>
+      <h2>Where to go</h2>
+      <ul>
+        <li><a href="/website/staging/">Product UI (staging)</a> — live dashboard under active development (System / Light / Dark / White themes).</li>
+        <li><a href="/security/">Security &amp; classification</a> — IRRS quick view (R0 abstract).</li>
+        <li><a href="/security/disclosure-maturity.html">Disclosure maturity</a> — reaction risk &amp; redaction patterns (R0).</li>
+        <li><a href="/website/">Website channels</a> — staging index.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What we do not publish here</h2>
+      <ul>
+        <li>Private case exhibits, legal strategy, or third-party PII</li>
+        <li>Secrets, credentials, API keys, or full proprietary gate implementations</li>
+        <li>R+ fractal math tables or full adversarial playbooks</li>
+        <li>Whole-stack monorepo dumps (Claude Code–style full exposure is the anti-pattern)</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p class="irrs">IRRS tag: S0 · R0 · public product homepage · 2026-07-13</p>
+      <p>
+        Alice Commands. Scorpion Obeys. ·
+        <a href="/security/">Classification doctrine</a> ·
+        Staging: <a href="/website/staging/">/website/staging/</a>
+      </p>
+      <p style="margin-bottom:0;color:#5a5468">
+        Grok by xAI only in ASX agent branding. ASX is ASX — not Claude, not a chatbot clone.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
