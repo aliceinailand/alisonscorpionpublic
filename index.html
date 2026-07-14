@@ -155,6 +155,60 @@
       font-size: 10px;
       margin-right: 8px;
     }
+    .tier-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      margin-top: 14px;
+    }
+    @media (min-width: 640px) {
+      .tier-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 900px) {
+      .tier-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+    .tier {
+      background: #0c0a12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 12px;
+      min-height: 120px;
+    }
+    .tier .name {
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .tier .price {
+      font-family: var(--display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gold-white);
+      margin: 6px 0 8px;
+    }
+    .tier ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      font-size: 0.8rem;
+    }
+    .domain-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .chip {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--gold-white);
+      background: rgba(167,139,250,0.08);
+    }
+    .chip em { color: var(--dim); font-style: normal; font-size: 10px; margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -169,7 +223,9 @@
       <span class="badge">Public product surface</span>
       <nav>
         <a class="btn btn-primary" href="/website/staging/home.html">Open product UI (staging)</a>
+        <a class="btn btn-ghost" href="/website/staging/home.html#legal">Legal · plans</a>
         <a class="btn btn-ghost" href="/docs/">Knowledgebase</a>
+        <a class="btn btn-ghost" href="/docs/pricing.html">Plans one-pager</a>
         <a class="btn btn-ghost" href="/story/">Story (TrippyAlice preview)</a>
       </nav>
     </header>
@@ -178,7 +234,74 @@
       <strong>Disclaimer</strong>
       AI cannot guarantee anything. It does its best. 100% accuracy is not possible where infinite
       uncertainty exists. <span class="mono">FACT = LAW + RECORD</span> (SV65H). Missing either → HOLD.
+      ASX provides <strong style="color:var(--gold-white);text-transform:none;letter-spacing:0;font-size:12px">record-supported legal guidance</strong>
+      and light educational legal information. It does <strong style="color:var(--gold-white);text-transform:none;letter-spacing:0;font-size:12px">not</strong>
+      replace a licensed attorney or law firm. No court outcomes are promised.
     </div>
+
+    <section id="plans" aria-labelledby="plans-heading">
+      <h2 id="plans-heading">Plans preview · Legal section</h2>
+      <p>
+        Design display only — <strong style="color:var(--gold-white)">not a live checkout</strong>.
+        Hybrid scheme: seats + matters + verification units. Primary domain today is
+        <strong style="color:var(--gold-white)">Legal</strong>; Chat, Tutor, and Organization are reserved
+        (chatbot / education / gov–business — naming TBD).
+      </p>
+      <div class="domain-chips" aria-label="Product domains">
+        <span class="chip">Legal <em>primary</em></span>
+        <span class="chip">Chat <em>planned</em></span>
+        <span class="chip">Tutor <em>planned</em></span>
+        <span class="chip">Organization <em>planned</em></span>
+      </div>
+      <div class="tier-grid">
+        <div class="tier">
+          <div class="name">Free</div>
+          <div class="price">$0</div>
+          <ul>
+            <li>Public site · Concepts</li>
+            <li>Demo only</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="name">Solo</div>
+          <div class="price">$49/mo</div>
+          <ul>
+            <li>Local-first · FMS</li>
+            <li>SV65H · 3 matters</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="name">Pro</div>
+          <div class="price">$149/seat</div>
+          <ul>
+            <li>Multi-matter</li>
+            <li>BYO LLM keys</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="name">Team</div>
+          <div class="price">$99/seat</div>
+          <ul>
+            <li>Shared library</li>
+            <li>Admin · audit</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="name">Enterprise</div>
+          <div class="price">Custom</div>
+          <ul>
+            <li>On-prem / hybrid</li>
+            <li>SLA · services</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin:14px 0 0;font-size:12px">
+        INDICATIVE design prices. Full one-pager:
+        <a href="/docs/pricing.html">/docs/pricing.html</a>
+        · Product Legal view:
+        <a href="/website/staging/home.html">staging UI → Legal</a>
+      </p>
+    </section>
 
     <section>
       <h2>What this is</h2>
