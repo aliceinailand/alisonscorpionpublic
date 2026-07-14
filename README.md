@@ -15,7 +15,7 @@ Public GitHub Pages site for **[alisonscorpion.com](https://alisonscorpion.com)*
 
 - Internal security ranking pages must **not** be linked from homepage / docs / story / staging nav  
 - Operator-view (direct URL only, noindex): `/ops/security/`  
-- Case exhibits, secrets, proprietary math formulas, twin-kit dumps  
+- Case exhibits, secrets, private monorepo research dumps
 - Private monorepo wholesale  
 
 Full IRRS source: private monorepo `agents/Research/security/`
