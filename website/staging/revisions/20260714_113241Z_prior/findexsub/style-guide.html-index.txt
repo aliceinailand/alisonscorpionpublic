@@ -1,0 +1,172 @@
+FINDEX FILE INDEX
+=================
+FINDEX HARDENED INTELLIGENCE MAP
+================================
+index_version: findex-asx-beta-2026-06-29
+generated: 2026-07-14 15:34:21
+file: /home/alice/alisonscorpion/website/staging/revisions/20260714_113241Z_prior/style-guide.html
+basename: style-guide.html
+extension: html
+mime_type: text/html
+size: 18.8KB
+size_bytes: 19236
+modified: 2026-07-14T05:29:57.676661
+sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf
+extracted_text_sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf
+
+DOCUMENT COUNTS
+---------------
+pages: 1
+lines: 583
+words: 2224
+characters: 18856
+paragraphs: 11
+
+EXTRACTION / READ STATUS
+------------------------
+extractor: text
+read_status: COMPLETE
+page_coverage: 1/1
+extraction_coverage: 1.0
+
+ASX WAKE MAP
+------------
+detected_file_mode: SOURCE_FILE
+detected_roles: RECORD
+primary_domains: ai, legal, medical, code, government
+operational_mode: RECORD_MAPPING
+instruction: read this map before analyzing the source; do not infer missing context.
+
+ASX GATE PROFILE
+----------------
+Gate 0: domain / intent / risk classification
+Gate 1: harm / safety / rights-impact check
+Gate 2A: verification mode if record/evidence/law
+Gate 2B: creative / education mode only if domain permits
+Gate 4: source/citation wall
+Gate 5: adversarial simulation when contradiction/delta is detected
+Gate 6: clarification / explicit assumptions
+Gate 8: audit / rewind / correction
+
+CATEGORY PROFILE
+----------------
+ai: score=1.0 hits=35 pages=1
+legal: score=0.5 hits=4 pages=1
+medical: score=0.375 hits=3 pages=1
+code: score=0.375 hits=3 pages=1
+government: score=0.125 hits=1 pages=1
+
+SOURCE MAP
+----------
+source_units: 1
+page_anchors:
+  Page 1: 2224 words | <!DOCTYPE html> <html lang="en">
+
+PATTERNS DETECTED
+-----------------
+- authority_law: confidence=1.0 hits=20 pages=1
+  dense_pages: 1
+  sample: <!DOCTYPE html> <html lang="en">
+- verification: confidence=1.0 hits=10 pages=1
+  dense_pages: 1
+  sample: <!DOCTYPE html> <html lang="en">
+- email_chain: confidence=1.0 hits=7 pages=1
+  dense_pages: 1
+  sample: <!DOCTYPE html> <html lang="en">
+- timeline_sequence: confidence=0.4 hits=2 pages=1
+  dense_pages: 1
+  sample: <!DOCTYPE html> <html lang="en">
+- record_delta: confidence=0.2 hits=1 pages=1
+  dense_pages: 1
+  sample: <!DOCTYPE html> <html lang="en">
+
+RELATIONSHIP MAP
+----------------
+- pattern:authority_law -> domains:ai, legal, medical, code, government -> pages:1
+- pattern:verification -> domains:ai, legal, medical, code, government -> pages:1
+- pattern:email_chain -> domains:ai, legal, medical, code, government -> pages:1
+- pattern:timeline_sequence -> domains:ai, legal, medical, code, government -> pages:1
+- pattern:record_delta -> domains:ai, legal, medical, code, government -> pages:1
+
+WEBSITE REFERENCES
+------------------
+- fonts.googleapis.com (1 time)
+- github.com (1 time)
+- jocar-audit.vercel.app (1 time)
+
+URL REFERENCES
+--------------
+- https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@500;600;700&display=swap (1 time)
+- https://github.com/Reblis/style-guide-skill (1 time)
+- https://jocar-audit.vercel.app/ (1 time)
+
+FILE / PATH REFERENCES
+----------------------
+not detected
+
+EMAIL REFERENCES
+----------------
+not detected
+
+DATE REFERENCES
+---------------
+- 2026-07-11 (1 time)
+
+STATUTE / LAW REFERENCES
+------------------------
+not detected
+
+CASE / TRACKING REFERENCES
+--------------------------
+not detected
+
+HASH REFERENCES
+---------------
+not detected
+
+GAP MAP
+-------
+- URL references exist; external verification may be needed before relying on linked source content.
+
+ASZM / FASZM EVIDENCE RADAR
+---------------------------
+status: inactive
+reason: ASZM/FASZM is manual only. Use findex --evidence FILE or findex --aszm FILE.
+
+AI RETRIEVAL PLAN
+-----------------
+start_with_pattern_zones:
+- authority_law: pages 1
+- verification: pages 1
+- email_chain: pages 1
+- timeline_sequence: pages 1
+- record_delta: pages 1
+verify_external_urls_before_reliance: yes
+
+MAP QUALITY SCORE
+-----------------
+map_quality_score: 0.887
+coverage_component: read status + extraction coverage
+domain_component: detected categories with page ranges
+pattern_component: pattern zones detected across pages
+reference_component: URLs/files/emails/dates/statutes/cases/hashes
+role_component: source/map/proof/corpus role detection
+
+MAP VS TERRITORY CHECK
+----------------------
+SOURCE / RECORD blocks are evidence.
+LAW blocks are authority/reference.
+FINDEX_MAP blocks are navigation.
+FVERIFY_PROOF blocks are proof-of-processing.
+MANIFEST blocks are lineage/audit metadata.
+VISUAL_EVIDENCE blocks require image/OCR review when text extraction is weak.
+Do not cite map/proof text as source evidence unless the claim is about the map/proof itself.
+
+AI USE CONTRACT
+---------------
+Use this index as the file map before source analysis.
+Do not skip low-weight pages; weights set review order, not omission.
+Use UNKNOWN when the source or map does not support a claim.
+If referenced files or URLs are missing, ask for them before final conclusions.
+When ASZM is inactive, do not claim ASZM evidence scoring was performed.
+When ASZM is active, distinguish recorded delta from unsupported escape.

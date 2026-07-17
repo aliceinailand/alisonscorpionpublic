@@ -1,0 +1,140 @@
+FINDEX FILE INDEX
+=================
+FINDEX HARDENED INTELLIGENCE MAP
+================================
+index_version: findex-asx-beta-2026-06-29
+generated: 2026-07-14 15:34:23
+file: /home/alice/alisonscorpion/website/staging/revisions/20260714_142709Z_prior/index.html
+basename: index.html
+extension: html
+mime_type: text/html
+size: 2.4KB
+size_bytes: 2479
+modified: 2026-07-14T05:50:29.082857
+sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+extracted_text_sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+
+DOCUMENT COUNTS
+---------------
+pages: 1
+lines: 82
+words: 293
+characters: 2472
+paragraphs: 10
+
+EXTRACTION / READ STATUS
+------------------------
+extractor: text
+read_status: COMPLETE
+page_coverage: 1/1
+extraction_coverage: 1.0
+
+ASX WAKE MAP
+------------
+detected_file_mode: SOURCE_FILE
+detected_roles: SOURCE
+primary_domains: ai
+operational_mode: GENERAL_MAPPING
+instruction: read this map before analyzing the source; do not infer missing context.
+
+ASX GATE PROFILE
+----------------
+Gate 0: domain / intent / risk classification
+Gate 1: harm / safety / rights-impact check
+Gate 2A: verification mode if record/evidence/law
+Gate 2B: creative / education mode only if domain permits
+Gate 4: source/citation wall
+Gate 5: adversarial simulation when contradiction/delta is detected
+Gate 6: clarification / explicit assumptions
+Gate 8: audit / rewind / correction
+
+CATEGORY PROFILE
+----------------
+ai: score=0.625 hits=5 pages=1
+
+SOURCE MAP
+----------
+source_units: 1
+page_anchors:
+  Page 1: 293 words | <!DOCTYPE html> <html lang="en">
+
+PATTERNS DETECTED
+-----------------
+none detected
+
+RELATIONSHIP MAP
+----------------
+
+WEBSITE REFERENCES
+------------------
+not detected
+
+URL REFERENCES
+--------------
+not detected
+
+FILE / PATH REFERENCES
+----------------------
+- home.html (2 times)
+- style-guide.html (1 time)
+
+EMAIL REFERENCES
+----------------
+not detected
+
+DATE REFERENCES
+---------------
+not detected
+
+STATUTE / LAW REFERENCES
+------------------------
+not detected
+
+CASE / TRACKING REFERENCES
+--------------------------
+not detected
+
+HASH REFERENCES
+---------------
+not detected
+
+GAP MAP
+-------
+- file/path references exist; referenced files may be needed for full context.
+
+ASZM / FASZM EVIDENCE RADAR
+---------------------------
+status: inactive
+reason: ASZM/FASZM is manual only. Use findex --evidence FILE or findex --aszm FILE.
+
+AI RETRIEVAL PLAN
+-----------------
+follow_file_references: yes
+
+MAP QUALITY SCORE
+-----------------
+map_quality_score: 0.515
+coverage_component: read status + extraction coverage
+domain_component: detected categories with page ranges
+pattern_component: pattern zones detected across pages
+reference_component: URLs/files/emails/dates/statutes/cases/hashes
+role_component: source/map/proof/corpus role detection
+
+MAP VS TERRITORY CHECK
+----------------------
+SOURCE / RECORD blocks are evidence.
+LAW blocks are authority/reference.
+FINDEX_MAP blocks are navigation.
+FVERIFY_PROOF blocks are proof-of-processing.
+MANIFEST blocks are lineage/audit metadata.
+VISUAL_EVIDENCE blocks require image/OCR review when text extraction is weak.
+Do not cite map/proof text as source evidence unless the claim is about the map/proof itself.
+
+AI USE CONTRACT
+---------------
+Use this index as the file map before source analysis.
+Do not skip low-weight pages; weights set review order, not omission.
+Use UNKNOWN when the source or map does not support a claim.
+If referenced files or URLs are missing, ask for them before final conclusions.
+When ASZM is inactive, do not claim ASZM evidence scoring was performed.
+When ASZM is active, distinguish recorded delta from unsupported escape.

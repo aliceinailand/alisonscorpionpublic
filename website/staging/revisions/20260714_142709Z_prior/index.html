@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ASX staging — preview channel</title>
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="Alison Scorpion website staging channel. Product preview at home.html." />
+  <style>
+    :root {
+      --bg: #0a0809;
+      --brand: #a78bfa;
+      --gold: #c8a35a;
+      --text: #e8e6f0;
+      --dim: #8b849c;
+      --panel: #13111a;
+      --border: #2d1b4e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 24px;
+      line-height: 1.5;
+    }
+    main { max-width: 36rem; margin: 0 auto; }
+    .gold {
+      color: var(--gold);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    h1 { font-size: 1.75rem; font-weight: 600; margin: 12px 0 8px; }
+    p { color: var(--dim); margin: 0 0 1rem; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+    ul { margin: 0; padding-left: 1.2rem; }
+    li { margin: 0.5rem 0; }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .note {
+      font-size: 0.875rem;
+      color: var(--dim);
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      margin-top: 1.5rem;
+    }
+    code { font-size: 0.9em; color: var(--gold); }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="gold">Alison Scorpion · staging channel</p>
+    <h1>Website staging</h1>
+    <p>
+      Preview only. Product UI is not the apex homepage.
+      Product home: <a href="/">alisonscorpion.com/</a>.
+    </p>
+    <div class="panel">
+      <ul>
+        <li><a href="home.html"><strong>Product preview</strong></a> — <code>home.html</code></li>
+        <li><a href="style-guide.html">Style guide</a></li>
+        <li><a href="/website/">Website channels</a></li>
+        <li><a href="/docs/">Knowledgebase</a></li>
+      </ul>
+    </div>
+    <p class="note">
+      Auto-updates while we work (<code>npm run deploy:staging</code>).
+      Brand purple · action gold · cosmic black. Nothing here is LIVE product root.
+    </p>
+  </main>
+</body>
+</html>

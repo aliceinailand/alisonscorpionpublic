@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alison Scorpion — Brand Style Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0d10;
+    --bg2: #12151a;
+    --panel: #171a20;
+    --deep: #0f1217;
+    --line: #23262d;
+    --ink: #f1f2f4;
+    --dim: #8f96a3;
+    --muted: #cfd3db;
+    --faint: #5d6472;
+    --accent: #e76113;
+    --gold: #c8a35a;
+    --gold2: #d8b673;
+    --pass: #10b981;
+    --fail: #ef4444;
+    --info: #38bdf8;
+    --radius: 14px;
+    --sans: Inter, system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .layout { display: flex; min-height: 100vh; }
+  aside.toc {
+    width: 248px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    background: rgba(18, 21, 26, 0.92);
+    backdrop-filter: blur(16px);
+  }
+  .toc-head {
+    padding: 20px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .toc-head .kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 8px;
+  }
+  .toc-head h1 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0;
+  }
+  .toc-head h1 span { color: var(--dim); font-weight: 500; }
+  nav.toc a {
+    display: block;
+    padding: 6px 16px;
+    border-left: 2px solid transparent;
+    color: var(--dim);
+    font-size: 13px;
+  }
+  nav.toc a:hover {
+    color: var(--ink);
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.02);
+    text-decoration: none;
+  }
+  nav.toc h4 {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 14px 16px 4px;
+    margin: 0;
+  }
+  main {
+    flex: 1;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 36px;
+    margin-bottom: 48px;
+  }
+  .hero .kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .hero h2 {
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.05;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h2 .dim { color: var(--dim); }
+  .hero p.lede {
+    color: var(--dim);
+    max-width: 640px;
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0 0 20px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .chip.gold {
+    color: var(--gold2);
+    border-color: rgba(200,163,90,0.3);
+    background: rgba(200,163,90,0.08);
+  }
+  .chip.accent {
+    color: #ffb48a;
+    border-color: rgba(231,97,19,0.35);
+    background: rgba(231,97,19,0.1);
+  }
+  section.sec { margin-bottom: 56px; scroll-margin-top: 24px; }
+  .lbl {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 8px;
+  }
+  h3.hdr {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  p.sub {
+    color: var(--dim);
+    max-width: 640px;
+    margin: 0 0 20px;
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  @media (max-width: 900px) {
+    aside.toc { display: none; }
+    main { padding: 28px 18px 60px; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--deep);
+  }
+  .swatch .box { height: 72px; }
+  .swatch .meta {
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .swatch .meta strong {
+    display: block;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .ramp {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .ramp span {
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .type-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .type-row .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .type-row .sample.display {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .type-row .sample.ui {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .type-row .sample.mono {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .quote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 16px;
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 16px 0;
+  }
+  table.lang {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.lang th, table.lang td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.lang th {
+    background: var(--bg2);
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  table.lang td { color: var(--muted); }
+  .do { color: var(--pass); }
+  .dont { color: var(--fail); }
+  footer.sg {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--faint);
+    font-family: var(--mono);
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--deep);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 6px;
+    color: var(--gold2);
+  }
+  .wire {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre;
+    background: var(--deep);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--line), transparent);
+    margin: 28px 0;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="toc">
+    <div class="toc-head">
+      <p class="kicker">Brand Style Guide · 2026</p>
+      <h1>Alison<br/><span>Scorpion</span></h1>
+    </div>
+    <nav class="toc">
+      <h4>Overview</h4>
+      <a href="#foundation">01 · Foundation</a>
+      <a href="#voice">02 · Voice &amp; Tone</a>
+      <a href="#language">03 · Language</a>
+      <a href="#color">04 · Color</a>
+      <a href="#type">05 · Typography</a>
+      <a href="#layout">06 · Layout</a>
+      <a href="#chrome">07 · Chrome patterns</a>
+      <a href="#sources">08 · Sources</a>
+    </nav>
+    <div style="padding:16px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);margin-top:24px;">
+      Alice Commands.<br/>Scorpion Obeys.<br/><br/>
+      <a href="/">← Platform UI</a>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <p class="kicker">Alison Scorpion · Style Guide Edition</p>
+      <h2>Verification chrome<br/><span class="dim">with editorial restraint</span></h2>
+      <p class="lede">
+        Standalone brand system for the ASX verification platform. Tokens and hierarchy
+        absorb the cool navy / gold-label editorial language of
+        <code>jocar-audit.vercel.app</code>, generated under the Reblis
+        <code>style-guide-skill</code> method (single file, sticky TOC, numbered sections,
+        swatches, type specimens). ASX identity is not replaced — only refined.
+      </p>
+      <div class="chips">
+        <span class="chip accent">Alice Commands</span>
+        <span class="chip">Scorpion Obeys</span>
+        <span class="chip gold">FACT = LAW + RECORD</span>
+        <span class="chip">Dark default</span>
+        <span class="chip">Vite + React SPA</span>
+        <span class="chip">No invented facts</span>
+      </div>
+    </header>
+
+    <section id="foundation" class="sec">
+      <p class="lbl">01 · Foundation</p>
+      <h3 class="hdr">Mission &amp; position</h3>
+      <p class="sub">
+        Alison Scorpion is a record-first verification governance engine. Chat is allowed;
+        claims without LAW + RECORD never become FACT. The product is a dark cockpit for
+        operators who need gates, provenance, and honest disclaimers — not marketing gloss.
+      </p>
+      <div class="quote">Map first. Pattern second. Claim last.</div>
+      <div class="grid3" style="margin-top:20px;">
+        <div class="card">
+          <div class="lbl">Hierarchy</div>
+          <strong>Alice → Scorpion</strong>
+          <p class="sub" style="margin:8px 0 0;">Alice = ethics / motive. Scorpion = enforcement. Inversion collapses the system.</p>
+        </div>
+        <div class="card">
+          <div class="lbl">Truth law</div>
+          <strong>SV65H</strong>
+          <p class="sub" style="margin:8px 0 0;">LAW + RECORD = FACT. Missing either = 0. Scores are not sentience.</p>
+        </div>
+        <div class="card">
+          <div class="lbl">Disclaimer</div>
+          <strong>Always on</strong>
+          <p class="sub" style="margin:8px 0 0;">AI cannot guarantee anything. It does its best. Infinity exists.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="voice" class="sec">
+      <p class="lbl">02 · Voice &amp; Tone</p>
+      <h3 class="hdr">How ASX writes</h3>
+      <div class="grid2">
+        <div class="card">
+          <div class="lbl do">Do</div>
+          <ul>
+            <li>Lead with map / gate state before opinion</li>
+            <li>Cite LAW + RECORD or mark gap</li>
+            <li>Use short imperative chrome labels</li>
+            <li>Separate procedural scores from moral claims</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="lbl dont">Don't</div>
+          <ul>
+            <li>Invent citations, filenames, or holdings</li>
+            <li>Claim 100% accuracy or sentience</li>
+            <li>Let Scorpion “command” Alice</li>
+            <li>Hide offline API failures behind fake success</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="language" class="sec">
+      <p class="lbl">03 · Language</p>
+      <h3 class="hdr">Always / never</h3>
+      <table class="lang">
+        <thead>
+          <tr><th>Always say</th><th>Never say</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FACT requires LAW + RECORD</td>
+            <td>This is definitely true</td>
+          </tr>
+          <tr>
+            <td>ELI = Emotional Logical Intelligence (procedural)</td>
+            <td>ASX has feelings / is alive</td>
+          </tr>
+          <tr>
+            <td>Pattern evidence only until verified</td>
+            <td>Guaranteed legal conclusion</td>
+          </tr>
+          <tr>
+            <td>API offline — start <code>asx api serve</code></td>
+            <td>Silent empty success</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="color" class="sec">
+      <p class="lbl">04 · Color</p>
+      <h3 class="hdr">Palette</h3>
+      <p class="sub">
+        Cool navy-black surfaces from the JoCar audit reference library. ASX action orange
+        remains primary CTA. Gold is reserved for section labels and meta chips (editorial).
+        Pass/fail stay semantic greens/reds.
+      </p>
+      <div class="grid-auto">
+        <div class="swatch"><div class="box" style="background:#0b0d10"></div><div class="meta"><strong>Background</strong>#0B0D10 · bg</div></div>
+        <div class="swatch"><div class="box" style="background:#12151a"></div><div class="meta"><strong>Elevated</strong>#12151A · bg2</div></div>
+        <div class="swatch"><div class="box" style="background:#171a20"></div><div class="meta"><strong>Panel</strong>#171A20 · card</div></div>
+        <div class="swatch"><div class="box" style="background:#23262d"></div><div class="meta"><strong>Line</strong>#23262D · border</div></div>
+        <div class="swatch"><div class="box" style="background:#e76113"></div><div class="meta"><strong>Accent</strong>#E76113 · CTA</div></div>
+        <div class="swatch"><div class="box" style="background:#c8a35a"></div><div class="meta"><strong>Gold</strong>#C8A35A · labels</div></div>
+        <div class="swatch"><div class="box" style="background:#10b981"></div><div class="meta"><strong>Pass</strong>#10B981 · gate ok</div></div>
+        <div class="swatch"><div class="box" style="background:#ef4444"></div><div class="meta"><strong>Fail</strong>#EF4444 · gate fail</div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="lbl">Accent shade ramp (toward white)</div>
+        <div class="ramp">
+          <span style="background:#e76113"></span>
+          <span style="background:#ec8142"></span>
+          <span style="background:#f1a171"></span>
+          <span style="background:#f6c0a0"></span>
+          <span style="background:#fbe0d0"></span>
+        </div>
+        <div class="lbl" style="margin-top:14px;">Gold shade ramp</div>
+        <div class="ramp">
+          <span style="background:#c8a35a"></span>
+          <span style="background:#d3b57b"></span>
+          <span style="background:#dec79c"></span>
+          <span style="background:#e9d9bd"></span>
+          <span style="background:#f4ebde"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="type" class="sec">
+      <p class="lbl">05 · Typography</p>
+      <h3 class="hdr">Type system</h3>
+      <p class="sub">
+        JoCar-audit triad: Playfair Display for product titles, Inter for UI, JetBrains Mono
+        for wireframes, API paths, and gate IDs.
+      </p>
+      <div class="type-row">
+        <div class="label">Display</div>
+        <div class="sample display">Alice Commands</div>
+      </div>
+      <div class="type-row">
+        <div class="label">UI / Body</div>
+        <div class="sample ui">Map first · Pattern second · Claim last</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Mono / Wire</div>
+        <div class="sample mono">GET /v1/asx/health · Gate4 · S3 · SV65H</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Eyebrow</div>
+        <div class="sample ui" style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);font-weight:600;">
+          01 · Foundation
+        </div>
+      </div>
+    </section>
+
+    <section id="layout" class="sec">
+      <p class="lbl">06 · Layout</p>
+      <h3 class="hdr">Chrome &amp; rhythm</h3>
+      <p class="sub">
+        Sticky left rail (~228px) with frosted backdrop. Content column fluid. Cards use
+        1px border, radius 14px, no drop shadow. Section labels are gold uppercase tracked.
+      </p>
+      <div class="wire">┌─ sticky rail 228px ─┬────────── main ──────────────────────┐
+│ REFERENCE PLATFORM  │  DISCLAIMER (always-on banner)       │
+│ Alison / Scorpion   │──────────────────────────────────────│
+│ chips · API health  │  Surface label (gold)                │
+│ Surfaces            │  Playfair title                      │
+│  Chat Verify Codex… │  Inter body / JetBrains data        │
+│  …                  │  cards · 1px line · radius 14        │
+│ FACT = LAW+RECORD   │                                      │
+└─────────────────────┴──────────────────────────────────────┘</div>
+    </section>
+
+    <section id="chrome" class="sec">
+      <p class="lbl">07 · Chrome patterns</p>
+      <h3 class="hdr">UX patterns absorbed</h3>
+      <div class="grid2">
+        <div class="card">
+          <div class="lbl">From jocar-audit</div>
+          <ul>
+            <li>Sticky TOC / rail with gold section headers</li>
+            <li>Pill chips for status language</li>
+            <li>Editorial serif H1 + Inter body</li>
+            <li>Cool navy surfaces + gold meta</li>
+            <li>1px borders, no shadow elevation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="lbl">ASX keeps</div>
+          <ul>
+            <li>Verification gate semantics</li>
+            <li>Orange action accent (not rental red)</li>
+            <li>Always-on disclaimer banner</li>
+            <li>Live API health probe</li>
+            <li>Record-first product law</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="sources" class="sec">
+      <p class="lbl">08 · Sources</p>
+      <h3 class="hdr">Provenance</h3>
+      <div class="card">
+        <p class="sub" style="margin:0;">
+          <strong>Method:</strong>
+          <a href="https://github.com/Reblis/style-guide-skill">github.com/Reblis/style-guide-skill</a>
+          — standalone HTML, sticky anchor nav, numbered sections, swatches, Lucide-capable layout.
+          <br/><br/>
+          <strong>Visual influence:</strong>
+          <a href="https://jocar-audit.vercel.app/">jocar-audit.vercel.app</a>
+          (jocar.ge UX audit · Rich Cars reference library tokens).
+          <br/><br/>
+          <strong>Product:</strong> Alison Scorpion / ASX · Claude × Grok shell agreement ·
+          <code>website/DESIGN.md</code>
+        </p>
+      </div>
+    </section>
+
+    <footer class="sg">
+      <div>Alison Scorpion · Brand Style Guide</div>
+      <div>2026-07-11 · Reblis method · JoCar-audit influence</div>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

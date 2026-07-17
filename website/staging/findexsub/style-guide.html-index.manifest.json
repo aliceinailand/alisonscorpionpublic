@@ -1,0 +1,120 @@
+{
+  "index_version": "findex-asx-beta-2026-06-29",
+  "file": "/home/alice/alisonscorpion/website/staging/style-guide.html",
+  "sha256": "521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf",
+  "extracted_text_sha256": "521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf",
+  "counts": {
+    "pages": 1,
+    "lines": 583,
+    "words": 2224,
+    "characters": 18856,
+    "paragraphs": 11
+  },
+  "read_status": "COMPLETE",
+  "mode": "SOURCE_FILE",
+  "roles": [
+    "RECORD"
+  ],
+  "domains": {
+    "ai": {
+      "score": 1.0,
+      "hits": 35,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "legal": {
+      "score": 0.5,
+      "hits": 4,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "medical": {
+      "score": 0.375,
+      "hits": 3,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "code": {
+      "score": 0.375,
+      "hits": 3,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "government": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    }
+  },
+  "patterns": [
+    {
+      "pattern": "authority_law",
+      "hits": 20,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!DOCTYPE html> <html lang=\"en\">"
+    },
+    {
+      "pattern": "verification",
+      "hits": 10,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!DOCTYPE html> <html lang=\"en\">"
+    },
+    {
+      "pattern": "email_chain",
+      "hits": 7,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!DOCTYPE html> <html lang=\"en\">"
+    },
+    {
+      "pattern": "timeline_sequence",
+      "hits": 2,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.4,
+      "sample_anchor": "<!DOCTYPE html> <html lang=\"en\">"
+    },
+    {
+      "pattern": "record_delta",
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.2,
+      "sample_anchor": "<!DOCTYPE html> <html lang=\"en\">"
+    }
+  ],
+  "map_quality_score": 0.887,
+  "aszm_active": false,
+  "aszm": null
+}

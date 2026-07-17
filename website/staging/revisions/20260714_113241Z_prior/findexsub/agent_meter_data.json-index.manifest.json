@@ -1,0 +1,109 @@
+{
+  "index_version": "findex-asx-beta-2026-06-29",
+  "file": "/home/alice/alisonscorpion/website/staging/revisions/20260714_113241Z_prior/agent_meter_data.json",
+  "sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
+  "extracted_text_sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
+  "counts": {
+    "pages": 1,
+    "lines": 155,
+    "words": 651,
+    "characters": 6653,
+    "paragraphs": 14
+  },
+  "read_status": "COMPLETE",
+  "mode": "SOURCE_FILE",
+  "roles": [
+    "RECORD"
+  ],
+  "domains": {
+    "ai": {
+      "score": 1.0,
+      "hits": 23,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "code": {
+      "score": 0.5,
+      "hits": 4,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "medical": {
+      "score": 0.25,
+      "hits": 2,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "legal": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "government": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    }
+  },
+  "patterns": [
+    {
+      "pattern": "timeline_sequence",
+      "hits": 7,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "{ \"schema\": \"asx-agent-meter-v1\","
+    },
+    {
+      "pattern": "record_delta",
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.2,
+      "sample_anchor": "{ \"schema\": \"asx-agent-meter-v1\","
+    },
+    {
+      "pattern": "verification",
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.2,
+      "sample_anchor": "{ \"schema\": \"asx-agent-meter-v1\","
+    },
+    {
+      "pattern": "email_chain",
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.2,
+      "sample_anchor": "{ \"schema\": \"asx-agent-meter-v1\","
+    }
+  ],
+  "map_quality_score": 0.77,
+  "aszm_active": false,
+  "aszm": null
+}

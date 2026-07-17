@@ -1,0 +1,5 @@
+# staging revisions (newest last) — max 3
+# restore: bash scripts/restore-staging-revision.sh <stamp>
+20260713_132347Z_prior
+20260713_150452Z_prior
+20260714_082232Z_prior

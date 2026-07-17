@@ -1,0 +1,32 @@
+{
+  "index_version": "findex-asx-beta-2026-06-29",
+  "file": "/home/alice/alisonscorpion/website/staging/revisions/MANIFEST.txt",
+  "sha256": "331ed9bdfcc7eb59bb3cbaab020dfe5eaeb6d2445922aeb18f59f35a734b1aaa",
+  "extracted_text_sha256": "331ed9bdfcc7eb59bb3cbaab020dfe5eaeb6d2445922aeb18f59f35a734b1aaa",
+  "counts": {
+    "pages": 1,
+    "lines": 5,
+    "words": 15,
+    "characters": 171,
+    "paragraphs": 1
+  },
+  "read_status": "COMPLETE",
+  "mode": "SOURCE_FILE",
+  "roles": [
+    "SOURCE"
+  ],
+  "domains": {
+    "code": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    }
+  },
+  "patterns": [],
+  "map_quality_score": 0.49,
+  "aszm_active": false,
+  "aszm": null
+}

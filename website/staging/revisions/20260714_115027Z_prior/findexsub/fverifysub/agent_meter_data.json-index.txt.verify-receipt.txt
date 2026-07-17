@@ -1,0 +1,18 @@
+FVERIFY RECEIPT
+===============
+source_file: /home/alice/alisonscorpion/website/staging/revisions/20260714_115027Z_prior/findexsub/agent_meter_data.json-index.txt
+source_sha256: 2c83dfb53b0ab78ca767ded4bb60b2ba5d526ec94492800e15d9b74121c69387
+source_text_sha256: 2c83dfb53b0ab78ca767ded4bb60b2ba5d526ec94492800e15d9b74121c69387
+hardened_text_sha256: 045c628761a4c13efdd236c1b838b911cb185679a6fce05511cb8043c4da6360
+total_lines: 162
+total_words: 548
+total_characters: 4633
+total_paragraphs: 23
+section_checksum_count: 3
+first_anchor: FINDEX FILE INDEX =================
+middle_anchor: dense_pages: 1 sample: { "schema": "asx-agent-meter-v1", RELATIONSHIP MAP
+last_anchor: When ASZM is inactive, do not claim ASZM evidence scoring was performed. When ASZM is active, distinguish recorded delta from unsupported escape.
+required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_E12E16F8
+aszm_active: NO
+aszm_section_sha256: d958015ca8d6417e9c985a4acc50ca7957797ec6f2dc2e45f135dee3f3c5b87d
+verify_json_path: /home/alice/alisonscorpion/website/staging/revisions/20260714_115027Z_prior/findexsub/fverifysub/agent_meter_data.json-index.txt.verify.json
