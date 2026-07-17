@@ -1,0 +1,29 @@
+name: Deploy Hybrid
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Run tests
+        run: |
+          npm ci
+          npm test
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Deploy to public repo
+        run: |
+          cp -r website/dist/* "/"
