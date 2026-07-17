@@ -1,0 +1,67 @@
+{
+  "protocol": "AAIF_ASX_VERIFY_BETA",
+  "version": "fverify-asx-beta-2026-06-29",
+  "created_utc": "2026-07-14T21:34:15.410774+00:00",
+  "source_file": "/home/alice/alisonscorpion/website/dist/findexsub/style-guide.html-index.txt",
+  "source_sha256": "775decb693b32cecd6c62882d219a39034fe87cef8fea4c94396715694f30a4a",
+  "source_text_sha256": "775decb693b32cecd6c62882d219a39034fe87cef8fea4c94396715694f30a4a",
+  "hardened_text_sha256": "d18a83056279a2d0bde39cdf725c6bc977860450566f100cf4bb3f7109d24c3a",
+  "counts": {
+    "lines": 172,
+    "words": 655,
+    "characters": 5251,
+    "paragraphs": 23
+  },
+  "anchors": {
+    "first": "FINDEX FILE INDEX =================",
+    "middle": "RELATIONSHIP MAP ---------------- - pattern:authority_law -> domains:ai, legal, medical, code, government -> pages:1",
+    "last": "When ASZM is inactive, do not claim ASZM evidence scoring was performed. When ASZM is active, distinguish recorded delta from unsupported escape."
+  },
+  "verification_tokens": [
+    "[READ_PROBE_FAAC952F]",
+    "[READ_PROBE_61D47762]",
+    "[READ_PROBE_1F237053]",
+    "[READ_PROBE_69E9D794]",
+    "[READ_PROBE_8BBD234A]"
+  ],
+  "midfile_token": "[MIDFILE_INTERCEPT_05D8392E]",
+  "required_midfile_phrase": "ALISON_SCORPION_MIDFILE_VERIFIED_05D8392E",
+  "section_checksums": [
+    {
+      "section_id": "SECTION_0001",
+      "start_line": 1,
+      "end_line": 60,
+      "lines": 60,
+      "words": 197,
+      "characters": 1655,
+      "sha256": "5a8ad894179f62ff9020ccf936c9a327d823be0bc10de2c7b7e9a2bef03b58ea"
+    },
+    {
+      "section_id": "SECTION_0002",
+      "start_line": 61,
+      "end_line": 120,
+      "lines": 60,
+      "words": 229,
+      "characters": 1819,
+      "sha256": "670596798d90fbfb92498733e16b734ade6b6fbc691172a1528e0513461d675d"
+    },
+    {
+      "section_id": "SECTION_0003",
+      "start_line": 121,
+      "end_line": 172,
+      "lines": 52,
+      "words": 229,
+      "characters": 1774,
+      "sha256": "ba826dcb0782997f7265bf533457f0e651b42c0a72eb55e6bc6d79c4c9cd4c02"
+    }
+  ],
+  "aszm_section_present": true,
+  "aszm_active": false,
+  "aszm_section_sha256": "d958015ca8d6417e9c985a4acc50ca7957797ec6f2dc2e45f135dee3f3c5b87d",
+  "outputs": {
+    "hardened": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.hardened.txt",
+    "json": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.verify.json",
+    "receipt": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.verify-receipt.txt",
+    "quiz": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.quiz.txt"
+  }
+}
