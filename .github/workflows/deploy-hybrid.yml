@@ -36,8 +36,9 @@ jobs:
       
       - name: Deploy to public repo
         run: |
+          TARGET="${GITHUB_WORKSPACE}/public-site"
           if [ -d website/dist ]; then
-            cp -r website/dist/* "/"
+            cp -r website/dist/* "${TARGET}/"
           else
             echo "No website/dist directory found, skipping deploy"
           fi
