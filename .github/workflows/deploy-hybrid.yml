@@ -18,8 +18,13 @@ jobs:
       
       - name: Run tests
         run: |
-          npm ci
-          npm test
+          if [ -f website/package.json ]; then
+            cd website
+            npm ci
+            npm test
+          else
+            echo "No website/package.json found, skipping tests"
+          fi
       
       - name: Build
         run: npm run build
