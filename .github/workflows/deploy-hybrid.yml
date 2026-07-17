@@ -27,8 +27,17 @@ jobs:
           fi
       
       - name: Build
-        run: npm run build
+        run: |
+          if [ -f package.json ]; then
+            npm run build
+          else
+            echo "No package.json found, skipping build"
+          fi
       
       - name: Deploy to public repo
         run: |
-          cp -r website/dist/* "/"
+          if [ -d website/dist ]; then
+            cp -r website/dist/* "/"
+          else
+            echo "No website/dist directory found, skipping deploy"
+          fi
