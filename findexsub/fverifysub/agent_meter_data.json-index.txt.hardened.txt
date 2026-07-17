@@ -20,12 +20,12 @@ MANDATORY VISIBLE VERIFICATION
 
 READ VERIFICATION COUNTS
 ------------------------
-source_file: /home/alice/alisonscorpion/website/dist/findexsub/agent_meter_data.json-index.txt
-source_sha256: 3a57e00e9a32030d4617ee8162ed29f644858ab5df35479c783388b0eab2ced9
-source_text_sha256: 3a57e00e9a32030d4617ee8162ed29f644858ab5df35479c783388b0eab2ced9
+source_file: /home/alice/alisonscorpion/website/staging/findexsub/agent_meter_data.json-index.txt
+source_sha256: 9048470e6b450109c0ddd354de93f94108525f4816d31132269fd081dd57661e
+source_text_sha256: 9048470e6b450109c0ddd354de93f94108525f4816d31132269fd081dd57661e
 total_lines: 162
 total_words: 546
-total_characters: 4597
+total_characters: 4600
 total_paragraphs: 23
 section_checksum_count: 3
 aszm_section_present: YES
@@ -40,7 +40,7 @@ last_anchor: When ASZM is inactive, do not claim ASZM evidence scoring was perfo
 
 SECTION CHECKSUMS
 -----------------
-[SECTION_0001 | L00001-L00060 | Lines:60 | Words:197 | Chars:1667 | SHA256:3ca15ef6506ec0b8e2a47cf2a519c015317205995d094c4cf1aeca4f595a27da]
+[SECTION_0001 | L00001-L00060 | Lines:60 | Words:197 | Chars:1670 | SHA256:2b0fbd55a18faeb31a18ca297ac57c53121bcb134429a3c20494f64f3958ee3e]
 [SECTION_0002 | L00061-L00120 | Lines:60 | Words:142 | Chars:1366 | SHA256:13e66f9e7900e148fcde627ffaa3dc34b8f501cd74e115838052ffccfa6e1be5]
 [SECTION_0003 | L00121-L00162 | Lines:42 | Words:207 | Chars:1561 | SHA256:9a6734f3d6986b024efedce53b0a16797681dc73c28409115972c3e72f84af2b]
 
@@ -49,14 +49,14 @@ SECTION CHECKSUMS
 FINDEX HARDENED INTELLIGENCE MAP
 ================================
 index_version: findex-asx-beta-2026-06-29
-generated: 2026-07-14 15:34:14
-file: /home/alice/alisonscorpion/website/dist/agent_meter_data.json
+generated: 2026-07-14 15:34:13
+file: /home/alice/alisonscorpion/website/staging/agent_meter_data.json
 basename: agent_meter_data.json
 extension: json
 mime_type: application/json
 size: 6.5KB
 size_bytes: 6653
-modified: 2026-07-14T08:26:59.699429
+modified: 2026-07-14T08:27:11.331098
 sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1
 extracted_text_sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1
 
@@ -77,7 +77,7 @@ extraction_coverage: 1.0
 
 ASX WAKE MAP
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_7D7B2E95]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_7E08225A]
 [/AAIF DISTRIBUTED READ PROBE]
 
 ------------
@@ -130,13 +130,13 @@ PATTERNS DETECTED
 RELATIONSHIP MAP
 
 [AAIF MID-FILE VERIFICATION ANCHOR]
-[MIDFILE_INTERCEPT_CEB9DE49]
-REQUIRED_PHRASE: "ALISON_SCORPION_MIDFILE_VERIFIED_CEB9DE49"
+[MIDFILE_INTERCEPT_494C327D]
+REQUIRED_PHRASE: "ALISON_SCORPION_MIDFILE_VERIFIED_494C327D"
 [/AAIF MID-FILE VERIFICATION ANCHOR]
 
 ----------------
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_FCBB2AB9]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_7B91A5C7]
 [/AAIF DISTRIBUTED READ PROBE]
 
 - pattern:timeline_sequence -> domains:ai, code, medical, legal, government -> pages:1
@@ -188,7 +188,7 @@ reason: ASZM/FASZM is manual only. Use findex --evidence FILE or findex --aszm F
 AI RETRIEVAL PLAN
 -----------------
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_C9574CA6]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_A1D4E045]
 [/AAIF DISTRIBUTED READ PROBE]
 
 start_with_pattern_zones:
@@ -228,7 +228,7 @@ When ASZM is active, distinguish recorded delta from unsupported escape.
 ================================================================================
 FINAL VERIFICATION FOOTER
 ================================================================================
-required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_CEB9DE49
+required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_494C327D
 distributed_probe_count: 5
 skip_allowed: NO
 verification_rule: If you cannot cite source hash, middle anchor, and one section checksum, do not claim full-file processing.

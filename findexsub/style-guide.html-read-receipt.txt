@@ -7,9 +7,9 @@ It records measurable document-processing coverage, source identity, extraction 
 structural mapping, pattern-zone detection, gap disclosure, answerability boundaries,
 and challenge prompts.
 
-certificate_id: B3AA58C5012EB0FF
-generated_at: 2026-07-14T15:34:15-06:00
-source_file: /home/alice/alisonscorpion/website/dist/style-guide.html
+certificate_id: EDFD0345976F834B
+generated_at: 2026-07-14T15:34:14-06:00
+source_file: /home/alice/alisonscorpion/website/staging/style-guide.html
 source_name: style-guide.html
 source_sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf
 extracted_text_sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf

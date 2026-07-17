@@ -1,14 +1,14 @@
 {
   "block_role": "REPORT_READ_RECEIPT_CERTIFICATE",
   "certificate_title": "REPORT READ RECEIPT CERTIFICATE",
-  "certificate_id": "71411E010B03FF76",
-  "generated_at": "2026-07-14T15:34:15-06:00",
+  "certificate_id": "2C6661ABAFBD9FE1",
+  "generated_at": "2026-07-14T15:34:13-06:00",
   "source_identity": {
-    "source_file": "/home/alice/alisonscorpion/website/dist/agent_meter_data.json",
+    "source_file": "/home/alice/alisonscorpion/website/staging/agent_meter_data.json",
     "source_name": "agent_meter_data.json",
     "extension": ".json",
     "size_bytes": 6653,
-    "modified": "2026-07-14T08:26:59-06:00",
+    "modified": "2026-07-14T08:27:11-06:00",
     "sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
     "extracted_text_sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
     "pages": null,
@@ -33,9 +33,9 @@
     "warning": "Map/proof/RRC text is not source evidence unless the claim is about the map/proof/RRC itself."
   },
   "available_sidecars": {
-    "findex_map": "/home/alice/alisonscorpion/website/dist/findexsub/agent_meter_data.json-index.txt",
-    "fverify_proof": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/agent_meter_data.json-index.txt.hardened.txt",
-    "fverify_json": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/agent_meter_data.json-index.txt.verify.json"
+    "findex_map": "/home/alice/alisonscorpion/website/staging/findexsub/agent_meter_data.json-index.txt",
+    "fverify_proof": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/agent_meter_data.json-index.txt.hardened.txt",
+    "fverify_json": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/agent_meter_data.json-index.txt.verify.json"
   },
   "high_signal_zones": {
     "scores": {

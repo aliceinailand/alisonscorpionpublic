@@ -3,14 +3,14 @@ FINDEX FILE INDEX
 FINDEX HARDENED INTELLIGENCE MAP
 ================================
 index_version: findex-asx-beta-2026-06-29
-generated: 2026-07-14 15:34:14
-file: /home/alice/alisonscorpion/website/dist/agent_meter_data.json
+generated: 2026-07-14 15:34:13
+file: /home/alice/alisonscorpion/website/staging/agent_meter_data.json
 basename: agent_meter_data.json
 extension: json
 mime_type: application/json
 size: 6.5KB
 size_bytes: 6653
-modified: 2026-07-14T08:26:59.699429
+modified: 2026-07-14T08:27:11.331098
 sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1
 extracted_text_sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1
 

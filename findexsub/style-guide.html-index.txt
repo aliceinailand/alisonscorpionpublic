@@ -3,14 +3,14 @@ FINDEX FILE INDEX
 FINDEX HARDENED INTELLIGENCE MAP
 ================================
 index_version: findex-asx-beta-2026-06-29
-generated: 2026-07-14 15:34:15
-file: /home/alice/alisonscorpion/website/dist/style-guide.html
+generated: 2026-07-14 15:34:14
+file: /home/alice/alisonscorpion/website/staging/style-guide.html
 basename: style-guide.html
 extension: html
 mime_type: text/html
 size: 18.8KB
 size_bytes: 19236
-modified: 2026-07-14T08:26:59.699593
+modified: 2026-07-14T08:27:11.331333
 sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf
 extracted_text_sha256: 521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf
 

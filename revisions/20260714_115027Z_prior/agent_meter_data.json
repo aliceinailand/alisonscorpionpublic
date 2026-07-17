@@ -1,0 +1,155 @@
+{
+  "schema": "asx-agent-meter-v1",
+  "generated_at": "2026-07-11T12:54:31Z",
+  "like": "DSPE Observatory \u2014 but for 4.2 agent accomplishment / utilization meters",
+  "disclaimer": "Scores are procedural utilization metrics, not moral worth or sentience. High score \u2260 FACT.",
+  "overall": {
+    "registry_completion_pct": 100.0,
+    "overall_status": "conditional",
+    "open_loops_open": 8,
+    "unified_truth_state": true
+  },
+  "hermes_underuse": {
+    "why": [
+      "Few wired ops (hgf4_verify, doctor) vs ASX/MGrok dense surfaces",
+      "Chat/Grok Build sessions often ship without AND-close invoking Hermes",
+      "HOLD D-HERMES-QUAR-01 and OPEN T-SCX-003 block visible throughput",
+      "Adversarial work is post-hoc; builder bias prefers produce over attack",
+      "Session logs show idle Hermes while MGrok/ASX active \u2014 utilization gap, not capability gap"
+    ],
+    "fix": [
+      "Auto-route after asx agent run / doc claims \u2192 Hermes battery",
+      "Close quarantine HOLD; run SCX red-team",
+      "Meter red-flag when high-stakes release without Hermes touch"
+    ]
+  },
+  "agents": [
+    {
+      "agent": "A-ASX",
+      "lane": "ASX",
+      "rank": 1,
+      "accomplishment_score": 82.2,
+      "tasks_done": 12,
+      "tasks_total": 12,
+      "tasks_hold": 0,
+      "registry_status": "complete",
+      "ops_assigned": 12,
+      "ops_ready": 10,
+      "feature_owners_O": 24,
+      "feature_touches": 51,
+      "report_files": 0,
+      "agent_tree_files": 97,
+      "session_active_turns": 4,
+      "should_mostly_be": "Operator face, verify-first Q&A, tool orchestration \u2014 not sole implementer",
+      "accomplishments": "User-facing agent: harness, activate, transparency, MCP turn | P5/P6 SCX research surfaces; most feature O-count on map | Operator tools: query, eli, dark-alice, files, pdf, unicycles | Session 4.2 status protocol",
+      "improve": "Auto-call Hermes after high-stakes answers | Always findex-before-read on doc sources (protocol new) | Surface meter on website home",
+      "truth_class": "SYNTHESIS_FROM_REGISTRY+REPO_COUNTS"
+    },
+    {
+      "agent": "MGrok",
+      "lane": "GROK",
+      "rank": 2,
+      "accomplishment_score": 78.1,
+      "tasks_done": 8,
+      "tasks_total": 8,
+      "tasks_hold": 0,
+      "registry_status": "complete",
+      "ops_assigned": 5,
+      "ops_ready": 5,
+      "feature_owners_O": 13,
+      "feature_touches": 53,
+      "report_files": 65,
+      "agent_tree_files": 1710,
+      "session_active_turns": 4,
+      "should_mostly_be": "Doctrine, architecture, supervisor close, multi-agent synthesis, public truth framing",
+      "accomplishments": "Supervisor 4.2 lanes; sole repo-write authority in role map | Doctrine/docs: ELI lock, 4.2 agents, doc protocol, feats matrix | Portal rabbit holes; UniSyms/UniSims research | Delegation manifests; open-loop supervision | S-tasks S2/S3/S8/S12/S14 + findex/truth-state closes",
+      "improve": "Invoke Hermes AND-close more often before shipping narrative | Reduce single-lane shipping bias (Grok Build does too much alone) | Keep session status log continuous, not bursty",
+      "truth_class": "SYNTHESIS_FROM_REGISTRY+REPO_COUNTS"
+    },
+    {
+      "agent": "A-OpenClaw",
+      "lane": "OpenClaw",
+      "rank": 3,
+      "accomplishment_score": 63.7,
+      "tasks_done": 6,
+      "tasks_total": 7,
+      "tasks_hold": 1,
+      "registry_status": "complete",
+      "ops_assigned": 5,
+      "ops_ready": 5,
+      "feature_owners_O": 6,
+      "feature_touches": 28,
+      "report_files": 1401,
+      "agent_tree_files": 1443,
+      "session_active_turns": 4,
+      "should_mostly_be": "Corpus, findex, AI_DATA, GDrive, retrieval specialty datasets",
+      "accomplishments": "Largest report corpus (findex/GDrive/corpus batches) | Corpus drive, ftools, email-canon, law openloops ownership | S5/S6/S11/S13/S15 closed; AI_DATA mapping | Multi-cycle findex executions",
+      "improve": "Close D-OPENCLAW-GDRIVE-01 HOLD | Reduce report spam / normalize manifests (quality over file count) | Feed ranked index quality into meter (not raw file volume)",
+      "truth_class": "SYNTHESIS_FROM_REGISTRY+REPO_COUNTS"
+    },
+    {
+      "agent": "A-OCodex",
+      "lane": "OCodex",
+      "rank": 4,
+      "accomplishment_score": 50.8,
+      "tasks_done": 6,
+      "tasks_total": 6,
+      "tasks_hold": 0,
+      "registry_status": "complete",
+      "ops_assigned": 0,
+      "ops_ready": 0,
+      "feature_owners_O": 5,
+      "feature_touches": 43,
+      "report_files": 15,
+      "agent_tree_files": 51,
+      "session_active_turns": 2,
+      "should_mostly_be": "src/, tests, CLI, website engineering \u2014 not doctrine narrative",
+      "accomplishments": "Implementation lane S1/S4/S7/S9 + T069 + platform | CLI wires (when delegated); clean-room src ownership | Penta/gates implement responsibility on feature map",
+      "improve": "More frequent handoffs from chat sessions that currently code via MGrok | Tests-first discipline on every CLI addition | Website/public deploy pipeline ownership",
+      "truth_class": "SYNTHESIS_FROM_REGISTRY+REPO_COUNTS"
+    },
+    {
+      "agent": "A-Hermes",
+      "lane": "Hermes",
+      "rank": 5,
+      "accomplishment_score": 32.3,
+      "tasks_done": 2,
+      "tasks_total": 3,
+      "tasks_hold": 1,
+      "registry_status": "complete",
+      "ops_assigned": 2,
+      "ops_ready": 2,
+      "feature_owners_O": 3,
+      "feature_touches": 36,
+      "report_files": 17,
+      "agent_tree_files": 61,
+      "session_active_turns": 0,
+      "should_mostly_be": "Adversarial review, quarantine, HGF4, false-release prevention \u2014 AFTER produce, BEFORE release",
+      "accomplishments": "HGF4 / adversarial report suite (T081/T084/T087, quarantine docs) | Fractal holdout evals; path unification fuzz; ELI industry benchmark | Ops: hgf4_verify + asx doctor ownership | hermes_reviewer_v1.jsonl training surface | S10 + D-HERMES-FUZZ-01 closed",
+      "improve": "Close D-HERMES-QUAR-01 HOLD | Run SCX red-team battery T-SCX-003 (OPEN) | Be auto-invoked after every ASX agent run / doc claim (wiring gap) | Publish falsification rows into status meter every batch",
+      "truth_class": "SYNTHESIS_FROM_REGISTRY+REPO_COUNTS"
+    }
+  ],
+  "research_used": [
+    {
+      "path": "asx agent status",
+      "class": "SOURCE"
+    },
+    {
+      "path": "asx agent operations",
+      "class": "SOURCE"
+    },
+    {
+      "path": "docs/asx-feats.csv",
+      "class": "DESIGN"
+    },
+    {
+      "path": "agents/*/reports file counts",
+      "class": "SOURCE_COUNT"
+    },
+    {
+      "path": "agents/ASX/sessions/4_2_status_log.jsonl",
+      "class": "SOURCE"
+    }
+  ]
+}

@@ -20,12 +20,12 @@ MANDATORY VISIBLE VERIFICATION
 
 READ VERIFICATION COUNTS
 ------------------------
-source_file: /home/alice/alisonscorpion/website/dist/findexsub/index.html-index.txt
-source_sha256: 4dcd784c54ff45dad80fe0c6d867e45e62aca559e1db3ad9904ea2be247a31e4
-source_text_sha256: 4dcd784c54ff45dad80fe0c6d867e45e62aca559e1db3ad9904ea2be247a31e4
-total_lines: 139
-total_words: 418
-total_characters: 3549
+source_file: /home/alice/alisonscorpion/website/staging/findexsub/index.html-index.txt
+source_sha256: 15c7345a9452dae3ec8abdb3a872fa10a7fb7f61d0ba434b69b6b809fba5d080
+source_text_sha256: 15c7345a9452dae3ec8abdb3a872fa10a7fb7f61d0ba434b69b6b809fba5d080
+total_lines: 140
+total_words: 425
+total_characters: 3635
 total_paragraphs: 23
 section_checksum_count: 3
 aszm_section_present: YES
@@ -35,47 +35,47 @@ aszm_section_sha256: d958015ca8d6417e9c985a4acc50ca7957797ec6f2dc2e45f135dee3f3c
 ANCHOR CHECK
 ------------
 first_anchor: FINDEX FILE INDEX =================
-middle_anchor: RELATIONSHIP MAP ---------------- WEBSITE REFERENCES
+middle_anchor: WEBSITE REFERENCES ------------------ not detected
 last_anchor: When ASZM is inactive, do not claim ASZM evidence scoring was performed. When ASZM is active, distinguish recorded delta from unsupported escape.
 
 SECTION CHECKSUMS
 -----------------
-[SECTION_0001 | L00001-L00060 | Lines:60 | Words:181 | Chars:1581 | SHA256:224f1b026c336b548934559f2c15b7df3c9ac0496e541d00c72a32e0475fb694]
-[SECTION_0002 | L00061-L00120 | Lines:60 | Words:109 | Chars:1105 | SHA256:5b9a7bbfc313b54d1c7cc5dd9aa8f539d51337635e4f79c29be1dd63f979205e]
-[SECTION_0003 | L00121-L00139 | Lines:19 | Words:128 | Chars:860 | SHA256:a8f3888c2e9563f9d5f3d0c24d02802b2d93dabdd452d82ac95a42246cb4052c]
+[SECTION_0001 | L00001-L00060 | Lines:60 | Words:173 | Chars:1555 | SHA256:0a6111aa2f9876d1b0818be17503e6e8acf1bfcae4f83a8ab7fe36550de8d000]
+[SECTION_0002 | L00061-L00120 | Lines:60 | Words:117 | Chars:1162 | SHA256:685d888460f2cdd1f1f89fd249ef2b44d3e6a51a89674c2e31585300ca3774f9]
+[SECTION_0003 | L00121-L00140 | Lines:20 | Words:135 | Chars:915 | SHA256:2b7d531f4616518caf63a18a97e14dce6f1404d8465eeedbbf90040becda78de]
 
 [L00001] FINDEX FILE INDEX
 =================
 FINDEX HARDENED INTELLIGENCE MAP
 ================================
 index_version: findex-asx-beta-2026-06-29
-generated: 2026-07-14 15:34:14
-file: /home/alice/alisonscorpion/website/dist/index.html
+generated: 2026-07-14 15:34:13
+file: /home/alice/alisonscorpion/website/staging/index.html
 basename: index.html
 extension: html
 mime_type: text/html
-size: 550B
-size_bytes: 550
-modified: 2026-07-14T08:26:59.976434
-sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
-extracted_text_sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
+size: 2.4KB
+size_bytes: 2479
+modified: 2026-07-14T08:27:11.642213
+sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+extracted_text_sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
 
 DOCUMENT COUNTS
 ---------------
 pages: 1
-lines: 14
-words: 62
-characters: 546
-paragraphs: 6
+lines: 82
+words: 293
+characters: 2472
+paragraphs: 10
 
 EXTRACTION / READ STATUS
 ------------------------
 extractor: text
+read_status: COMPLETE
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_388A35B3]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_89C973D9]
 [/AAIF DISTRIBUTED READ PROBE]
 
-read_status: COMPLETE
 page_coverage: 1/1
 extraction_coverage: 1.0
 
@@ -83,7 +83,7 @@ ASX WAKE MAP
 ------------
 detected_file_mode: SOURCE_FILE
 detected_roles: SOURCE
-primary_domains: ai, code
+primary_domains: ai
 operational_mode: GENERAL_MAPPING
 instruction: read this map before analyzing the source; do not infer missing context.
 
@@ -100,35 +100,34 @@ Gate 8: audit / rewind / correction
 
 CATEGORY PROFILE
 ----------------
-ai: score=1.0 hits=9 pages=1
-code: score=0.25 hits=2 pages=1
+ai: score=0.625 hits=5 pages=1
 
 SOURCE MAP
 ----------
 source_units: 1
 page_anchors:
-  Page 1: 62 words | <!DOCTYPE html> <html lang="en">
-[L00061] 
-PATTERNS DETECTED
+  Page 1: 293 words | <!DOCTYPE html> <html lang="en">
+
+[L00061] PATTERNS DETECTED
 -----------------
 none detected
 
 RELATIONSHIP MAP
 ----------------
 
+WEBSITE REFERENCES
+------------------
 
 [AAIF MID-FILE VERIFICATION ANCHOR]
-[MIDFILE_INTERCEPT_CFE575B2]
-REQUIRED_PHRASE: "ALISON_SCORPION_MIDFILE_VERIFIED_CFE575B2"
+[MIDFILE_INTERCEPT_054D7CC1]
+REQUIRED_PHRASE: "ALISON_SCORPION_MIDFILE_VERIFIED_054D7CC1"
 [/AAIF MID-FILE VERIFICATION ANCHOR]
 
-WEBSITE REFERENCES
+not detected
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_CADF5A51]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_BEEA66F7]
 [/AAIF DISTRIBUTED READ PROBE]
 
-------------------
-not detected
 
 URL REFERENCES
 --------------
@@ -136,7 +135,8 @@ not detected
 
 FILE / PATH REFERENCES
 ----------------------
-not detected
+- home.html (2 times)
+- style-guide.html (1 time)
 
 EMAIL REFERENCES
 ----------------
@@ -160,7 +160,7 @@ not detected
 
 GAP MAP
 -------
-no automatic gap flags detected
+- file/path references exist; referenced files may be needed for full context.
 
 ASZM / FASZM EVIDENCE RADAR
 ---------------------------
@@ -169,20 +169,21 @@ reason: ASZM/FASZM is manual only. Use findex --evidence FILE or findex --aszm F
 
 AI RETRIEVAL PLAN
 -----------------
+follow_file_references: yes
 
-[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_B9DA922E]
+[AAIF DISTRIBUTED READ PROBE] [READ_PROBE_D0FEF8B4]
 [/AAIF DISTRIBUTED READ PROBE]
 
 
 MAP QUALITY SCORE
 -----------------
-map_quality_score: 0.53
+map_quality_score: 0.515
 coverage_component: read status + extraction coverage
 domain_component: detected categories with page ranges
 pattern_component: pattern zones detected across pages
 reference_component: URLs/files/emails/dates/statutes/cases/hashes
-role_component: source/map/proof/corpus role detection
-[L00121] 
+[L00121] role_component: source/map/proof/corpus role detection
+
 MAP VS TERRITORY CHECK
 ----------------------
 SOURCE / RECORD blocks are evidence.
@@ -205,7 +206,7 @@ When ASZM is active, distinguish recorded delta from unsupported escape.
 ================================================================================
 FINAL VERIFICATION FOOTER
 ================================================================================
-required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_CFE575B2
+required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_054D7CC1
 distributed_probe_count: 5
 skip_allowed: NO
 verification_rule: If you cannot cite source hash, middle anchor, and one section checksum, do not claim full-file processing.

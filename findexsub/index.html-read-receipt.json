@@ -1,29 +1,29 @@
 {
   "block_role": "REPORT_READ_RECEIPT_CERTIFICATE",
   "certificate_title": "REPORT READ RECEIPT CERTIFICATE",
-  "certificate_id": "A11D415C42D83986",
-  "generated_at": "2026-07-14T15:34:14-06:00",
+  "certificate_id": "CBF6135E0B01F4BB",
+  "generated_at": "2026-07-14T15:34:13-06:00",
   "source_identity": {
-    "source_file": "/home/alice/alisonscorpion/website/dist/index.html",
+    "source_file": "/home/alice/alisonscorpion/website/staging/index.html",
     "source_name": "index.html",
     "extension": ".html",
-    "size_bytes": 550,
-    "modified": "2026-07-14T08:26:59-06:00",
-    "sha256": "5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef",
-    "extracted_text_sha256": "5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef",
+    "size_bytes": 2479,
+    "modified": "2026-07-14T08:27:11-06:00",
+    "sha256": "15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c",
+    "extracted_text_sha256": "15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c",
     "pages": null,
-    "lines": 14,
-    "words": 44,
-    "characters": 546,
+    "lines": 82,
+    "words": 257,
+    "characters": 2472,
     "paragraphs": 1
   },
   "coverage_status": {
     "first_anchor": "<!DOCTYPE html>",
-    "middle_anchor": "<script type=\"module\" crossorigin src=\"/assets/index-c7JXa9W1.js\"></script>",
+    "middle_anchor": "border-radius: 12px;",
     "last_anchor": "</html>",
     "extraction_status": "TEXT_RECOVERED",
     "distributed_read_probe_count": 3,
-    "section_checksum_count": 1
+    "section_checksum_count": 2
   },
   "role_separation": {
     "source_text": "original record/content",
@@ -33,16 +33,16 @@
     "warning": "Map/proof/RRC text is not source evidence unless the claim is about the map/proof/RRC itself."
   },
   "available_sidecars": {
-    "findex_map": "/home/alice/alisonscorpion/website/dist/findexsub/index.html-index.txt",
-    "fverify_proof": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/index.html-index.txt.hardened.txt",
-    "fverify_json": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/index.html-index.txt.verify.json"
+    "findex_map": "/home/alice/alisonscorpion/website/staging/findexsub/index.html-index.txt",
+    "fverify_proof": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/index.html-index.txt.hardened.txt",
+    "fverify_json": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/index.html-index.txt.verify.json"
   },
   "high_signal_zones": {
     "scores": {
       "legal": 0,
-      "ai": 5,
+      "ai": 3,
       "record": 0,
-      "code": 2,
+      "code": 3,
       "sensitive": 0
     },
     "top_domains": [
@@ -58,7 +58,7 @@
     "email": 0,
     "phone": 0,
     "hash": 0,
-    "negation": 0,
+    "negation": 1,
     "legal_verb": 0
   },
   "similar_section_delta_map": {
@@ -123,7 +123,7 @@
     "image_only_evidence": "NOT DETECTED BY RRC",
     "author_intent": "INFERENCE ONLY",
     "claims_outside_document": "NOT SUPPORTED",
-    "sensitive_disclosure": "LOW SIGNAL"
+    "sensitive_disclosure": "REVIEW BEFORE SHARING"
   },
   "ai_read_receipt_instruction": [
     "State what source material was available.",

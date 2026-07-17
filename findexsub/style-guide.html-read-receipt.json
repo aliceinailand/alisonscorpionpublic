@@ -1,14 +1,14 @@
 {
   "block_role": "REPORT_READ_RECEIPT_CERTIFICATE",
   "certificate_title": "REPORT READ RECEIPT CERTIFICATE",
-  "certificate_id": "B3AA58C5012EB0FF",
-  "generated_at": "2026-07-14T15:34:15-06:00",
+  "certificate_id": "EDFD0345976F834B",
+  "generated_at": "2026-07-14T15:34:14-06:00",
   "source_identity": {
-    "source_file": "/home/alice/alisonscorpion/website/dist/style-guide.html",
+    "source_file": "/home/alice/alisonscorpion/website/staging/style-guide.html",
     "source_name": "style-guide.html",
     "extension": ".html",
     "size_bytes": 19236,
-    "modified": "2026-07-14T08:26:59-06:00",
+    "modified": "2026-07-14T08:27:11-06:00",
     "sha256": "521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf",
     "extracted_text_sha256": "521d1c49a0a450d6a20e2f1c1ee2c4ca3feb21ce4ca79222e9b40b8204f0eedf",
     "pages": null,
@@ -33,9 +33,9 @@
     "warning": "Map/proof/RRC text is not source evidence unless the claim is about the map/proof/RRC itself."
   },
   "available_sidecars": {
-    "findex_map": "/home/alice/alisonscorpion/website/dist/findexsub/style-guide.html-index.txt",
-    "fverify_proof": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.hardened.txt",
-    "fverify_json": "/home/alice/alisonscorpion/website/dist/findexsub/fverifysub/style-guide.html-index.txt.verify.json"
+    "findex_map": "/home/alice/alisonscorpion/website/staging/findexsub/style-guide.html-index.txt",
+    "fverify_proof": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/style-guide.html-index.txt.hardened.txt",
+    "fverify_json": "/home/alice/alisonscorpion/website/staging/findexsub/fverifysub/style-guide.html-index.txt.verify.json"
   },
   "high_signal_zones": {
     "scores": {

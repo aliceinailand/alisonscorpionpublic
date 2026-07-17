@@ -3,24 +3,24 @@ FINDEX FILE INDEX
 FINDEX HARDENED INTELLIGENCE MAP
 ================================
 index_version: findex-asx-beta-2026-06-29
-generated: 2026-07-14 15:34:14
-file: /home/alice/alisonscorpion/website/dist/index.html
+generated: 2026-07-14 15:34:13
+file: /home/alice/alisonscorpion/website/staging/index.html
 basename: index.html
 extension: html
 mime_type: text/html
-size: 550B
-size_bytes: 550
-modified: 2026-07-14T08:26:59.976434
-sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
-extracted_text_sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
+size: 2.4KB
+size_bytes: 2479
+modified: 2026-07-14T08:27:11.642213
+sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+extracted_text_sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
 
 DOCUMENT COUNTS
 ---------------
 pages: 1
-lines: 14
-words: 62
-characters: 546
-paragraphs: 6
+lines: 82
+words: 293
+characters: 2472
+paragraphs: 10
 
 EXTRACTION / READ STATUS
 ------------------------
@@ -33,7 +33,7 @@ ASX WAKE MAP
 ------------
 detected_file_mode: SOURCE_FILE
 detected_roles: SOURCE
-primary_domains: ai, code
+primary_domains: ai
 operational_mode: GENERAL_MAPPING
 instruction: read this map before analyzing the source; do not infer missing context.
 
@@ -50,14 +50,13 @@ Gate 8: audit / rewind / correction
 
 CATEGORY PROFILE
 ----------------
-ai: score=1.0 hits=9 pages=1
-code: score=0.25 hits=2 pages=1
+ai: score=0.625 hits=5 pages=1
 
 SOURCE MAP
 ----------
 source_units: 1
 page_anchors:
-  Page 1: 62 words | <!DOCTYPE html> <html lang="en">
+  Page 1: 293 words | <!DOCTYPE html> <html lang="en">
 
 PATTERNS DETECTED
 -----------------
@@ -76,7 +75,8 @@ not detected
 
 FILE / PATH REFERENCES
 ----------------------
-not detected
+- home.html (2 times)
+- style-guide.html (1 time)
 
 EMAIL REFERENCES
 ----------------
@@ -100,7 +100,7 @@ not detected
 
 GAP MAP
 -------
-no automatic gap flags detected
+- file/path references exist; referenced files may be needed for full context.
 
 ASZM / FASZM EVIDENCE RADAR
 ---------------------------
@@ -109,10 +109,11 @@ reason: ASZM/FASZM is manual only. Use findex --evidence FILE or findex --aszm F
 
 AI RETRIEVAL PLAN
 -----------------
+follow_file_references: yes
 
 MAP QUALITY SCORE
 -----------------
-map_quality_score: 0.53
+map_quality_score: 0.515
 coverage_component: read status + extraction coverage
 domain_component: detected categories with page ranges
 pattern_component: pattern zones detected across pages

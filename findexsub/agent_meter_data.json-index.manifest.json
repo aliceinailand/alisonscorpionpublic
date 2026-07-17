@@ -1,6 +1,6 @@
 {
   "index_version": "findex-asx-beta-2026-06-29",
-  "file": "/home/alice/alisonscorpion/website/dist/agent_meter_data.json",
+  "file": "/home/alice/alisonscorpion/website/staging/agent_meter_data.json",
   "sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
   "extracted_text_sha256": "34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1",
   "counts": {

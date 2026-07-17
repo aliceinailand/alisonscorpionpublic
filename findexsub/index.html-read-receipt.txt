@@ -7,26 +7,26 @@ It records measurable document-processing coverage, source identity, extraction 
 structural mapping, pattern-zone detection, gap disclosure, answerability boundaries,
 and challenge prompts.
 
-certificate_id: A11D415C42D83986
-generated_at: 2026-07-14T15:34:14-06:00
-source_file: /home/alice/alisonscorpion/website/dist/index.html
+certificate_id: CBF6135E0B01F4BB
+generated_at: 2026-07-14T15:34:13-06:00
+source_file: /home/alice/alisonscorpion/website/staging/index.html
 source_name: index.html
-source_sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
-extracted_text_sha256: 5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef
-size_bytes: 550
+source_sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+extracted_text_sha256: 15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c
+size_bytes: 2479
 pages: None
-lines: 14
-words: 44
-characters: 546
+lines: 82
+words: 257
+characters: 2472
 
 COVERAGE STATUS
 ---------------
 extraction_status: TEXT_RECOVERED
 first_anchor: <!DOCTYPE html>
-middle_anchor: <script type="module" crossorigin src="/assets/index-c7JXa9W1.js"></script>
+middle_anchor: border-radius: 12px;
 last_anchor: </html>
 distributed_read_probe_count: 3
-section_checksum_count: 1
+section_checksum_count: 2
 
 ROLE SEPARATION
 ---------------
@@ -40,9 +40,9 @@ HIGH-SIGNAL ZONES
 -----------------
 top_domains: ai, code
 legal: 0
-ai: 5
+ai: 3
 record: 0
-code: 2
+code: 3
 sensitive: 0
 
 SENSITIVE DATA MAP
@@ -54,7 +54,7 @@ case_number: 0
 email: 0
 phone: 0
 hash: 0
-negation: 0
+negation: 1
 legal_verb: 0
 
 SIMILAR SECTION DELTA MAP
@@ -101,7 +101,7 @@ referenced_missing_files: NO FILE-REFERENCE GAP DETECTED BY RRC
 image_only_evidence: NOT DETECTED BY RRC
 author_intent: INFERENCE ONLY
 claims_outside_document: NOT SUPPORTED
-sensitive_disclosure: LOW SIGNAL
+sensitive_disclosure: REVIEW BEFORE SHARING
 
 AI READ RECEIPT INSTRUCTION
 ---------------------------

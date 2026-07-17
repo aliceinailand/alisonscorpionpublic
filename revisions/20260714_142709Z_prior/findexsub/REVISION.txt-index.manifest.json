@@ -1,0 +1,40 @@
+{
+  "index_version": "findex-asx-beta-2026-06-29",
+  "file": "/home/alice/alisonscorpion/website/staging/revisions/20260714_142709Z_prior/REVISION.txt",
+  "sha256": "fd3751dad5727c2df34ae6ba070c998b3bdd6b44594b20a064de2db32245430e",
+  "extracted_text_sha256": "fd3751dad5727c2df34ae6ba070c998b3bdd6b44594b20a064de2db32245430e",
+  "counts": {
+    "pages": 1,
+    "lines": 5,
+    "words": 21,
+    "characters": 203,
+    "paragraphs": 1
+  },
+  "read_status": "COMPLETE",
+  "mode": "SOURCE_FILE",
+  "roles": [
+    "SOURCE"
+  ],
+  "domains": {
+    "code": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "ai": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    }
+  },
+  "patterns": [],
+  "map_quality_score": 0.53,
+  "aszm_active": false,
+  "aszm": null
+}

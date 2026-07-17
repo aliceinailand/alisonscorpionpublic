@@ -1,14 +1,14 @@
 {
   "index_version": "findex-asx-beta-2026-06-29",
-  "file": "/home/alice/alisonscorpion/website/dist/index.html",
-  "sha256": "5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef",
-  "extracted_text_sha256": "5f4f7e8044caf89c0417f55422c91bb35c9662d13e032b9843ad01600f8559ef",
+  "file": "/home/alice/alisonscorpion/website/staging/index.html",
+  "sha256": "15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c",
+  "extracted_text_sha256": "15d34e324b36c1ce90cc2ee88ed10a613c1e22d44db140abfe9c18cb4891cf8c",
   "counts": {
     "pages": 1,
-    "lines": 14,
-    "words": 62,
-    "characters": 546,
-    "paragraphs": 6
+    "lines": 82,
+    "words": 293,
+    "characters": 2472,
+    "paragraphs": 10
   },
   "read_status": "COMPLETE",
   "mode": "SOURCE_FILE",
@@ -17,16 +17,8 @@
   ],
   "domains": {
     "ai": {
-      "score": 1.0,
-      "hits": 9,
-      "pages": [
-        1
-      ],
-      "ranges": "1"
-    },
-    "code": {
-      "score": 0.25,
-      "hits": 2,
+      "score": 0.625,
+      "hits": 5,
       "pages": [
         1
       ],
@@ -34,7 +26,7 @@
     }
   },
   "patterns": [],
-  "map_quality_score": 0.53,
+  "map_quality_score": 0.515,
   "aszm_active": false,
   "aszm": null
 }

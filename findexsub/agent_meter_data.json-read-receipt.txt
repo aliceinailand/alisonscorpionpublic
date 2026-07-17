@@ -7,9 +7,9 @@ It records measurable document-processing coverage, source identity, extraction 
 structural mapping, pattern-zone detection, gap disclosure, answerability boundaries,
 and challenge prompts.
 
-certificate_id: 71411E010B03FF76
-generated_at: 2026-07-14T15:34:15-06:00
-source_file: /home/alice/alisonscorpion/website/dist/agent_meter_data.json
+certificate_id: 2C6661ABAFBD9FE1
+generated_at: 2026-07-14T15:34:13-06:00
+source_file: /home/alice/alisonscorpion/website/staging/agent_meter_data.json
 source_name: agent_meter_data.json
 source_sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1
 extracted_text_sha256: 34519caa53226b03215f60471557165d4efada55248f80e57b38692c57ceace1

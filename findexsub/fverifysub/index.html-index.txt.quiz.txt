@@ -2,7 +2,7 @@ FVERIFY QUIZ / CHALLENGE
 ========================
 Ask the AI these before accepting a full-read claim:
 
-1. Quote the required mid-file phrase: ALISON_SCORPION_MIDFILE_VERIFIED_CFE575B2
+1. Quote the required mid-file phrase: ALISON_SCORPION_MIDFILE_VERIFIED_054D7CC1
 2. Quote one distributed read probe from the body.
 3. Quote one section checksum exactly.
 4. State the first, middle, and last anchors.
