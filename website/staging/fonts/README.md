@@ -1,17 +1,31 @@
-# asxweb local fonts
+# asxweb fonts
 
-## Scriptina (`scriptina/`)
+## Brand script (wordmark only)
 
-- Source: [1001fonts Scriptina](https://www.1001fonts.com/scriptina-font.html)
-- Files: `SCRIPTIN.ttf`, `SCRIPALT.ttf`, `readme.txt`
-- License: Apostrophic Labs freeware — personal **and commercial** use OK; do not modify/repackage for re-release
-- Role: **brand accent only** (`theme.displayScript` / `.asx-brand-script`)
+| Priority | Face | Source | Role |
+|----------|------|--------|------|
+| 1 | **Loved by the King** | Google Fonts (CDN) | Primary — elegant thin script, Scriptina-adjacent |
+| 2 | **Mr Dafoe** | Google Fonts (CDN) | Formal copperplate if #1 unavailable |
+| 3 | **Scriptina** | `scriptina/SCRIPTIN.ttf` | Local offline fallback (Alice favorite) |
 
-## Not selected for primary brand
+Loaded via `theme.fontLink` + `@font-face` for Scriptina.  
+CSS: `--asx-font-display-script` / class `.asx-brand-script`.
 
-| Font | Why not primary |
-|------|-----------------|
-| Vintella Skillton | Casual textured hand — softer “craft” than forensic ASX |
-| Babbler | Signature hand — fine for story merch, weaker for operator deck |
+**Never** use brand script for body, nav, gates, or mono evidence.
 
-Either may be added later as `displayScriptAlt` for story/TrippyAlice only if Alice chooses.
+### Google Fonts shortlist (Alice) — ranking for ASX
+
+| Font | Verdict |
+|------|---------|
+| Loved by the King | **Primary** — formal, quiet authority |
+| Mr Dafoe | **Secondary** — strong formal backup |
+| Ms Madi / Moon Dance | Optional later alt |
+| Qwigley / Oooh Baby | Too soft for operator deck |
+| Edu / Playwrite | School handwriting — skip for brand |
+| Reenie Beanie / Nothing You Could Do | Casual notebook — skip |
+| Over the Rainbow | Whimsy — story only if ever |
+
+### Local Scriptina
+
+- https://www.1001fonts.com/scriptina-font.html  
+- License: Apostrophic Labs freeware (commercial OK; do not modify/repackage)  
