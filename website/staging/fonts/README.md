@@ -2,14 +2,13 @@
 
 **Official lock (samples + ranking + signature power dynamic):** monorepo `docs/asx-fonts.md`
 
-## Brand mark stack (shell)
+## Brand mark (shell)
 
 ```
-CONTROL                 ← uppercase UI label (keep)
-Alison Scorpion         ← brand script wordmark only
+Alison Scorpion         ← brand script wordmark only · 2em
 ```
 
-Signature meaning: **Alice Commands, Scorpion Obeys** (dyarchy of the mark — not a replacement for CONTROL).
+Pre-language “Alice Commands, Scorpion Obeys” is **not** ASX product chrome — reserved for trippyalice.com.
 
 ## Brand cursive (wordmark only) — right-slant, open A
 
@@ -25,7 +24,7 @@ Signature meaning: **Alice Commands, Scorpion Obeys** (dyarchy of the mark — n
 - Prefer **open A**, not circular/loop A  
 - No upright/straight cursive  
 - Never on body, gates, tables, or hashes  
-- Do not remove CONTROL from the brand row  
+- Product brand row shows **Alison Scorpion** only (2em) — no dyarchy slogan  
 
 ### Classes
 - `.asx-brand-script` → `--asx-font-display-script` (Allison stack)  
