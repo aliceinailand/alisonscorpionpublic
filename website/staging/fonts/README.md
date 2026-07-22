@@ -1,31 +1,24 @@
 # asxweb fonts
 
-## Brand script (wordmark only)
+## Brand cursive (wordmark only) — right-slant, open A
 
 | Priority | Face | Source | Role |
 |----------|------|--------|------|
-| 1 | **Loved by the King** | Google Fonts (CDN) | Primary — elegant thin script, Scriptina-adjacent |
-| 2 | **Mr Dafoe** | Google Fonts (CDN) | Formal copperplate if #1 unavailable |
-| 3 | **Scriptina** | `scriptina/SCRIPTIN.ttf` | Local offline fallback (Alice favorite) |
+| 1 | **Allison** | Google Fonts | Primary — right-slant script, open A, name coincidence |
+| 2 | **Carattere** | Google Fonts | Formal slanted backup |
+| 3 | **Loved by the King** | Google Fonts | Symbolic keep (King metaphor); non-cursive accent class |
+| 4 | **Scriptina** | `scriptina/SCRIPTIN.ttf` | Local offline fallback (Alice favorite) |
 
-Loaded via `theme.fontLink` + `@font-face` for Scriptina.  
-CSS: `--asx-font-display-script` / class `.asx-brand-script`.
+### Operator rules
+- Cursive must **slant right** (left-handed signing presentation)  
+- Prefer **open A**, not circular/loop A  
+- No upright/straight cursive  
+- Never on body, gates, tables, or hashes  
 
-**Never** use brand script for body, nav, gates, or mono evidence.
-
-### Google Fonts shortlist (Alice) — ranking for ASX
-
-| Font | Verdict |
-|------|---------|
-| Loved by the King | **Primary** — formal, quiet authority |
-| Mr Dafoe | **Secondary** — strong formal backup |
-| Ms Madi / Moon Dance | Optional later alt |
-| Qwigley / Oooh Baby | Too soft for operator deck |
-| Edu / Playwrite | School handwriting — skip for brand |
-| Reenie Beanie / Nothing You Could Do | Casual notebook — skip |
-| Over the Rainbow | Whimsy — story only if ever |
+### Classes
+- `.asx-brand-script` → `--asx-font-display-script` (Allison stack)  
+- `.asx-brand-accent` → `--asx-font-display-accent` (Loved by the King stack)  
 
 ### Local Scriptina
-
 - https://www.1001fonts.com/scriptina-font.html  
 - License: Apostrophic Labs freeware (commercial OK; do not modify/repackage)  
