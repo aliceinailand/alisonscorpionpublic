@@ -1,5 +1,16 @@
 # asxweb fonts
 
+**Official lock (samples + ranking + signature power dynamic):** monorepo `docs/asx-fonts.md`
+
+## Brand mark stack (shell)
+
+```
+CONTROL                 ← uppercase UI label (keep)
+Alison Scorpion         ← brand script wordmark only
+```
+
+Signature meaning: **Alice Commands, Scorpion Obeys** (dyarchy of the mark — not a replacement for CONTROL).
+
 ## Brand cursive (wordmark only) — right-slant, open A
 
 | Priority | Face | Source | Role |
@@ -14,6 +25,7 @@
 - Prefer **open A**, not circular/loop A  
 - No upright/straight cursive  
 - Never on body, gates, tables, or hashes  
+- Do not remove CONTROL from the brand row  
 
 ### Classes
 - `.asx-brand-script` → `--asx-font-display-script` (Allison stack)  
@@ -22,3 +34,7 @@
 ### Local Scriptina
 - https://www.1001fonts.com/scriptina-font.html  
 - License: Apostrophic Labs freeware (commercial OK; do not modify/repackage)  
+
+### Samples
+- `docs/assets/asx-fonts/sample_*.png` — “Alison Scorpion” + lowercase/UPPERCASE pangram  
+  (`the quick brown fox jumps over the lazy dog` / `THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG`)  
