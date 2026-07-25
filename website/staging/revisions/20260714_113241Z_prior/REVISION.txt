@@ -1,5 +1,0 @@
-stamp=20260714_113241Z_prior
-label=prior
-created_utc=2026-07-14T11:32:41Z
-source=/home/alice/alisonscorpion/website/staging
-note=Rollback: bash scripts/restore-staging-revision.sh 20260714_113241Z_prior
