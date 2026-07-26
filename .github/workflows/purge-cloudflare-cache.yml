@@ -1,0 +1,22 @@
+name: Purge Cloudflare cache after Pages publish
+
+on:
+  page_build:
+
+permissions: {}
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge alisonscorpion.com cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: fdfc2f6f3598393dc37bd9a4bed467b6
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
