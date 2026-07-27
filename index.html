@@ -3,80 +3,249 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ASX staging — preview channel</title>
-  <meta name="robots" content="noindex" />
-  <meta name="description" content="Alison Scorpion website staging channel. Product preview at home.html." />
+  <title>Alison Scorpion — Verification-first AI governance</title>
+  <meta name="description" content="Alison Scorpion (ASX): verification-first platform. Alice Commands; Scorpion Obeys. FACT = LAW + RECORD." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://alisonscorpion.com/" />
   <style>
     :root {
       --bg: #0a0809;
-      --brand: #a78bfa;
-      --gold: #c8a35a;
-      --text: #e8e6f0;
-      --dim: #8b849c;
       --panel: #13111a;
       --border: #2d1b4e;
+      --brand: #a78bfa;
+      --brand-deep: #7c3aed;
+      --gold: #c8a35a;
+      --gold-white: #f5edd8;
+      --text: #e8e6f0;
+      --dim: #8b849c;
+      --pass: #34d399;
+      --data: #22d3ee;
+      --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --display: "Georgia", "Times New Roman", serif;
+      --mono: ui-monospace, "JetBrains Mono", Consolas, monospace;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--sans);
       background: var(--bg);
       color: var(--text);
+      line-height: 1.6;
       min-height: 100vh;
-      padding: 48px 24px;
-      line-height: 1.5;
+      background-image: radial-gradient(1000px 500px at 10% -10%, rgba(124,58,237,0.22), transparent 55%);
     }
-    main { max-width: 36rem; margin: 0 auto; }
-    .gold {
-      color: var(--gold);
-      letter-spacing: .12em;
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; color: var(--gold-white); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 64px; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      font-size: 12px;
-      font-weight: 600;
     }
-    h1 { font-size: 1.75rem; font-weight: 600; margin: 12px 0 8px; }
-    p { color: var(--dim); margin: 0 0 1rem; }
-    .panel {
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
+      font-weight: 600;
+      margin: 10px 0 12px;
+      letter-spacing: -0.02em;
+    }
+    h1 span { color: var(--brand); }
+    .lead { color: var(--dim); font-size: 1.05rem; max-width: 40rem; }
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(167,139,250,0.12);
+      color: var(--gold-white);
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      min-height: 44px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none !important;
+    }
+    .btn-primary {
+      background: var(--brand-deep);
+      color: var(--gold-white);
+      border-color: rgba(245,237,216,0.22);
+      box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+    }
+    .btn-primary:hover { background: #8b5cf6; color: #fff; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--gold-white);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    section {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin: 1.5rem 0;
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin: 16px 0;
     }
-    ul { margin: 0; padding-left: 1.2rem; }
-    li { margin: 0.5rem 0; }
-    a { color: var(--brand); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .note {
-      font-size: 0.875rem;
-      color: var(--dim);
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: var(--gold-white);
+    }
+    p, li { color: var(--dim); font-size: 0.95rem; }
+    ul { padding-left: 1.2rem; }
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      background: #0c0a12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .card strong { color: var(--gold-white); display: block; margin-bottom: 6px; }
+    code, .mono { font-family: var(--mono); font-size: 0.85em; color: var(--data); }
+    footer {
+      margin-top: 36px;
+      padding-top: 18px;
       border-top: 1px solid var(--border);
-      padding-top: 1rem;
-      margin-top: 1.5rem;
+      font-size: 12px;
+      color: var(--dim);
     }
-    code { font-size: 0.9em; color: var(--gold); }
+    .disclaimer {
+      background: rgba(15,12,20,0.9);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--dim);
+      margin: 18px 0;
+    }
+    .disclaimer strong {
+      color: var(--brand);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 10px;
+      margin-right: 8px;
+    }
   </style>
 </head>
 <body>
-  <main>
-    <p class="gold">Alison Scorpion · staging channel</p>
-    <h1>Website staging</h1>
-    <p>
-      Preview only. Product UI is not the apex homepage.
-      Product home: <a href="/">alisonscorpion.com/</a>.
-    </p>
-    <div class="panel">
-      <ul>
-        <li><a href="home.html"><strong>Product preview</strong></a> — <code>home.html</code></li>
-        <li><a href="style-guide.html">Style guide</a></li>
-        <li><a href="/website/">Website channels</a></li>
-        <li><a href="/docs/">Knowledgebase</a></li>
-      </ul>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">♛ Alison Scorpion · ASX</div>
+      <h1>Verification-first platform for <span>human–AI alignment</span></h1>
+      <p class="lead">
+        Alice Commands. Scorpion Obeys. A local-first verification architecture:
+        gates, record discipline, and auditable decisions — not a general chatbot replacement.
+      </p>
+      <span class="badge">Public product surface</span>
+      <nav>
+        <a class="btn btn-primary" href="/website/staging/dashboard.html">Open product UI (staging)</a>
+        <a class="btn btn-ghost" href="/docs/">Knowledgebase</a>
+        <a class="btn btn-ghost" href="/story/">Story (TrippyAlice preview)</a>
+      </nav>
+    </header>
+
+    <div class="disclaimer">
+      <strong>Disclaimer</strong>
+      AI cannot guarantee anything. It does its best. 100% accuracy is not possible where infinite
+      uncertainty exists. <span class="mono">FACT = LAW + RECORD</span> (SV65H). Missing either → HOLD.
     </div>
-    <p class="note">
-      Auto-updates while we work (<code>npm run deploy:staging</code>).
-      Brand purple · action gold · cosmic black. Nothing here is LIVE product root.
-    </p>
-  </main>
+
+    <section>
+      <h2>What this is</h2>
+      <p>
+        <strong style="color:var(--gold-white)">Alison Scorpion (ASX)</strong> is a verification-first
+        control framework: evidence maps, contradiction checks, ethical weighting (ELI), and multi-agent
+        review lanes — with provenance honesty. Symbolic names (Alice, Scorpion, Ouroboros) are routing
+        mnemonics for real gates and ledgers, not mysticism.
+      </p>
+      <div class="grid" style="margin-top:14px">
+        <div class="card">
+          <strong>Product site</strong>
+          alisonscorpion.com — instrument panel: UI, public knowledgebase, product previews.
+        </div>
+        <div class="card">
+          <strong>Story site (planned)</strong>
+          trippyalice.com — Wonderland / metaphor / origin narrative. Sibling, not competitor.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Public doctrine (names only)</h2>
+      <ul>
+        <li><strong style="color:var(--gold-white)">SV65H</strong> — LAW + RECORD = FACT; missing either → no FACT claim.</li>
+        <li><strong style="color:var(--gold-white)">Alice Commands; Scorpion Obeys</strong> — ethics/governance before enforcement.</li>
+        <li><strong style="color:var(--gold-white)">Provenance honesty</strong> — SOURCE ≠ map ≠ AI synthesis; labels stay distinct.</li>
+        <li><strong style="color:var(--gold-white)">Partial product release</strong> — ship surfaces and modules; not the whole private stack.</li>
+      </ul>
+      <p style="margin-bottom:0">
+        Detailed Alison Scorpion Math (formulas, tables, proofs), case records, secrets, and proprietary
+        gate implementations are <em>not</em> published here.
+        <strong style="color:var(--gold-white)">ASX Math:</strong> implementable mathematics remains private
+        until patent / provisional options are decided — no public formulas.
+      </p>
+    </section>
+
+    <section>
+      <h2>Where to go</h2>
+      <ul>
+        <li><a href="/website/staging/dashboard.html">Product UI (staging)</a> — preview at <code>/website/staging/dashboard.html</code></li>
+        <li><a href="/docs/">Knowledgebase</a> — high-level operator-oriented docs</li>
+        <li><a href="/story/">Story preview</a> — TrippyAlice (fiction / metaphor)</li>
+        <li><a href="/website/">Website channels</a> — staging landing</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What we do not publish here</h2>
+      <ul>
+        <li>Private case exhibits, legal strategy, or third-party PII</li>
+        <li>Secrets, credentials, API keys, or full proprietary gate implementations</li>
+        <li>Implementable ASX math formulas, tables, or twin-kit dumps</li>
+        <li>Internal security ranking legends and private classification playbooks</li>
+        <li>Whole-stack monorepo dumps</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>
+        Alice Commands. Scorpion Obeys. ·
+        Staging product: <a href="/website/staging/dashboard.html">/website/staging/dashboard.html</a>
+      </p>
+      <p style="margin-bottom:0;color:#5a5468">
+        ASX is ASX — verification-first governance, not a general chatbot.
+      </p>
+    </footer>
+  </div>
 </body>
 </html>
