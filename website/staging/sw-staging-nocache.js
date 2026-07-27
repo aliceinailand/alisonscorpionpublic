@@ -8,7 +8,7 @@
  * NOTES: Active ops — Alice wants seconds not hours. SW_VERSION stamped per deploy.
  */
 /* eslint-disable no-restricted-globals */
-const SW_VERSION = "asx-staging-nocache-20260727T1913Z-chat-fonts";
+const SW_VERSION = "asx-staging-nocache-20260727T1917Z-chat-sz";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
