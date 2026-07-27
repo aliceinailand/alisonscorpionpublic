@@ -12,13 +12,35 @@
   <link rel="icon" type="image/png" href="/website/staging/favicon-16x16.png" sizes="16x16" />
   <link rel="apple-touch-icon" href="/website/staging/apple-touch-icon.png" />
   <script>try{if(!location.hash||location.hash==="#"||location.hash==="#home"){history.replaceState(null,"","#dashboard"+location.search);}}catch(e){}</script>
-    <script type="module" crossorigin src="/website/staging/assets/index-DltbPRyq.js"></script>
-  <link rel="stylesheet" crossorigin href="/website/staging/assets/index-DFesbf9V.css">
-  <meta name="asx-build-stamp" content="20260727T1813Z-account-chat" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <script type="module" crossorigin src="/website/staging/assets/index-BNQdxYpn.js?v=20260727T1819Z-nocache"></script>
+  <link rel="stylesheet" crossorigin href="/website/staging/assets/index-DFesbf9V.css?v=20260727T1819Z-nocache">
+  <meta name="asx-build-stamp" content="20260727T1819Z-nocache" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="asx-cache-policy" content="staging-no-store" />
 </head>
   <body>
     <div id="root"></div>
-  </body>
+    <script>
+  /* ASX staging no-cache: network-only SW + unregister legacy */
+  (function () {
+    if (!("serviceWorker" in navigator)) return;
+    var swUrl = new URL("sw-staging-nocache.js?v=20260727T1819Z-nocache", location.href).pathname + "?v=20260727T1819Z-nocache";
+    // Prefer relative under staging
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=20260727T1819Z-nocache"
+      : "sw-staging-nocache.js?v=20260727T1819Z-nocache";
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || "";
+        if (s.indexOf("sw-staging") === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+</body>
 </html>
