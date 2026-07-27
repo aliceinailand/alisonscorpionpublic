@@ -8,7 +8,7 @@
  * NOTES: Active ops — Alice wants seconds not hours. SW_VERSION stamped per deploy.
  */
 /* eslint-disable no-restricted-globals */
-const SW_VERSION = "asx-staging-nocache-20260727T1826Z-disclaimer";
+const SW_VERSION = "asx-staging-nocache-20260727T1827Z-disc-purple";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
