@@ -1,2 +1,2 @@
-policy=staging-no-store
-stamp=20260727T1823Z-finish-lock
+policy=staging-no-store-active-ops
+stamp=20260727T1825Z-active-ops

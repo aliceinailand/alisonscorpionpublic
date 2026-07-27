@@ -12,29 +12,41 @@
   <link rel="icon" type="image/png" href="/website/staging/favicon-16x16.png" sizes="16x16" />
   <link rel="apple-touch-icon" href="/website/staging/apple-touch-icon.png" />
   <script>try{if(!location.hash||location.hash==="#"||location.hash==="#home"){history.replaceState(null,"","#dashboard"+location.search);}}catch(e){}</script>
-    <script type="module" crossorigin src="/website/staging/assets/index-DyfyhfmB.js?v=20260727T1823Z-finish-lock"></script>
-  <link rel="stylesheet" crossorigin href="/website/staging/assets/index-DFesbf9V.css?v=20260727T1823Z-finish-lock">
-  <meta name="asx-build-stamp" content="20260727T1823Z-finish-lock" />
+    <script type="module" crossorigin src="/website/staging/assets/index-DNeNnTDs.js?v=20260727T1825Z-active-ops"></script>
+  <link rel="stylesheet" crossorigin href="/website/staging/assets/index-DFesbf9V.css?v=20260727T1825Z-active-ops">
+  <meta name="asx-build-stamp" content="20260727T1825Z-active-ops" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="asx-cache-policy" content="staging-no-store" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
 </head>
   <body>
-    <div id="root"></div>
-    <script>
-  /* ASX staging no-cache: network-only SW + unregister legacy */
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
   (function () {
+    var STAMP = '20260727T1825Z-active-ops';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
     if (!("serviceWorker" in navigator)) return;
-    var swUrl = new URL("sw-staging-nocache.js?v=20260727T1823Z-finish-lock", location.href).pathname + "?v=20260727T1823Z-finish-lock";
-    // Prefer relative under staging
     var path = location.pathname.indexOf("/website/staging/") === 0
-      ? "/website/staging/sw-staging-nocache.js?v=20260727T1823Z-finish-lock"
-      : "sw-staging-nocache.js?v=20260727T1823Z-finish-lock";
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
     navigator.serviceWorker.getRegistrations().then(function (regs) {
       regs.forEach(function (r) {
-        var s = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || "";
-        if (s.indexOf("sw-staging") === -1) r.unregister();
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
       });
     }).catch(function () {});
     navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
@@ -42,5 +54,7 @@
       .catch(function () {});
   })();
   </script>
-</body>
+
+    <div id="root"></div>
+  </body>
 </html>

@@ -13,13 +13,47 @@
     code { color: #c8a35a; font-size: 0.9em; }
     li { margin: 0.5rem 0; }
   </style>
-  <meta name="asx-build-stamp" content="20260727T1823Z-finish-lock" />
+  <meta name="asx-build-stamp" content="20260727T1825Z-active-ops" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="asx-cache-policy" content="staging-no-store" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
 </head>
 <body>
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
+  (function () {
+    var STAMP = '20260727T1825Z-active-ops';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
+    if (!("serviceWorker" in navigator)) return;
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+
   <p class="gold">Alison Scorpion · staging channel</p>
   <h1>Website staging</h1>
   <div class="panel">
@@ -33,25 +67,5 @@
   <p style="color:#8b849c;font-size:14px;max-width:36rem;">
     Dashboard = operator App. Verify = public R0 verifier. This channel does not alter apex/root files.
   </p>
-  <script>
-  /* ASX staging no-cache: network-only SW + unregister legacy */
-  (function () {
-    if (!("serviceWorker" in navigator)) return;
-    var swUrl = new URL("sw-staging-nocache.js?v=20260727T1823Z-finish-lock", location.href).pathname + "?v=20260727T1823Z-finish-lock";
-    // Prefer relative under staging
-    var path = location.pathname.indexOf("/website/staging/") === 0
-      ? "/website/staging/sw-staging-nocache.js?v=20260727T1823Z-finish-lock"
-      : "sw-staging-nocache.js?v=20260727T1823Z-finish-lock";
-    navigator.serviceWorker.getRegistrations().then(function (regs) {
-      regs.forEach(function (r) {
-        var s = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || "";
-        if (s.indexOf("sw-staging") === -1) r.unregister();
-      });
-    }).catch(function () {});
-    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
-      .then(function (reg) { try { reg.update(); } catch (e) {} })
-      .catch(function () {});
-  })();
-  </script>
 </body>
 </html>
