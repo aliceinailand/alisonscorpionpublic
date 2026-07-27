@@ -9,7 +9,7 @@
  *   production apex policy without review. Hashed assets still network-first under staging.
  */
 /* eslint-disable no-restricted-globals */
-const SW_VERSION = "asx-staging-nocache-20260727T1819Z-nocache";
+const SW_VERSION = "asx-staging-nocache-20260727T1821Z-policy-finish";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
