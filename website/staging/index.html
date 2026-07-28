@@ -13,7 +13,7 @@
     code { color: #c8a35a; font-size: 0.9em; }
     li { margin: 0.5rem 0; }
   </style>
-  <meta name="asx-build-stamp" content="20260728T043803Z-finish" />
+  <meta name="asx-build-stamp" content="20260728T051858Z-finish" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -23,7 +23,7 @@
   <script>
   /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
   (function () {
-    var STAMP = '20260728T043803Z-finish';
+    var STAMP = '20260728T051858Z-finish';
     try {
       var u = new URL(location.href);
       if (u.searchParams.get("v") !== STAMP) {
@@ -58,14 +58,16 @@
   <h1>Website staging</h1>
   <div class="panel">
     <ul>
-      <li><a href="dashboard.html"><strong>Operator Dashboard</strong></a> — full shell · <code>dashboard.html</code></li>
-      <li><a href="home.html">Product home</a> — full shell · <code>home.html</code></li>
+      <li><a href="NOW.html"><strong>Always latest</strong></a> — stamp pointer · <code>NOW.html</code> (also <code>now.html</code>)</li>
+      <li><a href="dashboard.html"><strong>Operator Dashboard</strong></a> — <strong>canonical product entry</strong> · full shell · Construct</li>
+      <li><a href="home.html">Product home</a> — same full shell alias · <code>home.html</code></li>
       <li><a href="verify.html"><strong>Public verifier</strong></a> — claim form only · <code>verify.html</code></li>
       <li><a href="style-guide.html">Staging style guide</a></li>
     </ul>
   </div>
   <p style="color:#8b849c;font-size:14px;max-width:36rem;">
-    Dashboard = operator App. Verify = public R0 verifier. This channel does not alter apex/root files.
+    Canonical product: <code>dashboard.html</code>. Use <code>NOW.html</code> for cache-busted latest.
+    Verify = public R0 only. Apex/root R0 untouched.
   </p>
 </body>
 </html>
