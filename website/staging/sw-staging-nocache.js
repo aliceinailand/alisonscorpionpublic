@@ -8,7 +8,7 @@
  * NOTES: Active ops — Alice wants seconds not hours. SW_VERSION stamped per deploy.
  */
 /* eslint-disable no-restricted-globals */
-const SW_VERSION = "asx-staging-nocache-20260727T2347Z-chat-default";
+const SW_VERSION = "asx-staging-nocache-20260727T0008Z-css-index";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
