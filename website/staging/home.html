@@ -6,16 +6,50 @@
     <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
     <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
     <meta name="description" content="Alison Scorpion — verification-first AI governance. FACT = LAW + RECORD." />
-    <link rel="icon" type="image/png" href="/website/staging/brand/scorpion-universe-purple.png" />
     <title>Alison Scorpion — alisonscorpion.com</title>
-    <link rel="icon" href="/website/staging/favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" href="/website/staging/favicon-32x32.png" sizes="32x32" />
-  <link rel="icon" type="image/png" href="/website/staging/favicon-16x16.png" sizes="16x16" />
-  <link rel="apple-touch-icon" href="/website/staging/apple-touch-icon.png" />
-  <script type="module" crossorigin src="/website/staging/assets/index-epWyPFDa.js"></script>
-  <link rel="stylesheet" crossorigin href="/website/staging/assets/index-HhP0F8HS.css">
+    <script type="module" crossorigin src="/website/staging/assets/index-XsBFNeV9.js?v=20260803T044806Z-finish"></script>
+    <link rel="stylesheet" crossorigin href="/website/staging/assets/index-qJwF2Wq_.css?v=20260803T044806Z-finish">
+    <meta name="asx-build-stamp" content="20260803T044806Z-finish" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
 </head>
   <body>
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
+  (function () {
+    var STAMP = '20260803T044806Z-finish';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
+    if (!("serviceWorker" in navigator)) return;
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+
     <div id="root"></div>
   </body>
 </html>

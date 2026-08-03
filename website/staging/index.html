@@ -13,20 +13,61 @@
     code { color: #c8a35a; font-size: 0.9em; }
     li { margin: 0.5rem 0; }
   </style>
+  <meta name="asx-build-stamp" content="20260803T044806Z-finish" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
 </head>
 <body>
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
+  (function () {
+    var STAMP = '20260803T044806Z-finish';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
+    if (!("serviceWorker" in navigator)) return;
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+
   <p class="gold">Alison Scorpion · staging channel</p>
   <h1>Website staging</h1>
   <div class="panel">
     <ul>
-      <li><a href="dashboard.html"><strong>Operator Dashboard</strong></a> — full shell · <code>dashboard.html</code></li>
-      <li><a href="home.html">Product home</a> — full shell · <code>home.html</code></li>
+      <li><a href="NOW.html"><strong>Always latest</strong></a> — stamp pointer · <code>NOW.html</code> (also <code>now.html</code>)</li>
+      <li><a href="dashboard.html"><strong>Operator Dashboard</strong></a> — <strong>canonical product entry</strong> · full shell · Construct</li>
+      <li><a href="home.html">Product home</a> — same full shell alias · <code>home.html</code></li>
       <li><a href="verify.html"><strong>Public verifier</strong></a> — claim form only · <code>verify.html</code></li>
       <li><a href="style-guide.html">Staging style guide</a></li>
     </ul>
   </div>
   <p style="color:#8b849c;font-size:14px;max-width:36rem;">
-    Dashboard = operator App. Verify = public R0 verifier. This channel does not alter apex/root files.
+    Canonical product: <code>dashboard.html</code>. Use <code>NOW.html</code> for cache-busted latest.
+    Verify = public R0 only. Apex/root R0 untouched.
   </p>
 </body>
 </html>
