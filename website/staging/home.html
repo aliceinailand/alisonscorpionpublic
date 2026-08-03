@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
+    <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
+    <meta name="description" content="Alison Scorpion — verification-first AI governance. FACT = LAW + RECORD." />
+    <title>Alison Scorpion — alisonscorpion.com</title>
+    <script type="module" crossorigin src="/website/staging/assets/index-BRnslssy.js?v=20260803T052400Z-finish"></script>
+    <link rel="stylesheet" crossorigin href="/website/staging/assets/index-CQgV4dFA.css?v=20260803T052400Z-finish">
+    <meta name="asx-build-stamp" content="20260803T052400Z-finish" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
+</head>
+  <body>
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
+  (function () {
+    var STAMP = '20260803T052400Z-finish';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
+    if (!("serviceWorker" in navigator)) return;
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+
+    <div id="root"></div>
+  </body>
+</html>
