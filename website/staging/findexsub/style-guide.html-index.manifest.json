@@ -1,0 +1,162 @@
+{
+  "index_version": "findex-asx-dedupe-2026-07-18",
+  "file": "/home/alice/alisonscorpion/website/public/style-guide.html",
+  "sha256": "d6522ca2e4773a3091c6bb4a6f74402d564d053c5a047144eb5f40c5a90d39f4",
+  "extracted_text_sha256": "d6522ca2e4773a3091c6bb4a6f74402d564d053c5a047144eb5f40c5a90d39f4",
+  "counts": {
+    "pages": 1,
+    "lines": 1007,
+    "words": 5455,
+    "characters": 50017,
+    "paragraphs": 40
+  },
+  "read_status": "COMPLETE",
+  "semantic_profile_scope": "FULL_SOURCE",
+  "semantic_profile_characters": 50017,
+  "semantic_profile_full_source": true,
+  "mode": "SOURCE_FILE",
+  "roles": [
+    "RECORD",
+    "LAW"
+  ],
+  "domains": {
+    "code": {
+      "score": 1.0,
+      "hits": 86,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "ai": {
+      "score": 1.0,
+      "hits": 59,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "legal": {
+      "score": 0.625,
+      "hits": 5,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "government": {
+      "score": 0.5,
+      "hits": 4,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "therapy": {
+      "score": 0.25,
+      "hits": 2,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "education": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    },
+    "creative_fiction": {
+      "score": 0.125,
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1"
+    }
+  },
+  "patterns": [
+    {
+      "pattern": "authority_law",
+      "hits": 82,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "timeline_sequence",
+      "hits": 13,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "email_chain",
+      "hits": 8,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "visual_evidence",
+      "hits": 6,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "record_delta",
+      "hits": 5,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 1.0,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "verification",
+      "hits": 2,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.4,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    },
+    {
+      "pattern": "public_records",
+      "hits": 1,
+      "pages": [
+        1
+      ],
+      "ranges": "1",
+      "dense_ranges": "1",
+      "confidence": 0.2,
+      "sample_anchor": "<!doctype html> <html lang=\"en\" data-edition=\"dark\">"
+    }
+  ],
+  "map_quality_score": 0.938,
+  "aszm_active": false,
+  "aszm": null
+}
