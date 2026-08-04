@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ASX Container workspace mock · design</title>
+  <style>
+    :root {
+      --bg: #0a070e;
+      --panel: #14101a;
+      --text: #f2edf8;
+      --dim: #9a92aa;
+      --border: rgba(255, 255, 255, 0.1);
+      --pill: rgba(255, 255, 255, 0.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 24px 16px 48px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .actions { display: flex; gap: 8px; }
+    .pill {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--dim);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .newchat {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: var(--dim);
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab {
+      border: none;
+      background: transparent;
+      color: var(--dim);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab.on { background: var(--pill); color: var(--text); }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 4px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .title { font-weight: 600; margin-bottom: 4px; }
+    .preview { font-size: 0.82rem; color: var(--dim); line-height: 1.4; }
+    .date { font-size: 0.78rem; color: var(--dim); white-space: nowrap; }
+    .note {
+      margin-top: 28px;
+      font-size: 0.72rem;
+      color: var(--dim);
+      font-family: ui-monospace, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1><span aria-hidden="true">📁</span> New Mexico Department Of Justice Submissions</h1>
+      <div class="actions">
+        <span class="pill">Share</span>
+        <span class="pill">···</span>
+      </div>
+    </header>
+    <div class="newchat">
+      New chat in New Mexico Department Of Justice Submissions
+      <div style="font-size:0.78rem;margin-top:4px;opacity:0.8">Composer = Ask ASX (floating) — not this pane</div>
+    </div>
+    <div class="tabs">
+      <span class="tab on">Chats</span>
+      <span class="tab">Sources</span>
+    </div>
+    <div class="row">
+      <div>
+        <div class="title">NMDOJ Lane D Response Analysis</div>
+        <div class="preview">I'll begin a new chat as this is part of the Project, but can you provide an outline of Lane E so I don't have to …</div>
+      </div>
+      <div class="date">Aug 3</div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="title">Lane E Outline · Submission Path</div>
+        <div class="preview">Outline Lane E relative to Lane D — gates, record units, and what goes in the submission package.</div>
+      </div>
+      <div class="date">Aug 2</div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="title">Record map · Documentary / Testimonial / Temporal</div>
+        <div class="preview">SV65H S3 spine for NMDOJ submissions — map each Source before any narrative claim.</div>
+      </div>
+      <div class="date">Aug 1</div>
+    </div>
+    <p class="note">Static design mock · product surface = #containers-active · BROWSER_LOCAL · AMN NOT_MOUNTED · Sources not Files</p>
+  </div>
+</body>
+</html>
