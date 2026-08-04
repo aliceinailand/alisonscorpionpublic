@@ -4,79 +4,70 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ASX staging — preview channel</title>
-  <meta name="robots" content="noindex" />
-  <meta name="description" content="Alison Scorpion website staging channel. Product preview at home.html." />
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
   <style>
-    :root {
-      --bg: #0a0809;
-      --brand: #a78bfa;
-      --gold: #c8a35a;
-      --text: #e8e6f0;
-      --dim: #8b849c;
-      --panel: #13111a;
-      --border: #2d1b4e;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 48px 24px;
-      line-height: 1.5;
-    }
-    main { max-width: 36rem; margin: 0 auto; }
-    .gold {
-      color: var(--gold);
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    h1 { font-size: 1.75rem; font-weight: 600; margin: 12px 0 8px; }
-    p { color: var(--dim); margin: 0 0 1rem; }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin: 1.5rem 0;
-    }
-    ul { margin: 0; padding-left: 1.2rem; }
+    body { font-family: system-ui, sans-serif; background: #0a0809; color: #e8e6f0; padding: 48px 24px; line-height: 1.5; }
+    a { color: #a78bfa; }
+    .gold { color: #c8a35a; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; font-weight: 600; }
+    .panel { background: #13111a; border: 1px solid #2d1b4e; border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; max-width: 36rem; }
+    code { color: #c8a35a; font-size: 0.9em; }
     li { margin: 0.5rem 0; }
-    a { color: var(--brand); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .note {
-      font-size: 0.875rem;
-      color: var(--dim);
-      border-top: 1px solid var(--border);
-      padding-top: 1rem;
-      margin-top: 1.5rem;
-    }
-    code { font-size: 0.9em; color: var(--gold); }
   </style>
+  <meta name="asx-build-stamp" content="20260804T041555Z-finish" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="asx-cache-policy" content="staging-no-store-active-ops" />
 </head>
 <body>
-  <main>
-    <p class="gold">Alison Scorpion · staging channel</p>
-    <h1>Website staging</h1>
-    <p>
-      Preview only. Product UI is not the apex homepage.
-      Product home: <a href="/">alisonscorpion.com/</a>.
-    </p>
-    <div class="panel">
-      <ul>
-        <li><a href="home.html"><strong>Product preview</strong></a> — <code>home.html</code></li>
-        <li><a href="style-guide.html">Style guide</a></li>
-        <li><a href="/website/">Website channels</a></li>
-        <li><a href="/docs/">Knowledgebase</a></li>
-      </ul>
-    </div>
-    <p class="note">
-      Auto-updates while we work (<code>npm run deploy:staging</code>).
-      Brand purple · action gold · cosmic black. Nothing here is LIVE product root.
-    </p>
-  </main>
+  <script>
+  /* ASX staging active-ops: force HTML cache miss via ?v=stamp + SW network-only */
+  (function () {
+    var STAMP = '20260804T041555Z-finish';
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.get("v") !== STAMP) {
+        u.searchParams.set("v", STAMP);
+        location.replace(u.toString());
+        return;
+      }
+    } catch (e) {}
+    if (!("serviceWorker" in navigator)) return;
+    var path = location.pathname.indexOf("/website/staging/") === 0
+      ? "/website/staging/sw-staging-nocache.js?v=" + encodeURIComponent(STAMP)
+      : "sw-staging-nocache.js?v=" + encodeURIComponent(STAMP);
+    navigator.serviceWorker.addEventListener("message", function (ev) {
+      if (ev.data && ev.data.type === "ASX_STAGING_RELOAD") {
+        try { sessionStorage.setItem("asx_sw_reload", String(Date.now())); } catch (e) {}
+        location.reload();
+      }
+    });
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || "";
+        if (s && s.indexOf(STAMP) === -1) r.unregister();
+      });
+    }).catch(function () {});
+    navigator.serviceWorker.register(path, { scope: "./", updateViaCache: "none" })
+      .then(function (reg) { try { reg.update(); } catch (e) {} })
+      .catch(function () {});
+  })();
+  </script>
+
+  <p class="gold">Alison Scorpion · staging channel</p>
+  <h1>Website staging</h1>
+  <div class="panel">
+    <ul>
+      <li><a href="NOW.html"><strong>Always latest</strong></a> — stamp pointer · <code>NOW.html</code> (also <code>now.html</code>)</li>
+      <li><a href="dashboard.html"><strong>Operator Dashboard</strong></a> — <strong>canonical product entry</strong> · full shell · Construct</li>
+      <li><a href="home.html">Product home</a> — same full shell alias · <code>home.html</code></li>
+      <li><a href="verify.html"><strong>Public verifier</strong></a> — claim form only · <code>verify.html</code></li>
+      <li><a href="style-guide.html">Staging style guide</a></li>
+    </ul>
+  </div>
+  <p style="color:#8b849c;font-size:14px;max-width:36rem;">
+    Canonical product: <code>dashboard.html</code>. Use <code>NOW.html</code> for cache-busted latest.
+    Verify = public R0 only. Apex/root R0 untouched.
+  </p>
 </body>
 </html>

@@ -1,0 +1,18 @@
+FVERIFY RECEIPT
+===============
+source_file: /home/alice/alisonscorpion/website/public/findexsub/style-guide.html-index.txt
+source_sha256: f3ff6961694af415f2d007e09e98629206bcaaacf0f21df93478dc0c4457a172
+source_text_sha256: f3ff6961694af415f2d007e09e98629206bcaaacf0f21df93478dc0c4457a172
+hardened_text_sha256: f95a338146f2362d2bcac7a3c607cb6530af6607c471eb03c5ba4321175cb90e
+total_lines: 185
+total_words: 809
+total_characters: 6437
+total_paragraphs: 23
+section_checksum_count: 4
+first_anchor: FINDEX FILE INDEX =================
+middle_anchor: sample: <!doctype html> <html lang="en" data-edition="dark"> - public_records: confidence=0.2 hits=1 pages=1 dense_pages: 1
+last_anchor: When ASZM is inactive, do not claim ASZM evidence scoring was performed. When ASZM is active, distinguish recorded delta from unsupported escape.
+required_midfile_phrase: ALISON_SCORPION_MIDFILE_VERIFIED_C6585A67
+aszm_active: NO
+aszm_section_sha256: d958015ca8d6417e9c985a4acc50ca7957797ec6f2dc2e45f135dee3f3c5b87d
+verify_json_path: /home/alice/alisonscorpion/website/public/findexsub/fverifysub/style-guide.html-index.txt.verify.json
