@@ -85,9 +85,9 @@ export function runGlassGate() {
     setFog(fogLevel);
 
     const moveHand = (clientX, clientY) => {
-      // Left hand: fingertip near cursor; hand sits bottom-left of tip
-      const hx = clientX - 28;
-      const hy = clientY + 8;
+      // Index fingertip is at top-center of the SVG viewBox — pin tip to cursor
+      const hx = clientX;
+      const hy = clientY;
       hand.style.transform = `translate3d(${hx}px, ${hy}px, 0)`;
     };
 
@@ -241,52 +241,139 @@ export function runGlassGate() {
   });
 }
 
-/** Stylized realistic female left hand (palm toward viewer-ish, index extended). */
-function femaleLeftHandSvg() {
+/**
+ * Universe-purple satin glove — female left hand, index pointing.
+ * Fingertip of index is at (100, 8) in viewBox so CSS can pin tip to cursor.
+ * Intentional ASX brand piece (not Zero’s hand mesh).
+ */
+function alisonPurpleGloveSvg() {
   return `
-<svg class="gg-hand-svg" viewBox="0 0 200 280" width="200" height="280" xmlns="http://www.w3.org/2000/svg">
+<svg class="gg-hand-svg" viewBox="0 0 200 320" width="200" height="320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
-    <linearGradient id="ggSkin" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f3d4b8"/>
-      <stop offset="45%" stop-color="#e8b896"/>
-      <stop offset="100%" stop-color="#c98b6a"/>
+    <linearGradient id="ggGlove" x1="12%" y1="0%" x2="88%" y2="100%">
+      <stop offset="0%" stop-color="#ddd6fe"/>
+      <stop offset="28%" stop-color="#a78bfa"/>
+      <stop offset="62%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
     </linearGradient>
-    <linearGradient id="ggSkinSh" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#f7e0c8" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#a86b4a" stop-opacity="0.35"/>
+    <linearGradient id="ggGloveHi" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="40%" stop-color="#f5f3ff" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="ggNail" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#f5d0d8"/>
-      <stop offset="100%" stop-color="#d4a0a8"/>
+    <linearGradient id="ggGloveSh" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e1065" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.55"/>
     </linearGradient>
-    <filter id="ggSoft" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="b"/>
-      <feOffset dy="2" dx="1"/>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    <linearGradient id="ggNailLong" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fce7f3"/>
+      <stop offset="55%" stop-color="#f9a8d4"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <linearGradient id="ggNailSoft" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fdf2f8"/>
+      <stop offset="100%" stop-color="#f0abfc"/>
+    </linearGradient>
+    <filter id="ggDrop" x="-25%" y="-15%" width="150%" height="140%">
+      <feDropShadow dx="2" dy="6" stdDeviation="4.5" flood-color="#0a0612" flood-opacity="0.55"/>
+    </filter>
+    <filter id="ggSatin">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" result="b"/>
+      <feSpecularLighting in="b" surfaceScale="2" specularConstant="0.9" specularExponent="28" lighting-color="#ede9fe" result="spec">
+        <fePointLight x="-40" y="-80" z="90"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="spec2"/>
+      <feComposite in="SourceGraphic" in2="spec2" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
     </filter>
   </defs>
-  <g filter="url(#ggSoft)" transform="rotate(-8 100 140)">
-    <!-- wrist / palm (left hand, fingers up toward cursor) -->
-    <ellipse cx="108" cy="210" rx="38" ry="48" fill="url(#ggSkin)"/>
-    <path fill="url(#ggSkin)" d="M72 175 C58 140 62 95 78 70 C88 52 102 48 112 58 C118 48 132 46 142 58 C152 48 168 52 172 72 C178 100 168 145 158 175 Z"/>
-    <!-- pinky -->
-    <path fill="url(#ggSkin)" d="M78 95 C72 70 74 48 82 36 C88 28 96 30 98 40 C100 58 96 82 92 100 Z"/>
-    <!-- ring -->
-    <path fill="url(#ggSkin)" d="M96 78 C92 48 96 22 106 12 C114 4 122 10 122 22 C122 48 114 78 110 98 Z"/>
-    <!-- middle -->
-    <path fill="url(#ggSkin)" d="M116 72 C114 40 118 10 128 2 C136 -4 144 4 144 18 C144 48 134 78 128 100 Z"/>
-    <!-- index (pointing — longer nail) -->
-    <path fill="url(#ggSkin)" d="M138 80 C142 42 148 8 152 -6 C156 -16 166 -14 168 -2 C172 24 164 70 158 102 Z"/>
-    <ellipse cx="162" cy="-4" rx="7.5" ry="11" fill="url(#ggNail)" transform="rotate(8 162 -4)"/>
-    <!-- thumb (left side of left hand from viewer when pointing up) -->
-    <path fill="url(#ggSkin)" d="M70 150 C48 138 38 118 48 102 C56 90 72 92 80 108 C88 124 86 148 82 165 Z"/>
-    <!-- soft shade -->
-    <path fill="url(#ggSkinSh)" opacity="0.45" d="M95 180 C100 140 120 120 145 130 C150 160 140 200 120 220 C100 230 90 210 95 180 Z"/>
-    <!-- knuckle hints -->
-    <circle cx="92" cy="108" r="3" fill="#c98b6a" opacity="0.35"/>
-    <circle cx="110" cy="100" r="3.2" fill="#c98b6a" opacity="0.35"/>
-    <circle cx="128" cy="96" r="3.2" fill="#c98b6a" opacity="0.35"/>
-    <circle cx="148" cy="102" r="3" fill="#c98b6a" opacity="0.3"/>
+  <!-- transform: tip of index at ~(100,8); hand hangs below cursor -->
+  <g filter="url(#ggDrop)" transform="translate(0,0)">
+    <g filter="url(#ggSatin)" transform="rotate(-6 100 160)">
+      <!-- forearm cuff -->
+      <path fill="url(#ggGlove)" d="
+        M78 300
+        C70 278 68 250 74 228
+        L126 228
+        C132 250 130 278 122 300
+        Z"/>
+      <path fill="url(#ggGloveSh)" d="M78 300 C74 275 76 248 80 232 L120 232 C122 255 120 280 118 300 Z" opacity="0.5"/>
+      <!-- palm (back of left glove) -->
+      <path fill="url(#ggGlove)" d="
+        M70 220
+        C58 200 54 170 60 140
+        C64 118 72 102 86 92
+        L118 88
+        C132 90 148 100 156 122
+        C164 148 160 180 152 208
+        C146 224 130 232 112 234
+        C94 236 78 230 70 220
+        Z"/>
+      <!-- satin highlight on palm -->
+      <path fill="url(#ggGloveHi)" opacity="0.55" d="
+        M88 210 C82 180 86 140 96 115
+        C108 120 120 140 124 175
+        C120 200 108 218 96 220 Z"/>
+      <!-- thumb (left side of left hand when pointing up) -->
+      <path fill="url(#ggGlove)" d="
+        M62 155
+        C42 148 28 128 34 108
+        C40 90 58 88 70 100
+        C82 114 84 138 80 158
+        C76 168 68 162 62 155
+        Z"/>
+      <ellipse cx="48" cy="102" rx="6" ry="8.5" fill="url(#ggNailSoft)" transform="rotate(-25 48 102)"/>
+      <!-- pinky -->
+      <path fill="url(#ggGlove)" d="
+        M78 100
+        C70 78 68 52 74 36
+        C78 26 88 24 92 34
+        C96 50 94 78 92 102
+        Z"/>
+      <ellipse cx="82" cy="30" rx="5" ry="7.5" fill="url(#ggNailSoft)" transform="rotate(-8 82 30)"/>
+      <!-- ring -->
+      <path fill="url(#ggGlove)" d="
+        M96 92
+        C90 62 92 32 100 16
+        C106 6 116 8 118 20
+        C120 44 114 74 112 100
+        Z"/>
+      <ellipse cx="108" cy="12" rx="5.5" ry="8.5" fill="url(#ggNailSoft)"/>
+      <!-- middle -->
+      <path fill="url(#ggGlove)" d="
+        M114 90
+        C110 55 112 22 120 6
+        C126 -4 138 -2 140 12
+        C142 40 132 72 128 100
+        Z"/>
+      <ellipse cx="128" cy="2" rx="5.5" ry="9" fill="url(#ggNailSoft)"/>
+      <!-- index (pointing — longer nail, tip = cursor) -->
+      <path fill="url(#ggGlove)" d="
+        M134 98
+        C138 58 142 24 148 8
+        C152 -4 162 -8 168 2
+        C174 18 170 55 164 100
+        C160 112 140 112 134 98
+        Z"/>
+      <!-- longer glam nail on index -->
+      <path fill="url(#ggNailLong)" d="
+        M152 10
+        C154 -2 160 -12 166 -14
+        C172 -12 176 -2 174 10
+        C172 18 168 22 160 20
+        C154 18 152 14 152 10
+        Z"/>
+      <path fill="#fff" opacity="0.35" d="M158 -6 C160 -10 164 -10 166 -6 C164 -4 160 -4 158 -6 Z"/>
+      <!-- seam lines (glove) -->
+      <path stroke="#5b21b6" stroke-width="1.1" stroke-opacity="0.45" fill="none"
+        d="M88 210 C92 175 98 140 104 118"/>
+      <path stroke="#5b21b6" stroke-width="1" stroke-opacity="0.35" fill="none"
+        d="M108 212 C112 175 116 140 120 112"/>
+      <path stroke="#5b21b6" stroke-width="1" stroke-opacity="0.35" fill="none"
+        d="M126 210 C130 172 136 140 142 112"/>
+      <!-- cuff rim -->
+      <ellipse cx="100" cy="228" rx="32" ry="7" fill="none" stroke="#c4b5fd" stroke-width="2.2" opacity="0.75"/>
+      <ellipse cx="100" cy="228" rx="28" ry="5" fill="#2e1065" opacity="0.35"/>
+    </g>
   </g>
 </svg>`;
 }
