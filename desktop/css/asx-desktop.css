@@ -33,9 +33,16 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* Mobile: fill dynamic viewport when supported */
-  height: 100dvh;
-  max-height: 100dvh;
+  /* Mobile: prefer small viewport units (stable under browser chrome) */
+  height: 100svh;
+  max-height: 100svh;
+  min-height: 100dvh;
+}
+@supports not (height: 100svh) {
+  html, body {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
 }
 body {
   font-family: var(--font);
@@ -46,14 +53,44 @@ body {
   touch-action: manipulation;
 }
 
-#three-bg {
+#three-bg,
+#ambient-bg,
+.ambient-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   width: 100%;
   height: 100%;
+  min-width: 100%;
+  min-height: 100%;
   display: block;
   pointer-events: none;
+  /* Prevent zero-height on some WebKit mobile layouts */
+  min-height: 100svh;
+}
+@supports not (min-height: 100svh) {
+  #three-bg,
+  #ambient-bg,
+  .ambient-bg {
+    min-height: 100dvh;
+  }
+}
+#ambient-bg,
+.ambient-bg {
+  background: #0a0809;
+}
+@keyframes asx-orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+/* Tiny phones: denser icon grid, ensure bg visible under chrome */
+@media (max-width: 420px) {
+  body.asx-bg-ambient {
+    background: radial-gradient(ellipse at 50% 40%, #2e1065 0%, #0a0809 70%);
+  }
+  #desktop-layer {
+    padding-top: 8px;
+  }
 }
 
 #desktop-layer {

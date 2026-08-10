@@ -3,7 +3,8 @@
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
-import { initThreeBg } from "./three-bg.js";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js";
 import { WindowManager } from "./wm.js";
 import { registerApps, APP_CATALOG } from "./apps.js";
 
@@ -230,17 +231,55 @@ async function main() {
     setTimeout(() => open("terminal"), 400);
   }
 
-  const startThree = () => {
-    loadThreeJs()
-      .then(() => initThreeBg("three-bg"))
-      .catch((err) => console.warn("ASX Three.js background skipped", err));
+  /**
+   * Background dual-path:
+   * - Smallest width / save-data / ?bg=ambient → D3/SVG ambient (no WebGL)
+   * - Else Three.js with context-lost → ambient fallback
+   * - ?bg=three forces Three attempt
+   */
+  const startBg = async () => {
+    const useAmbient = shouldUseAmbientBg();
+    if (useAmbient) {
+      try {
+        await initAmbientD3Bg("three-bg");
+        console.info("ASX bg: ambient (D3/SVG) — small-screen / save-data path");
+        return;
+      } catch (err) {
+        console.warn("ASX ambient bg failed", err);
+      }
+    }
+    try {
+      await loadThreeJs();
+      const handle = initThreeBg("three-bg", {
+        onContextLost: () => {
+          initAmbientD3Bg("three-bg").catch((e) =>
+            console.warn("ASX ambient after context lost failed", e)
+          );
+        },
+      });
+      if (!handle) {
+        await initAmbientD3Bg("three-bg");
+        console.info("ASX bg: ambient fallback (Three unavailable)");
+      } else {
+        console.info("ASX bg: three.js");
+      }
+    } catch (err) {
+      console.warn("ASX Three.js background skipped", err);
+      try {
+        await initAmbientD3Bg("three-bg");
+      } catch (e2) {
+        console.warn("ASX ambient fallback failed", e2);
+      }
+    }
   };
-  // Mobile: defer 3D slightly longer so shell paints first
-  const threeTimeout = isMobileUi() ? 2800 : 2000;
+  // Mobile: defer bg so shell paints first
+  const bgTimeout = isMobileUi() ? 1800 : 1200;
   if (typeof requestIdleCallback === "function") {
-    requestIdleCallback(startThree, { timeout: threeTimeout });
+    requestIdleCallback(() => {
+      startBg();
+    }, { timeout: bgTimeout });
   } else {
-    setTimeout(startThree, isMobileUi() ? 400 : 0);
+    setTimeout(startBg, isMobileUi() ? 200 : 0);
   }
 }
 

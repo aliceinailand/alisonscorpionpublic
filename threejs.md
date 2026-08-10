@@ -40,20 +40,24 @@ Claude HTML extracts (not shipped as entry):
 
 ## Mobile / responsiveness (2026-08-10)
 
-Research: `agents/research/threejs/mobile_responsiveness_20260810.md`
+Research: `agents/research/threejs/mobile_responsiveness_20260810.md`  
+Smallest width: `agents/research/threejs/small_width_ambient_fallback_20260810.md`
 
-| Control | Desktop | Mobile |
-|---------|---------|--------|
-| `setPixelRatio` cap | ≤ 2 | ≤ 1.25 |
-| `antialias` | on | off |
-| Stars | ~1400 | ~500 |
-| Rings / segments | 3 / 100 | 2 / 48 |
-| Resize | window | + visualViewport + orientationchange (debounced) |
-| Buffer size | `setSize(w,h,false)` + CSS 100% | same |
-| Pause | `visibilitychange` | same |
+| Control | Desktop | Mobile | Tiny (≤420px) |
+|---------|---------|--------|----------------|
+| Path | Three.js | Three light | **Ambient D3/SVG** (default) |
+| `setPixelRatio` cap | ≤ 2 | ≤ 1.25 | ambient N/A · Three force ≤1 |
+| Stars | ~1400 | ~400 | ambient ~40–120 SVG |
+| Resize | window | visualViewport | viewBox slice |
+| Fallback | — | contextlost → ambient | ambient first |
 
-Shell CSS: icon **grid** under 768px, full-bleed windows, safe-area insets, 44px touch targets.  
-WM: pointer events; default **maximized** on mobile; single-tap open icons.
+| Query | Force |
+|-------|--------|
+| `?bg=ambient` | Always SVG/D3 |
+| `?bg=three` | Force Three |
+
+Shell CSS: icon **grid** under 768px, full-bleed windows, safe-area, **100svh**.  
+Modules: `three-bg.js`, `ambient-d3-bg.js`, router in `main.js`.
 
 ## Preview
 
