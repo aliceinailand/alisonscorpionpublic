@@ -261,7 +261,11 @@ async function main() {
         await initAmbientD3Bg("three-bg");
         console.info("ASX bg: ambient fallback (Three unavailable)");
       } else {
-        console.info("ASX bg: three.js");
+        // Drag empty desktop (not icons) to orbit Earth; release resumes satellite spin
+        if (layer && typeof handle.bindOrbitTarget === "function") {
+          handle.bindOrbitTarget(layer);
+        }
+        console.info("ASX bg: three.js Earth satellite view");
       }
     } catch (err) {
       console.warn("ASX Three.js background skipped", err);

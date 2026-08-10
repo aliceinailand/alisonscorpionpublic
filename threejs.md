@@ -6,14 +6,15 @@
 
 ## What it does
 
-Renders a full-viewport **universe purple** WebGL background under the desktop chrome:
+Renders a full-viewport **ASX satellite view** of Earth under the desktop chrome:
 
-- Void clear + fog (`#0a0809`)
-- Icosahedron core + wireframe shell
-- Three torus rings
-- Starfield (points)
-- Purple + gold point lights
-- Continuous rotation animation; resize-safe
+- Realistic Earth (textured) + atmosphere
+- **Moon** on orbit
+- **Sun** in the distance + lens **glare** when in view (~few seconds)
+- **Vortex rings** + **icosahedron grid** around Earth (ASX protector frame — kept)
+- Camera = satellite; auto orbital drift
+- **Drag empty desktop** to look around; release → auto rotation resumes
+- Starfield; resize-safe; context-lost → ambient fallback
 
 ## Integration
 

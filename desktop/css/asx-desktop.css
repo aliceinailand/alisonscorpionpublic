@@ -66,12 +66,31 @@ body {
   min-width: 100%;
   min-height: 100%;
   display: block;
-  /* Bg is non-interactive; UI lives in DOM layers above (Leo hybrid pattern) */
+  /* Bg is non-interactive; orbit drag is on empty desktop-layer */
   pointer-events: none;
-  /* When Three is interactive later, keep none on bg; shell uses touch-action: manipulation */
   touch-action: none;
-  /* Prevent zero-height on some WebKit mobile layouts */
   min-height: 100svh;
+}
+
+/* Sun glare when ASX satellite looks toward the sun (few seconds) */
+#sun-glare {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease-out;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 45%),
+    rgba(255, 252, 235, 0.92) 0%,
+    rgba(255, 210, 140, 0.45) 18%,
+    rgba(167, 139, 250, 0.12) 42%,
+    transparent 62%
+  );
+}
+#desktop-layer {
+  z-index: 2;
 }
 @supports not (min-height: 100svh) {
   #three-bg,
@@ -923,13 +942,11 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   }
   .tb-start {
-    padding: 4px 8px 4px 4px;
-    font-size: 10px;
-    gap: 6px;
+    padding: 4px;
   }
   .tb-start-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 }
 
