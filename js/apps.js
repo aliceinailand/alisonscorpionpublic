@@ -95,7 +95,9 @@ function openTerminal(wm) {
     'Type "help" for available commands.',
     "",
   ];
-  const paint = () => {
+  // P6/P7: batch terminal repaints to one frame (adaptive path — avoid N layouts per cmd)
+  let paintScheduled = false;
+  const paintNow = () => {
     out.innerHTML = lines
       .map((l) => {
         if (l.startsWith("ERR:")) return `<span class="err">${escapeHtml(l.slice(4))}</span>`;
@@ -106,7 +108,15 @@ function openTerminal(wm) {
       .join("\n");
     out.scrollTop = out.scrollHeight;
   };
-  paint();
+  const paint = () => {
+    if (paintScheduled) return;
+    paintScheduled = true;
+    requestAnimationFrame(() => {
+      paintScheduled = false;
+      paintNow();
+    });
+  };
+  paintNow();
 
   let cwd = "/home/guest";
   const run = (cmd) => {
