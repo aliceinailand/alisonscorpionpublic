@@ -413,37 +413,97 @@ body {
   filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
 }
 
-/* Computer / Network / Applications tiles */
+/* ── Unified folder chrome (Computer / Files / Network / Trash / Apps / Drive) ─
+   Template: [↑] scheme:///path ………… hint
+*/
+.folder-view,
 .places-view,
 .apps-folder,
-.trash-view {
+.trash-view,
+.files.folder-view,
+.drive-app.folder-view {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
   background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
+.folder-bar,
 .places-bar,
 .apps-folder-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   font-size: 12px;
+  flex-shrink: 0;
+  background: rgba(12, 10, 18, 0.28);
+  min-height: 34px;
 }
+.folder-up,
+.apps-up {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--brand);
+  font: 600 14px var(--font);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.folder-up:hover:not(:disabled),
+.apps-up:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.35);
+  color: #fff;
+}
+.folder-up:disabled,
+.apps-up:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.folder-uri,
 .places-uri,
 .apps-path {
-  font-family: ui-monospace, monospace;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font);
+  font-size: 12px;
   color: var(--brand);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
 }
+.folder-hint,
 .places-hint {
+  flex: 0 1 auto;
   color: var(--muted);
   font-size: 11px;
-  margin-left: auto;
+  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%;
 }
+.folder-action {
+  flex: 0 0 auto;
+  font: 11px var(--font);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--text);
+  cursor: pointer;
+}
+.folder-action:hover {
+  background: rgba(124, 58, 237, 0.4);
+}
+.folder-body.folder-grid,
 .places-grid,
 .apps-folder-grid {
   flex: 1;
@@ -453,6 +513,23 @@ body {
   gap: 12px;
   padding: 16px;
   align-content: start;
+  min-height: 0;
+}
+.folder-body.folder-list {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 8px;
+  min-height: 0;
+}
+.folder-foot,
+.trash-foot,
+.drive-foot {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 6px 12px 8px;
+  font-size: 10px;
+  color: var(--muted);
+  border-top: 1px solid rgba(167, 139, 250, 0.15);
 }
 .place-tile,
 .apps-tile {
@@ -462,7 +539,7 @@ body {
   gap: 6px;
   padding: 14px 10px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
   cursor: pointer;
@@ -492,6 +569,40 @@ body {
 }
 .apps-tile.folder .g {
   filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.35));
+}
+/* List rows inside unified folder body */
+.folder-list .file-row,
+.folder-list .drive-row,
+.folder-list .trash-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: 12px var(--font);
+  cursor: pointer;
+}
+.folder-list .file-row:hover,
+.folder-list .drive-row:hover {
+  background: rgba(124, 58, 237, 0.14);
+  border-color: var(--border);
+}
+.folder-list .file-row .n,
+.folder-list .drive-row .n {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.folder-list .file-row .m,
+.folder-list .drive-row .m {
+  color: var(--muted);
+  font-size: 10px;
 }
 .apps-up {
   background: rgba(255, 255, 255, 0.06);

@@ -468,101 +468,160 @@ function openAgentAsx(wm) {
   });
 }
 
-/* ── Computer (home / places — PCManFM-inspired) ─────────── */
-function openComputer(wm) {
+/**
+ * Unified folder chrome for every location window.
+ * Template: [↑] scheme:///path ………… hint
+ * Used by Computer, Files, Network, Trash, Applications, Users, Drive.
+ */
+function schemeUri(scheme, path = "") {
+  const s = String(scheme || "files").replace(/:\/\/*$/, "");
+  let p = String(path || "");
+  if (p === "/" || p === "") return `${s}:///`;
+  p = p.replace(/^\/+/, "");
+  return `${s}:///${p}`;
+}
+
+/**
+ * @param {{ uri?: string, hint?: string, foot?: string, bodyClass?: string, extraClass?: string, onUp?: () => void, upEnabled?: boolean }} opts
+ */
+function makeFolderChrome(opts = {}) {
   const root = document.createElement("div");
-  root.className = "places-view";
+  root.className = "folder-view" + (opts.extraClass ? ` ${opts.extraClass}` : "");
   root.innerHTML = `
-    <div class="places-bar">
-      <span class="places-uri">computer:///</span>
-      <span class="places-hint">Alison's machine · guest view</span>
+    <div class="folder-bar" role="navigation" aria-label="Location">
+      <button type="button" class="folder-up" title="Up" aria-label="Up">↑</button>
+      <span class="folder-uri" title="Location"></span>
+      <span class="folder-hint"></span>
     </div>
-    <div class="places-grid"></div>`;
-  const grid = root.querySelector(".places-grid");
+    <div class="folder-body ${opts.bodyClass || "folder-grid"}"></div>
+    ${opts.foot != null ? `<p class="folder-foot"></p>` : ""}`;
+  const up = root.querySelector(".folder-up");
+  const uri = root.querySelector(".folder-uri");
+  const hint = root.querySelector(".folder-hint");
+  const body = root.querySelector(".folder-body");
+  const foot = root.querySelector(".folder-foot");
+  uri.textContent = opts.uri || "files:///";
+  if (opts.hint) hint.textContent = opts.hint;
+  if (foot && opts.foot) foot.textContent = opts.foot;
+  up.disabled = opts.upEnabled === false;
+  up.addEventListener("click", () => {
+    if (!up.disabled && typeof opts.onUp === "function") opts.onUp();
+  });
+  return {
+    root,
+    up,
+    uri,
+    hint,
+    body,
+    foot,
+    setUri(s) {
+      uri.textContent = s;
+    },
+    setHint(s) {
+      hint.textContent = s || "";
+    },
+    setFoot(s) {
+      if (foot) foot.textContent = s || "";
+    },
+    setUpEnabled(on) {
+      up.disabled = !on;
+    },
+  };
+}
+
+/** Tile button for grid folder views (Computer, Network, Applications). */
+function appendPlaceTile(grid, { glyph, label, sub, action, selectOnClick = true }) {
+  const el = document.createElement("button");
+  el.type = "button";
+  el.className = "place-tile";
+  el.innerHTML = `<span class="g">${glyph}</span><span class="n">${escapeHtml(
+    label
+  )}</span><span class="s">${escapeHtml(sub || "")}</span>`;
+  const go = () => action?.();
+  el.addEventListener("dblclick", go);
+  el.addEventListener("click", () => {
+    if (matchMedia("(pointer: coarse)").matches) go();
+    else if (selectOnClick) {
+      grid.querySelectorAll(".place-tile").forEach((t) => t.classList.remove("sel"));
+      el.classList.add("sel");
+    }
+  });
+  grid.appendChild(el);
+  return el;
+}
+
+/* ── Computer (places root — same chrome as all folders) ─── */
+function openComputer(wm) {
+  const chrome = makeFolderChrome({
+    uri: schemeUri("computer"),
+    hint: "Alison's machine · guest view",
+    upEnabled: false,
+    bodyClass: "folder-grid",
+  });
+  const grid = chrome.body;
   const items = [
     {
-      id: "home-alison",
       glyph: "🏠",
       label: "Alison",
       sub: "/home/alisonscorpion",
       action: () => openFiles(wm, { startPath: "/home/alisonscorpion" }),
     },
     {
-      id: "home-guest",
       glyph: "👤",
       label: "Guest Home",
       sub: "/home/guest",
       action: () => openFiles(wm, { startPath: "/home/guest" }),
     },
     {
-      id: "fs-root",
       glyph: "💿",
       label: "File System",
       sub: "/",
       action: () => openFiles(wm, { startPath: "/" }),
     },
     {
-      id: "apps",
       glyph: "📦",
       label: "Applications",
-      sub: "categories",
+      sub: schemeUri("applications"),
       action: () => openApplications(wm),
     },
     {
-      id: "net",
       glyph: "🖧",
       label: "Network",
-      sub: "network:///",
+      sub: schemeUri("network"),
       action: () => openNetwork(wm),
     },
     {
-      id: "trash",
       glyph: "🗑",
       label: "Trash",
-      sub: "trash:///",
+      sub: schemeUri("trash"),
       action: () => openTrash(wm),
     },
   ];
-  items.forEach((it) => {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "place-tile";
-    el.innerHTML = `<span class="g">${it.glyph}</span><span class="n">${escapeHtml(
-      it.label
-    )}</span><span class="s">${escapeHtml(it.sub)}</span>`;
-    el.addEventListener("dblclick", it.action);
-    el.addEventListener("click", (e) => {
-      if (matchMedia("(pointer: coarse)").matches) it.action();
-      else {
-        grid.querySelectorAll(".place-tile").forEach((t) => t.classList.remove("sel"));
-        el.classList.add("sel");
-      }
-    });
-    grid.appendChild(el);
-  });
+  items.forEach((it) => appendPlaceTile(grid, it));
   wm.open({
     id: "computer",
     title: "Computer",
     w: 640,
     h: 420,
-    body: root,
+    body: chrome.root,
   });
 }
 
 /* ── Applications (category folders) ─────────────────────── */
 function openApplications(wm, opts = {}) {
   let view = opts.categoryId || null; // null = category list
-  const root = document.createElement("div");
-  root.className = "apps-folder";
-  root.innerHTML = `
-    <div class="apps-folder-bar">
-      <button type="button" class="apps-up" title="Up">⬆</button>
-      <span class="apps-path">Applications</span>
-    </div>
-    <div class="apps-folder-grid"></div>`;
-  const pathEl = root.querySelector(".apps-path");
-  const grid = root.querySelector(".apps-folder-grid");
-  const upBtn = root.querySelector(".apps-up");
+  let chrome;
+  chrome = makeFolderChrome({
+    uri: schemeUri("applications"),
+    hint: "categories",
+    bodyClass: "folder-grid",
+    upEnabled: false,
+    onUp: () => {
+      view = null;
+      render();
+    },
+  });
+  const grid = chrome.body;
 
   const openAppId = (id) => {
     if (id === "applications") return;
@@ -572,60 +631,47 @@ function openApplications(wm, opts = {}) {
   const render = () => {
     grid.innerHTML = "";
     if (!view) {
-      pathEl.textContent = "Applications";
-      upBtn.disabled = true;
+      chrome.setUri(schemeUri("applications"));
+      chrome.setHint("categories");
+      chrome.setUpEnabled(false);
       APP_CATEGORIES.forEach((cat) => {
-        const el = document.createElement("button");
-        el.type = "button";
-        el.className = "apps-tile folder";
-        el.innerHTML = `<span class="g">${cat.glyph}</span><span class="n">${escapeHtml(
-          cat.label
-        )}</span><span class="s">${cat.apps.length} items</span>`;
-        const go = () => {
-          view = cat.id;
-          render();
-        };
-        el.addEventListener("dblclick", go);
-        el.addEventListener("click", () => {
-          if (matchMedia("(pointer: coarse)").matches) go();
+        appendPlaceTile(grid, {
+          glyph: cat.glyph,
+          label: cat.label,
+          sub: `${cat.apps.length} items`,
+          selectOnClick: false,
+          action: () => {
+            view = cat.id;
+            render();
+          },
         });
-        grid.appendChild(el);
       });
       return;
     }
     const cat = APP_CATEGORIES.find((c) => c.id === view);
-    pathEl.textContent = `Applications › ${cat ? cat.label : view}`;
-    upBtn.disabled = false;
+    chrome.setUri(schemeUri("applications", cat ? cat.id : view));
+    chrome.setHint(cat ? cat.label : view);
+    chrome.setUpEnabled(true);
     (cat?.apps || []).forEach((id) => {
       const app = APP_CATALOG.find((a) => a.id === id);
       if (!app) return;
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = "apps-tile";
-      el.innerHTML = `<span class="g">${app.glyph}</span><span class="n">${escapeHtml(
-        app.label
-      )}</span>`;
-      const go = () => openAppId(id);
-      el.addEventListener("dblclick", go);
-      el.addEventListener("click", () => {
-        if (matchMedia("(pointer: coarse)").matches) go();
+      appendPlaceTile(grid, {
+        glyph: app.glyph,
+        label: app.label,
+        sub: app.id,
+        selectOnClick: false,
+        action: () => openAppId(id),
       });
-      grid.appendChild(el);
     });
   };
 
-  upBtn.addEventListener("click", () => {
-    view = null;
-    render();
-  });
   render();
-
   wm.open({
     id: "applications",
     title: "Applications",
     w: 560,
     h: 440,
-    body: root,
+    body: chrome.root,
   });
 }
 
@@ -663,17 +709,16 @@ function sessionTrashFiles() {
 function openTrash(wm) {
   const files = sessionTrashFiles();
   const trashedUsers = listTrashedAccounts();
-  const root = document.createElement("div");
-  root.className = "trash-view";
   const total = files.length + trashedUsers.length;
-  root.innerHTML = `
-    <div class="places-bar">
-      <span class="places-uri">trash:///</span>
-      <span class="places-hint">${total} item(s) · 30-day account hold</span>
-    </div>
-    <div class="trash-list"></div>
-    <p class="trash-foot">Deleted accounts stay 30 days. Other items are Alison's — guests cannot open them.</p>`;
-  const list = root.querySelector(".trash-list");
+  const chrome = makeFolderChrome({
+    uri: schemeUri("trash"),
+    hint: `${total} item(s) · 30-day account hold`,
+    foot: "Deleted accounts stay 30 days. Other items are Alison's — guests cannot open them.",
+    bodyClass: "folder-list",
+    upEnabled: true,
+    onUp: () => openComputer(wm),
+  });
+  const list = chrome.body;
 
   trashedUsers.forEach((u) => {
     const days = daysLeftInTrash(u);
@@ -713,7 +758,7 @@ function openTrash(wm) {
     const deny = () =>
       accessDenied(
         wm,
-        `trash:///${name}`,
+        schemeUri("trash", name),
         "You do not have permission to view this file.\n\nTrash contents belong to Alison Scorpion (ASX).",
         { isDir: false, warn: true }
       );
@@ -728,105 +773,82 @@ function openTrash(wm) {
     title: `Trash (${total} items)`,
     w: 480,
     h: 360,
-    body: root,
+    body: chrome.root,
   });
 }
 
 /* ── Network ─────────────────────────────────────────────── */
 function openNetwork(wm) {
-  const root = document.createElement("div");
-  root.className = "places-view";
-  root.innerHTML = `
-    <div class="places-bar">
-      <span class="places-uri">network:///</span>
-      <span class="places-hint">Browse network (virtual)</span>
-    </div>
-    <div class="places-grid"></div>`;
-  const grid = root.querySelector(".places-grid");
+  const chrome = makeFolderChrome({
+    uri: schemeUri("network"),
+    hint: "Browse network (virtual)",
+    bodyClass: "folder-grid",
+    upEnabled: true,
+    onUp: () => openComputer(wm),
+  });
+  const grid = chrome.body;
   const items = [
     {
       glyph: "👥",
       label: "Users",
-      sub: "Add / Remove accounts",
-      go: () => openUsers(wm),
+      sub: schemeUri("network", "Users"),
+      action: () => openUsers(wm),
     },
     {
       glyph: "☁",
       label: "GDrive",
-      sub: "Alison Drive",
-      go: () => openGDrive(wm),
+      sub: schemeUri("drive"),
+      action: () => openGDrive(wm),
     },
     {
       glyph: "▶",
       label: "YouTube",
       sub: "AlisonScorpionX",
-      go: () => openYoutube(wm),
+      action: () => openYoutube(wm),
     },
     {
       glyph: "🌐",
       label: "Internet",
       sub: "ASX Browser",
-      go: () => openBrowser(wm),
+      action: () => openBrowser(wm),
     },
     {
       glyph: "🖥",
       label: "asx-desktop",
-      sub: "This workstation",
-      go: () => openComputer(wm),
+      sub: schemeUri("computer"),
+      action: () => openComputer(wm),
     },
     {
       glyph: "🔒",
       label: "Workgroup",
       sub: "admin only",
-      go: () =>
-        accessDenied(wm, "network:///Workgroup", "Network shares require ASX credentials.", {
+      action: () =>
+        accessDenied(wm, schemeUri("network", "Workgroup"), "Network shares require ASX credentials.", {
           isDir: true,
           warn: true,
         }),
     },
   ];
-  items.forEach((it) => {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "place-tile";
-    el.innerHTML = `<span class="g">${it.glyph}</span><span class="n">${escapeHtml(
-      it.label
-    )}</span><span class="s">${escapeHtml(it.sub)}</span>`;
-    el.addEventListener("dblclick", it.go);
-    el.addEventListener("click", () => {
-      if (matchMedia("(pointer: coarse)").matches) it.go();
-    });
-    grid.appendChild(el);
-  });
-  wm.open({ id: "network", title: "Network", w: 560, h: 400, body: root });
+  items.forEach((it) => appendPlaceTile(grid, it));
+  wm.open({ id: "network", title: "Network", w: 560, h: 400, body: chrome.root });
 }
 
 /* ── Users (signup / remove) ─────────────────────────────── */
 function openUsers(wm) {
-  const root = document.createElement("div");
-  root.className = "places-view users-view";
   const me = getSessionUser();
-  root.innerHTML = `
-    <div class="places-bar">
-      <span class="places-uri">network:///Users</span>
-      <span class="places-hint">${me ? "signed in: " + escapeHtml(me.username) : "guest"}</span>
-    </div>
-    <div class="places-grid" id="users-grid"></div>
-    <p class="trash-foot">Your work folder (future) lives under your user id. Other profiles are permission-denied.</p>`;
-  const grid = root.querySelector("#users-grid");
+  const chrome = makeFolderChrome({
+    uri: schemeUri("network", "Users"),
+    hint: me ? `signed in: ${me.username}` : "guest",
+    foot: "Your work folder (future) lives under your user id. Other profiles are permission-denied.",
+    bodyClass: "folder-grid",
+    extraClass: "users-view",
+    upEnabled: true,
+    onUp: () => openNetwork(wm),
+  });
+  const grid = chrome.body;
 
   const tile = (glyph, label, sub, go) => {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "place-tile";
-    el.innerHTML = `<span class="g">${glyph}</span><span class="n">${escapeHtml(
-      label
-    )}</span><span class="s">${escapeHtml(sub)}</span>`;
-    el.addEventListener("dblclick", go);
-    el.addEventListener("click", () => {
-      if (matchMedia("(pointer: coarse)").matches) go();
-    });
-    grid.appendChild(el);
+    appendPlaceTile(grid, { glyph, label, sub, action: go, selectOnClick: false });
   };
 
   tile("➕", "Add", "Sign up", () => openSignup(wm));
@@ -861,14 +883,14 @@ function openUsers(wm) {
     tile("👤", p.username, "system", () =>
       accessDenied(
         wm,
-        `network:///Users/${p.username}`,
+        schemeUri("network", `Users/${p.username}`),
         "You do not have permission to view this folder.",
         { isDir: true, warn: true }
       )
     );
   });
 
-  wm.open({ id: "users", title: "Users", w: 560, h: 420, body: root });
+  wm.open({ id: "users", title: "Users", w: 560, h: 420, body: chrome.root });
 }
 
 function openSignup(wm) {
@@ -950,53 +972,52 @@ const ALISON_DRIVE_FILES = {
 
 function openGDrive(wm) {
   let cwd = "/";
-  const root = document.createElement("div");
-  root.className = "drive-app";
-  root.innerHTML = `
-    <div class="drive-top">
-      <div class="drive-brand">
-        <img src="/brand/scorpion-universe-purple.png" alt="" width="28" height="28"
-          onerror="this.src='/scorpion-icon-512.png'" />
-        <span>Drive</span>
-        <span class="drive-who">Alison Scorpion</span>
-      </div>
-      <button type="button" class="drive-real" title="Open public Google folder">Public folder ↗</button>
-    </div>
-    <div class="drive-path"></div>
-    <div class="drive-list"></div>
-    <p class="drive-foot">Simulated Drive UI · live files via public share (Open outside if framed)</p>`;
-  const pathEl = root.querySelector(".drive-path");
-  const list = root.querySelector(".drive-list");
-  root.querySelector(".drive-real")?.addEventListener("click", () => {
+  let chrome;
+  chrome = makeFolderChrome({
+    uri: schemeUri("drive"),
+    hint: "Alison Scorpion · simulated",
+    foot: "Simulated Drive UI · public share opens in Browser. ↑ goes to Network.",
+    bodyClass: "folder-list",
+    extraClass: "drive-app",
+    upEnabled: true,
+    onUp: () => {
+      if (cwd !== "/") {
+        cwd = "/";
+        render();
+      } else {
+        openNetwork(wm);
+      }
+    },
+  });
+  const list = chrome.body;
+
+  // Extra action: public folder (same bar family — secondary button after hint)
+  const publicBtn = document.createElement("button");
+  publicBtn.type = "button";
+  publicBtn.className = "folder-action";
+  publicBtn.title = "Open public Google folder";
+  publicBtn.textContent = "Public ↗";
+  publicBtn.addEventListener("click", () => {
     openBrowser(wm, {
       id: "browser-gdrive",
       title: "Browser — public Drive",
       initialUrl: GDRIVE_PUBLIC_URL,
     });
   });
+  chrome.hint.parentNode.insertBefore(publicBtn, chrome.hint);
 
   const render = () => {
-    pathEl.textContent = "My Drive" + (cwd === "/" ? "" : " › " + cwd);
+    chrome.setUri(schemeUri("drive", cwd === "/" ? "" : cwd));
+    chrome.setHint(cwd === "/" ? "My Drive" : cwd);
     list.innerHTML = "";
-    if (cwd !== "/") {
-      const up = document.createElement("button");
-      up.type = "button";
-      up.className = "drive-row";
-      up.innerHTML = `<span>⬆</span><span>.. (up)</span>`;
-      up.addEventListener("click", () => {
-        cwd = "/";
-        render();
-      });
-      list.appendChild(up);
-    }
     const items = ALISON_DRIVE_TREE[cwd === "/" ? "/" : cwd] || [];
     items.forEach((it) => {
       const row = document.createElement("button");
       row.type = "button";
-      row.className = "drive-row";
+      row.className = "file-row drive-row";
       const icon = it.type === "folder" ? "📁" : it.type === "link" ? "☁" : "📄";
-      row.innerHTML = `<span>${icon}</span><span>${escapeHtml(it.name)}</span>`;
-      row.addEventListener("click", () => {
+      row.innerHTML = `<span>${icon}</span><span class="n">${escapeHtml(it.name)}</span><span class="m">${it.type}</span>`;
+      row.addEventListener("dblclick", () => {
         if (it.type === "folder") {
           cwd = it.id;
           render();
@@ -1019,11 +1040,14 @@ function openGDrive(wm) {
           });
         }
       });
+      row.addEventListener("click", () => {
+        if (matchMedia("(pointer: coarse)").matches) row.dispatchEvent(new Event("dblclick"));
+      });
       list.appendChild(row);
     });
   };
   render();
-  wm.open({ id: "gdrive", title: "Alison Drive", w: 640, h: 480, body: root });
+  wm.open({ id: "gdrive", title: "Alison Drive", w: 640, h: 480, body: chrome.root });
 }
 
 /* ── YouTube (AlisonScorpionX) — embeds work; full site does not ─ */
@@ -1137,34 +1161,37 @@ function openYoutube(wm) {
   });
 }
 
-/* ── Files (PCManFM-Qt style) ─────────────────────────────── */
+/* ── Files (same folder chrome as Computer / Network / …) ── */
 function openFiles(wm, opts = {}) {
   let cwd = opts.startPath || "/home/guest";
-  const root = document.createElement("div");
-  root.className = "files";
-  root.innerHTML = `
-    <div class="files-menubar" role="menubar" aria-label="File manager menus">
-      <button type="button" data-menu="file">File</button>
-      <button type="button" data-menu="edit">Edit</button>
-      <button type="button" data-menu="view">View</button>
-      <button type="button" data-menu="go">Go</button>
-      <button type="button" data-menu="bookmarks">Bookmarks</button>
-      <button type="button" data-menu="tools">Tools</button>
-      <button type="button" data-menu="help">Help</button>
-    </div>
-    <div class="files-body">
-      <div class="files-side">
-        <div class="path"></div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">PCManFM-Qt · guest</div>
-        <div class="file-row" data-jump="/"><span>🖥</span><span class="n">Computer</span></div>
-        <div class="file-row" data-jump="/home/guest"><span>🏠</span><span class="n">Home (guest)</span></div>
-        <div class="file-row" data-jump="/home/alisonscorpion"><span>🦂</span><span class="n">/home/alisonscorpion</span></div>
-        <div class="file-row" data-jump="/usr/share"><span>ℹ</span><span class="n">About</span></div>
-      </div>
-      <div class="files-main"></div>
-    </div>`;
-  const pathEl = root.querySelector(".path");
-  const main = root.querySelector(".files-main");
+  let chrome;
+  chrome = makeFolderChrome({
+    uri: schemeUri("files", cwd === "/" ? "" : cwd),
+    hint: "guest virtual FS",
+    foot: "Guest virtual FS only — not the host disk. /home/alisonscorpion/* is admin-only.",
+    bodyClass: "folder-list",
+    extraClass: "files",
+    upEnabled: true,
+    onUp: () => {
+      if (cwd === "/" || cwd === "") {
+        openComputer(wm);
+        return;
+      }
+      cwd = parentPath(cwd);
+      render();
+    },
+  });
+  // Click URI → Go prompt (continuity with location bar)
+  chrome.uri.style.cursor = "pointer";
+  chrome.uri.title = "Click to Go to location";
+  chrome.uri.addEventListener("click", () => {
+    const pick = window.prompt(
+      "Go to location (virtual FS):\n/home/guest  ·  /home/alisonscorpion  ·  /",
+      cwd
+    );
+    if (pick) goTo(pick.trim());
+  });
+  const main = chrome.body;
 
   const goTo = (p) => {
     const o = openNode(p);
@@ -1176,13 +1203,14 @@ function openFiles(wm, opts = {}) {
       accessDenied(wm, p, o.message);
       return;
     }
-    // Allow listing roots even if empty listing
     cwd = p;
     render();
   };
 
   const render = () => {
-    pathEl.textContent = cwd;
+    chrome.setUri(schemeUri("files", cwd === "/" ? "" : cwd));
+    chrome.setHint(cwd === "/home/guest" ? "home (guest)" : "guest virtual FS");
+    chrome.setUpEnabled(true);
     const r = listDir(cwd);
     main.innerHTML = "";
     if (r.error) {
@@ -1195,20 +1223,9 @@ function openFiles(wm, opts = {}) {
       main.innerHTML = `<div class="modal-error"><div class="msg">${escapeHtml(r.message)}</div></div>`;
       return;
     }
-    if (cwd !== "/") {
-      const up = document.createElement("div");
-      up.className = "file-row";
-      up.innerHTML = `<span>⬆</span><span class="n">..</span>`;
-      const upGo = () => {
-        cwd = parentPath(cwd);
-        render();
-      };
-      up.addEventListener("dblclick", upGo);
-      up.addEventListener("click", upGo);
-      main.appendChild(up);
-    }
     for (const e of r.entries) {
-      const row = document.createElement("div");
+      const row = document.createElement("button");
+      row.type = "button";
       row.className = "file-row";
       row.innerHTML = `<span>${e.type === "dir" ? "📁" : "📄"}</span><span class="n">${escapeHtml(
         e.name
@@ -1248,7 +1265,6 @@ function openFiles(wm, opts = {}) {
         }
       };
       row.addEventListener("dblclick", openEntry);
-      // Mobile / single click: open (desktop still supports dblclick)
       row.addEventListener("click", (ev) => {
         if (ev.detail === 1 && matchMedia("(pointer: coarse)").matches) openEntry();
       });
@@ -1256,77 +1272,13 @@ function openFiles(wm, opts = {}) {
     }
   };
 
-  root.querySelectorAll("[data-jump]").forEach((el) => {
-    el.addEventListener("click", () => goTo(el.getAttribute("data-jump")));
-  });
-
-  // Menubar actions (PCManFM-Qt parity — realistic functions, guest-scoped)
-  root.querySelectorAll("[data-menu]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const m = btn.getAttribute("data-menu");
-      if (m === "go") {
-        const pick = window.prompt(
-          "Go to location (virtual FS):\n/home/guest  ·  /home/alisonscorpion  ·  /",
-          cwd
-        );
-        if (pick) goTo(pick.trim());
-        return;
-      }
-      if (m === "bookmarks") {
-        goTo("/home/guest");
-        return;
-      }
-      if (m === "view") {
-        render();
-        return;
-      }
-      if (m === "file") {
-        wm.open({
-          id: `files-new-${Date.now()}`,
-          title: "New (guest)",
-          w: 380,
-          h: 200,
-          body: `<div class="app-pad"><p>New folder/file is guest-local demo only. Use <strong>Notepad</strong> to write; host disk is never touched.</p></div>`,
-        });
-        return;
-      }
-      if (m === "help") {
-        wm.open({
-          id: "files-help",
-          title: "About PCManFM-Qt (ASX)",
-          w: 440,
-          h: 280,
-          body: `<div class="app-pad">
-            <h2>PCManFM-Qt — guest mirror</h2>
-            <p style="color:var(--muted);font-size:13px;margin-top:8px">Menus: File, Edit, View, Go, Bookmarks, Tools, Help — as on Alison's Linux desktop screenshots.</p>
-            <p style="color:var(--muted);font-size:13px;margin-top:8px">You may list <code>/home/alisonscorpion</code> folder names. Opening them returns <strong>Permission denied</strong> (guest ≠ admin).</p>
-          </div>`,
-        });
-        return;
-      }
-      // Edit / Tools — honest placeholders (Construct tools later)
-      asxToast(
-        m === "edit"
-          ? "Edit: copy/paste in guest text apps only."
-          : "Tools: ASX Construct / ftools — coming as free guest apps."
-      );
-    });
-  });
-
   wm.open({
     id: "files",
-    title: "PCManFM-Qt — Files (guest)",
-    w: 760,
-    h: 480,
-    body: root,
-    onMount: () => {
-      const ban = document.createElement("div");
-      ban.className = "files-banner";
-      ban.textContent =
-        "Guest virtual FS only — not the host disk. /home/alisonscorpion/* requires administrator ASX.";
-      root.insertBefore(ban, root.firstChild);
-      render();
-    },
+    title: "Files",
+    w: 640,
+    h: 440,
+    body: chrome.root,
+    onMount: () => render(),
   });
 }
 
