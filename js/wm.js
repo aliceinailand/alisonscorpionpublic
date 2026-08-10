@@ -60,87 +60,79 @@ function taskbarOffset() {
 }
 
 /**
- * Live desktop work area only — measured, never assumed from a design resolution.
- */
-function desktopBounds() {
-  const tb = taskbarOffset();
-  const root = document.getElementById("windows-root");
-  if (root) {
-    const r = root.getBoundingClientRect();
-    if (r.width > 40 && r.height > 40) {
-      return { w: Math.floor(r.width), h: Math.floor(r.height) };
-    }
-  }
-  const vw = window.visualViewport?.width || window.innerWidth || 0;
-  const vh = window.visualViewport?.height || window.innerHeight || 0;
-  return {
-    w: Math.max(120, Math.floor(vw || document.documentElement.clientWidth || 320)),
-    h: Math.max(100, Math.floor((vh || document.documentElement.clientHeight || 480) - tb)),
-  };
-}
-
-/**
  * Fit preferred (app design) size into *current* desktop bounds.
- * - Uses only fractions of measured bounds (no 1280/720/etc. breakpoints)
- * - Smaller pane → smaller window; leaves margin so × − □ and desktop stay usable
+ * @param {number} [stackIndex] — open-window index for desktop cascade (multi-window)
  */
-function fitWindowGeom(prefW, prefH, prefX, prefY) {
+function fitWindowGeom(prefW, prefH, prefX, prefY, stackIndex = 0) {
   const b = desktopBounds();
-  // Margin scales with pane (2% of shorter side, clamped)
+  const phone = isPhoneLayout();
+  const multi = isDesktopMultiLayout();
   const margin = Math.round(
     Math.min(24, Math.max(6, Math.min(b.w, b.h) * 0.025))
   );
   const availW = Math.max(100, b.w - margin * 2);
   const availH = Math.max(80, b.h - margin * 2);
 
-  // Design defaults only when app omits size — relative to avail, not a fixed monitor
   let w = Number(prefW);
   let h = Number(prefH);
-  if (!(w > 0)) w = availW * 0.58;
-  if (!(h > 0)) h = availH * 0.52;
+  if (!(w > 0)) w = availW * (multi ? 0.48 : 0.58);
+  if (!(h > 0)) h = availH * (multi ? 0.48 : 0.52);
 
-  // Uniform scale-to-fit so aspect of preferred size is kept when possible
   const fitScale = Math.min(1, availW / w, availH / h);
   w = Math.floor(w * fitScale);
   h = Math.floor(h * fitScale);
 
-  // Never dominate the whole guest desktop (icons + taskbar must remain)
-  // Max cover tightens slightly as the pane gets relatively short/narrow (smooth, not stepped)
-  const aspect = b.w / Math.max(b.h, 1);
-  const tallNarrow = aspect < 0.85; // phone-ish
-  const sidePane = aspect < 1.1 && b.w < window.innerWidth * 0.7; // split browser
-  let maxCoverW = 0.92;
-  let maxCoverH = 0.78;
-  if (sidePane || tallNarrow) {
-    maxCoverW = 0.9;
-    maxCoverH = 0.7;
+  // Phone / small pane: large single-focus float is OK (stacked = expected)
+  // Desktop multi: leave room so two windows can both be visible
+  let maxCoverW = multi ? 0.58 : phone ? 0.9 : 0.85;
+  let maxCoverH = multi ? 0.58 : phone ? 0.72 : 0.75;
+  // Second+ window on desktop: slightly smaller so cascade peeks through
+  if (multi && stackIndex > 0) {
+    maxCoverW = Math.min(maxCoverW, 0.52);
+    maxCoverH = Math.min(maxCoverH, 0.52);
   }
-  // Even tighter when window would cover almost everything
   if (w / availW > maxCoverW) w = Math.floor(availW * maxCoverW);
   if (h / availH > maxCoverH) h = Math.floor(availH * maxCoverH);
 
-  // Readable minimums as fractions of this pane (not global pixel constants)
-  const minW = Math.min(availW, Math.max(Math.floor(availW * 0.4), Math.min(180, availW)));
-  const minH = Math.min(availH, Math.max(Math.floor(availH * 0.32), Math.min(140, availH)));
+  const minW = Math.min(availW, Math.max(Math.floor(availW * (multi ? 0.28 : 0.4)), Math.min(180, availW)));
+  const minH = Math.min(availH, Math.max(Math.floor(availH * (multi ? 0.25 : 0.32)), Math.min(140, availH)));
   w = Math.max(minW, Math.min(w, availW));
   h = Math.max(minH, Math.min(h, availH));
 
+  // Cascade step (desktop multi-window) — fractions of pane, not fixed pixels
+  const step = multi
+    ? Math.max(18, Math.floor(Math.min(b.w, b.h) * 0.028))
+    : 0;
+  const cascade = (Number(stackIndex) || 0) * step;
+
   let x = Number(prefX);
   let y = Number(prefY);
-  if (!Number.isFinite(x)) x = margin + Math.floor(availW * 0.05);
-  if (!Number.isFinite(y)) y = margin + Math.floor(availH * 0.05);
+  if (!Number.isFinite(x)) x = margin + Math.floor(availW * 0.05) + cascade;
+  else x = x + cascade;
+  if (!Number.isFinite(y)) y = margin + Math.floor(availH * 0.05) + cascade;
+  else y = y + cascade;
 
-  // If the window is large relative to the pane, center it so controls stay in view
-  const largeRel = w / b.w > 0.5 || h / b.h > 0.45;
-  if (largeRel || sidePane || tallNarrow) {
+  if (phone) {
+    // Single-focus: center large float
     x = margin + Math.floor((availW - w) / 2);
     y = margin + Math.floor((availH - h) * 0.1);
+  } else if (multi) {
+    // Keep cascade on-screen; wrap cascade if it would overflow
+    const maxX = Math.max(margin, b.w - w - margin);
+    const maxY = Math.max(margin, b.h - h - margin);
+    if (x > maxX || y > maxY) {
+      const wrap = (stackIndex % 5) * step;
+      x = margin + wrap;
+      y = margin + wrap;
+    }
+    x = Math.min(Math.max(margin, x), maxX);
+    y = Math.min(Math.max(margin, y), maxY);
   } else {
     x = Math.min(Math.max(margin, x), Math.max(margin, b.w - w - margin));
     y = Math.min(Math.max(margin, y), Math.max(margin, b.h - h - margin));
   }
 
-  return { w, h, x, y, bounds: b };
+  return { w, h, x, y, bounds: b, phone, multi };
 }
 
 export class WindowManager {
@@ -190,44 +182,58 @@ export class WindowManager {
     document.addEventListener("pointercancel", onUp);
   }
 
+  _openStackIndex() {
+    return [...this.windows.values()].filter(
+      (w) => !w.el.classList.contains("minimized")
+    ).length;
+  }
+
   _clampAll() {
+    let i = 0;
     for (const w of this.windows.values()) {
       if (w.el.classList.contains("minimized")) continue;
-      // Maximized stays CSS 100%; skip
       if (w.el.classList.contains("maximized")) continue;
 
       const prefW = w.prefW || parseInt(w.el.style.width, 10) || 640;
       const prefH = w.prefH || parseInt(w.el.style.height, 10) || 420;
+      // Keep user's drag position; only re-fit size (stackIndex 0 to avoid re-cascade jumps)
       const prefX = parseInt(w.el.style.left, 10);
       const prefY = parseInt(w.el.style.top, 10);
       const g = fitWindowGeom(
         prefW,
         prefH,
         Number.isFinite(prefX) ? prefX : undefined,
-        Number.isFinite(prefY) ? prefY : undefined
+        Number.isFinite(prefY) ? prefY : undefined,
+        0
       );
       w.el.style.width = g.w + "px";
       w.el.style.height = g.h + "px";
-      w.el.style.left = g.x + "px";
-      w.el.style.top = g.y + "px";
-      // Keep prevGeom in sync if user had restored from max
+      // Clamp position into bounds without recentering cascade
+      const b = g.bounds;
+      const margin = 6;
+      let x = Number.isFinite(prefX) ? prefX : g.x;
+      let y = Number.isFinite(prefY) ? prefY : g.y;
+      x = Math.min(Math.max(margin, x), Math.max(margin, b.w - g.w - margin));
+      y = Math.min(Math.max(margin, y), Math.max(margin, b.h - g.h - margin));
+      w.el.style.left = x + "px";
+      w.el.style.top = y + "px";
       if (w.prevGeom && !w.el.classList.contains("maximized")) {
         w.prevGeom = {
-          left: g.x + "px",
-          top: g.y + "px",
+          left: x + "px",
+          top: y + "px",
           width: g.w + "px",
           height: g.h + "px",
         };
       }
+      i += 1;
     }
   }
 
   _notifyWindowsOpen() {
-    const n = [...this.windows.values()].filter(
-      (w) => !w.el.classList.contains("minimized")
-    ).length;
+    const n = this._openStackIndex();
     document.body.classList.toggle("asx-window-open", n > 0);
-    document.body.classList.toggle("asx-narrow", isMobileLayout());
+    document.body.classList.toggle("asx-narrow", isPhoneLayout());
+    document.body.classList.toggle("asx-desktop-multi", isDesktopMultiLayout());
   }
 
   /**
@@ -254,14 +260,15 @@ export class WindowManager {
     const el = document.createElement("div");
     el.className = "asx-window active";
     el.dataset.winId = id;
-    const mobile = isMobileLayout();
-    // Preferred design size (apps pass 640×420 etc.) — shrink to fit viewport
+    const mobile = isPhoneLayout();
+    const stackIndex = this._openStackIndex();
+    // Preferred design size (apps pass 640×420 etc.) — shrink to fit + cascade on desktop
     const prefW = opts.w ?? 640;
     const prefH = opts.h ?? 420;
-    const prefX = opts.x ?? 60 + (this.windows.size % 6) * 28;
-    const prefY = opts.y ?? 40 + (this.windows.size % 6) * 24;
-    const g = fitWindowGeom(prefW, prefH, prefX, prefY);
-    // Do NOT auto-maximize on mobile — user asked windows to get smaller with screen
+    const prefX = opts.x;
+    const prefY = opts.y;
+    const g = fitWindowGeom(prefW, prefH, prefX, prefY, stackIndex);
+    // Phone: large single-focus float OK. Desktop: multi-window cascade (not a bug).
     const w = g.w;
     const h = g.h;
     const x = g.x;
