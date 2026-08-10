@@ -2,8 +2,13 @@
  * ASX Desktop applications — tools inspired by LibreOffice suite + Linux utilities,
  * implemented as web apps (not full LO). Containers = existing staging product.
  */
-import { isBlockedUrl, normalizeNavUrl } from "./blocklist.js?v=20260810t211500z";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t211500z";
+import {
+  isBlockedUrl,
+  isBlockedUrlAsync,
+  normalizeNavUrl,
+  ensureSafetyListsLoaded,
+} from "./blocklist.js?v=20260810t212800z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t212800z";
 
 /** Resolve Containers product URL for this host layout. */
 export function containersUrl() {
@@ -554,7 +559,7 @@ function openBrowser(wm) {
     }
   };
 
-  const navigate = (raw, push = true) => {
+  const navigate = async (raw, push = true) => {
     clearTimeout(loadTimer);
     let url = String(raw || "").trim();
     if (!url || url === ASX_HOME || /^asx:\/\/home/i.test(url)) {
@@ -564,15 +569,19 @@ function openBrowser(wm) {
     }
     urlIn.value = url;
 
-    if (url !== ASX_HOME && isBlockedUrl(url)) {
-      showPolicyBlocked(frame, url);
-      asxSee(url, "blocked by policy");
-      if (push) {
-        history.splice(hi + 1);
-        history.push(url);
-        hi = history.length - 1;
+    // Wait for safety/hosts shards when checking external URLs (core list already sync)
+    if (url !== ASX_HOME) {
+      const blocked = await isBlockedUrlAsync(url);
+      if (blocked) {
+        showPolicyBlocked(frame, url);
+        asxSee(url, "blocked by policy");
+        if (push) {
+          history.splice(hi + 1);
+          history.push(url);
+          hi = history.length - 1;
+        }
+        return;
       }
-      return;
     }
     if (/^javascript:/i.test(url) || /^data:/i.test(url) || /^vbscript:/i.test(url)) {
       showPolicyBlocked(frame, url, "Scheme blocked by ASX Browser policy.");
@@ -701,7 +710,11 @@ function openBrowser(wm) {
     x: 80,
     y: 30,
     body: root,
-    onMount: () => navigate(ASX_HOME),
+    onMount: () => {
+      // Prefetch public safety list (same-origin shards) while showing home
+      ensureSafetyListsLoaded();
+      navigate(ASX_HOME);
+    },
     onClose: () => {
       clearTimeout(loadTimer);
       if (homeBlobUrl) URL.revokeObjectURL(homeBlobUrl);

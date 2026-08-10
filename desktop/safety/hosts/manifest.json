@@ -1,0 +1,19 @@
+{
+  "source": "StevenBlack/hosts extensions/porn/* (MIT)",
+  "source_url": "https://github.com/StevenBlack/hosts",
+  "license": "MIT (upstream)",
+  "format": "one bare domain per line, no www., no IP",
+  "count": 64251,
+  "parts": [
+    "adult-01.txt",
+    "adult-02.txt",
+    "adult-03.txt",
+    "adult-04.txt",
+    "adult-05.txt",
+    "adult-06.txt",
+    "adult-07.txt",
+    "adult-08.txt",
+    "adult-09.txt"
+  ],
+  "fetched": "2026-08-10T10:38:23.341799Z"
+}

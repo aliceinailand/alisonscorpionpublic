@@ -1,14 +1,15 @@
 /**
  * ASX Desktop browser blocklist — adult / high-risk hosts.
- * Optimized: bare-host Set (O(1) + suffix walk) vs full-set scan.
- * Hermes H3-02/H3-03: confusable fold + host-scoped keywords (repair LOOP c3).
- * CLASS R0 policy list; soft client UX — not a network firewall.
  *
- * Public list inspiration (full files too large for guest JS; curated subset):
- * - github.com/StevenBlack/hosts (porn / unified hosts extensions)
- * - OISD NSFW (sjhgvr) / Pi-hole community adult lists
- * - Hagezi DNS blocklists (malware; NSFW often separate)
- * Research: agents/research/threejs → desktop browser note + blocklist_sources_20260810.md
+ * Architecture (why not only raw GitHub hot-link):
+ * 1. **Core Set** (this file) — instant, fail-closed brands/TLDs before any fetch.
+ * 2. **safety/hosts/** (our public repo) — ~64k domains from StevenBlack porn
+ *    extensions, sharded, same-origin, versioned with the site. Preferred.
+ * 3. **Optional remote** raw.githubusercontent.com — CORS works (*), but 2–5 MB
+ *    hosts files are a poor default for every guest visit; use for operator refresh.
+ *
+ * Soft client UX — not a network firewall.
+ * Research: safety/README.md · browser_blocklist_and_iframe_20260810.md
  */
 export const BLOCKED_HOSTS = new Set([
   "pornhub.com", "www.pornhub.com",
@@ -183,6 +184,96 @@ export function hostUnicodeOf(url) {
   }
 }
 
+/** Domains loaded from safety/hosts/*.txt (StevenBlack-derived). */
+const SAFETY_DOMAINS = new Set();
+let safetyLoadPromise = null;
+export const safetyLoadStatus = {
+  loaded: false,
+  loading: false,
+  count: 0,
+  error: null,
+  base: null,
+};
+
+function safetyHostsBaseUrl() {
+  // blocklist.js lives in js/ → ../safety/hosts/
+  try {
+    return new URL("../safety/hosts/", import.meta.url);
+  } catch {
+    return new URL("safety/hosts/", location.href);
+  }
+}
+
+/**
+ * Lazy-load public safety shards (same-origin). Safe to call many times.
+ * Prefer this over hot-linking multi-MB raw hosts on every page load.
+ * @returns {Promise<{ loaded: boolean, count: number, error?: string }>}
+ */
+export function ensureSafetyListsLoaded() {
+  if (safetyLoadStatus.loaded) return Promise.resolve(safetyLoadStatus);
+  if (safetyLoadPromise) return safetyLoadPromise;
+
+  safetyLoadStatus.loading = true;
+  safetyLoadPromise = (async () => {
+    const base = safetyHostsBaseUrl();
+    safetyLoadStatus.base = String(base);
+    try {
+      const manRes = await fetch(new URL("manifest.json", base), {
+        credentials: "same-origin",
+        cache: "force-cache",
+      });
+      if (!manRes.ok) throw new Error("manifest HTTP " + manRes.status);
+      const man = await manRes.json();
+      const parts = Array.isArray(man.parts) ? man.parts : [];
+      // Parallel shard fetch — total ~1 MB compact domains, not 5 MB hosts format
+      await Promise.all(
+        parts.map(async (part) => {
+          try {
+            const r = await fetch(new URL(part, base), {
+              credentials: "same-origin",
+              cache: "force-cache",
+            });
+            if (!r.ok) return;
+            const text = await r.text();
+            const lines = text.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+              let d = lines[i].trim().toLowerCase();
+              if (!d || d.charCodeAt(0) === 35) continue; // #
+              if (d.startsWith("www.")) d = d.slice(4);
+              if (!d.includes(".")) continue;
+              SAFETY_DOMAINS.add(d);
+              BLOCKED_BARE.add(d);
+            }
+          } catch {
+            /* single shard fail — keep others */
+          }
+        })
+      );
+      safetyLoadStatus.loaded = true;
+      safetyLoadStatus.loading = false;
+      safetyLoadStatus.count = SAFETY_DOMAINS.size;
+      safetyLoadStatus.error = null;
+      safetyLoadStatus.source = man.source || "safety/hosts";
+      console.info(
+        "[ASX] safety hosts loaded ·",
+        safetyLoadStatus.count,
+        "domains ·",
+        safetyLoadStatus.source
+      );
+    } catch (e) {
+      safetyLoadStatus.loaded = false;
+      safetyLoadStatus.loading = false;
+      safetyLoadStatus.error = String(e && e.message ? e.message : e);
+      console.warn(
+        "[ASX] safety/hosts load failed — core blocklist only:",
+        safetyLoadStatus.error
+      );
+    }
+    return safetyLoadStatus;
+  })();
+  return safetyLoadPromise;
+}
+
 function hostMatchesBlocked(host, foldedExtra) {
   if (!host && !foldedExtra) return false;
   const h = String(host || "").replace(/^www\./, "");
@@ -190,9 +281,11 @@ function hostMatchesBlocked(host, foldedExtra) {
 
   if (
     BLOCKED_BARE.has(h) ||
+    SAFETY_DOMAINS.has(h) ||
     BLOCKED_HOSTS.has(h) ||
     BLOCKED_HOSTS.has(`www.${h}`) ||
-    BLOCKED_BARE.has(folded)
+    BLOCKED_BARE.has(folded) ||
+    SAFETY_DOMAINS.has(folded)
   ) {
     return true;
   }
@@ -202,7 +295,13 @@ function hostMatchesBlocked(host, foldedExtra) {
     let i = base.indexOf(".");
     while (i !== -1) {
       const rest = base.slice(i + 1);
-      if (BLOCKED_BARE.has(rest) || BLOCKED_BARE.has(foldHostConfusable(rest))) return true;
+      if (
+        BLOCKED_BARE.has(rest) ||
+        SAFETY_DOMAINS.has(rest) ||
+        BLOCKED_BARE.has(foldHostConfusable(rest))
+      ) {
+        return true;
+      }
       i = base.indexOf(".", i + 1);
     }
     return false;
@@ -235,6 +334,11 @@ export function isBlockedUrl(url) {
   if (!raw) return false;
   if (SCHEME_DENY.test(raw)) return true;
 
+  // Kick off safety list load (non-blocking); core list still applies immediately
+  if (!safetyLoadStatus.loaded && !safetyLoadStatus.loading) {
+    ensureSafetyListsLoaded();
+  }
+
   const uni = hostUnicodeOf(raw);
   const idna = hostOf(raw);
   if (hostMatchesBlocked(idna, uni) || hostMatchesBlocked(uni, uni)) return true;
@@ -251,6 +355,16 @@ export function isBlockedUrl(url) {
     /* ignore */
   }
   return false;
+}
+
+/**
+ * Await full safety list then re-check (Browser app uses this on Go).
+ * @param {string} url
+ * @returns {Promise<boolean>}
+ */
+export async function isBlockedUrlAsync(url) {
+  await ensureSafetyListsLoaded();
+  return isBlockedUrl(url);
 }
 
 export function normalizeNavUrl(input) {

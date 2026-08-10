@@ -17,11 +17,21 @@ Most major sites send **X-Frame-Options: SAMEORIGIN/DENY** or CSP **frame-ancest
 
 | Source | Role | How ASX uses it |
 |--------|------|-----------------|
-| [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | Unified hosts; **porn extension** optional | Curated host subset in `blocklist.js` (full file too large for client) |
+| [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | Unified hosts; **porn extension** optional | Converted to `safety/hosts/adult-*.txt` (~64k bare domains) |
 | OISD NSFW (community / Pi-hole) | Large adult DNS lists | Pattern + brand tokens inspiration |
 | Hagezi DNS blocklists | Malware-oriented | Future malware tier; adult often separate |
 
-**Cannot ship full hosts files** in guest JS (MBs). Client = curated Set + suffix + tokens + `.xxx/.porn/.sex/.adult` TLDs. Hard enforcement later = gateway / Cloudflare / DNS.
+### Why not only hot-link raw GitHub?
+
+| | Live `raw.githubusercontent.com` | **safety/ in our public repo** |
+|--|----------------------------------|--------------------------------|
+| CORS | Works (`Access-Control-Allow-Origin: *`) | Same-origin |
+| Size | Hosts format **2–5 MB** | Compact domains **~1.1 MB** sharded |
+| Every guest visit | Pulls from GitHub | CDN / GH Pages cache of *our* deploy |
+| Audit | External moving target | Versioned with site commit |
+| Offline-ish | No | Yes once cached |
+
+**Conclusion:** Linking raw is *possible*; shipping under **`safety/`** is better for a public guest desktop. Refresh with `tools/refresh_safety_hosts.py`. Core brands stay in `blocklist.js` for fail-closed before shards load.
 
 ## Blocked screen design
 
