@@ -9,7 +9,9 @@ import { registerApps, APP_CATALOG } from "./apps.js";
 
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-
+/** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs, sha384) */
+const THREE_CDN_SRI =
+  "sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu";
 const DESKTOP_ICONS = [
   { id: "terminal", label: "Terminal", glyph: "❯", x: 18, y: 18 },
   { id: "files", label: "Files", glyph: "📁", x: 18, y: 110 },
@@ -48,8 +50,11 @@ function loadThreeJs() {
     const s = document.createElement("script");
     s.src = THREE_CDN;
     s.async = true;
+    s.integrity = THREE_CDN_SRI;
+    s.crossOrigin = "anonymous";
+    s.referrerPolicy = "no-referrer";
     s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Three.js CDN load failed"));
+    s.onerror = () => reject(new Error("Three.js CDN load failed (SRI or network)"));
     document.head.appendChild(s);
   });
 }

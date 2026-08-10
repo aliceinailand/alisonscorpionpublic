@@ -112,27 +112,58 @@ export const FS = {
   "/var/log/asx.log": { type: "file", label: "asx.log", admin: true, content: "" },
 };
 
+/**
+ * Hermes H3-06: resolve . / .. and collapse slashes so openNode keys match.
+ * No host FS — only virtual key space.
+ */
+export function normalizePath(p) {
+  const raw = String(p || "");
+  if (!raw || raw === "/") return "/";
+  const parts = [];
+  const segs = raw.replace(/\\/g, "/").split("/");
+  for (let i = 0; i < segs.length; i++) {
+    const seg = segs[i];
+    if (!seg || seg === ".") continue;
+    if (seg === "..") {
+      if (parts.length) parts.pop();
+      continue;
+    }
+    // reject null bytes / control
+    if (seg.includes("\0")) continue;
+    parts.push(seg);
+  }
+  return parts.length ? `/${parts.join("/")}` : "/";
+}
+
 export function joinPath(base, name) {
-  if (base === "/") return `/${name}`;
-  return `${base.replace(/\/$/, "")}/${name}`;
+  const b = normalizePath(base);
+  const n = String(name || "").replace(/^\/+/, "");
+  if (n.includes("..") || n.includes("/") || n.includes("\\")) {
+    // only single path segment names from UI
+    return normalizePath(`${b}/${n}`);
+  }
+  if (b === "/") return normalizePath(`/${n}`);
+  return normalizePath(`${b}/${n}`);
 }
 
 export function parentPath(p) {
-  if (!p || p === "/") return "/";
-  const parts = p.replace(/\/$/, "").split("/");
+  const n = normalizePath(p);
+  if (!n || n === "/") return "/";
+  const parts = n.split("/").filter(Boolean);
   parts.pop();
-  return parts.join("/") || "/";
+  return parts.length ? `/${parts.join("/")}` : "/";
 }
 
 export function listDir(path) {
-  const node = FS[path];
-  if (!node) return { error: "ENOENT", message: `No such file or directory: ${path}` };
-  if (node.type !== "dir") return { error: "ENOTDIR", message: `Not a directory: ${path}` };
-  if (node.admin && path !== "/home/alisonscorpion") {
+  const pathN = normalizePath(path);
+  const node = FS[pathN];
+  if (!node) return { error: "ENOENT", message: `No such file or directory: ${pathN}` };
+  if (node.type !== "dir") return { error: "ENOTDIR", message: `Not a directory: ${pathN}` };
+  if (node.admin && pathN !== "/home/alisonscorpion") {
     // listing admin home root is allowed (names only); children blocked on open
   }
   const entries = (node.children || []).map((name) => {
-    const full = joinPath(path, name);
+    const full = joinPath(pathN, name);
     const child = FS[full] || { type: "dir", label: name, admin: node.admin };
     return {
       name,
@@ -141,7 +172,7 @@ export function listDir(path) {
       admin: !!child.admin,
     };
   });
-  return { path, entries };
+  return { path: pathN, entries };
 }
 
 /**
@@ -149,34 +180,36 @@ export function listDir(path) {
  * any child path or admin file. ASX is sole administrator.
  */
 export function openNode(path) {
-  const node = FS[path];
-  if (!node) return { error: "ENOENT", message: `No such file or directory: ${path}` };
+  const pathN = normalizePath(path);
+  const node = FS[pathN];
+  if (!node) return { error: "ENOENT", message: `No such file or directory: ${pathN}` };
 
   const listOnlyRoots = new Set(["/home/alisonscorpion"]);
-  if (node.admin && !listOnlyRoots.has(path)) {
+  if (node.admin && !listOnlyRoots.has(pathN)) {
     return {
       error: "EACCES",
       message: "ACCESS DENIED",
       detail:
         "Only the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
-      path,
+      path: pathN,
     };
   }
-  return { node, path };
+  return { node, path: pathN };
 }
 
 export function readFile(path) {
-  const node = FS[path];
-  if (!node) return { error: "ENOENT", message: `No such file or directory: ${path}` };
+  const pathN = normalizePath(path);
+  const node = FS[pathN];
+  if (!node) return { error: "ENOENT", message: `No such file or directory: ${pathN}` };
   if (node.admin) {
     return {
       error: "EACCES",
       message: "ACCESS DENIED",
       detail:
         "Only the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
-      path,
+      path: pathN,
     };
   }
-  if (node.type !== "file") return { error: "EISDIR", message: `Is a directory: ${path}` };
-  return { path, content: node.content || "", label: node.label };
+  if (node.type !== "file") return { error: "EISDIR", message: `Is a directory: ${pathN}` };
+  return { path: pathN, content: node.content || "", label: node.label };
 }
