@@ -54,10 +54,10 @@ DESIRED_RULES = [
         browser=86400,
     ),
     rule(
-        "hashed /assets (excl backups Worker path)",
+        "hashed /assets + /assets/cdn vendor mirror (excl backups Worker)",
         'starts_with(http.request.uri.path, "/assets/") '
         'and not starts_with(http.request.uri.path, "/assets/backups/")',
-        edge=604800,  # 7d
+        edge=604800,  # 7d — three/d3/planets textures live under /assets/cdn/
         browser=604800,
     ),
     rule(

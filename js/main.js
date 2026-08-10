@@ -3,10 +3,10 @@
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t231000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t231000z";
-import { WindowManager } from "./wm.js?v=20260810t231000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t231000z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t233000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t233000z";
+import { WindowManager } from "./wm.js?v=20260810t233000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t233000z";
 import {
   initPresence,
   initSessionTimer,
@@ -17,11 +17,13 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t231000z";
+} from "./shell-chrome.js?v=20260810t233000z";
 
+/** Prefer same-origin mirror (CF-cached on our zone); cdnjs is free Cloudflare CDN fallback */
+const THREE_LOCAL = "/assets/cdn/three-r128/three.min.js";
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-/** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs, sha384) */
+/** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs / local mirror same bytes) */
 const THREE_CDN_SRI =
   "sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu";
 
@@ -82,17 +84,22 @@ function applyMobileClass() {
 
 function loadThreeJs() {
   if (typeof THREE !== "undefined") return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = THREE_CDN;
-    s.async = true;
-    s.integrity = THREE_CDN_SRI;
-    s.crossOrigin = "anonymous";
-    s.referrerPolicy = "no-referrer";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Three.js CDN load failed (SRI or network)"));
-    document.head.appendChild(s);
-  });
+  const inject = (src, useSri) =>
+    new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      if (useSri) {
+        s.integrity = THREE_CDN_SRI;
+        s.crossOrigin = "anonymous";
+      }
+      s.referrerPolicy = "no-referrer";
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Three.js load failed: " + src));
+      document.head.appendChild(s);
+    });
+  // Local first (edge-cached on alisonscorpion.com) → free Cloudflare cdnjs
+  return inject(THREE_LOCAL, true).catch(() => inject(THREE_CDN, true));
 }
 
 function bootSplash() {

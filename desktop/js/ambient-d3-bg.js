@@ -47,14 +47,20 @@ function ensureSvgHost(canvasId) {
 
 function loadD3() {
   if (typeof window.d3 !== "undefined") return Promise.resolve(window.d3);
-  return new Promise((resolve) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js";
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.onload = () => resolve(window.d3 || null);
-    s.onerror = () => resolve(null);
-    document.head.appendChild(s);
+  const trySrc = (src) =>
+    new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      s.onload = () => resolve(window.d3 || null);
+      s.onerror = () => resolve(null);
+      document.head.appendChild(s);
+    });
+  // Same-origin first (CF edge cache) → free jsDelivr fallback
+  return trySrc("/assets/cdn/d3/d3.min.js").then((d3) => {
+    if (d3) return d3;
+    return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js");
   });
 }
 

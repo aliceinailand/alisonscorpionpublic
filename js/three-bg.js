@@ -16,26 +16,34 @@
  * - agents/research/threejs/sun_angular_scale_architecture_20260810.md
  */
 
+/**
+ * Prefer same-origin /assets/cdn/* (CF-cacheable on our zone).
+ * jsDelivr / threejs.org remain free fallbacks — we cannot set Cache Rules
+ * for jsdelivr.com itself (not our zone).
+ */
 const TEX = {
-  earth:
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg",
-  earthNormal:
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg",
-  earthSpec:
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg",
-  /**
-   * NASA-style cloud map (three.js r128 examples). Primary + fallbacks so the
-   * optional structure blend actually lands on GH Pages / flaky CDNs.
-   */
-  earthClouds:
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
+  earth: "/assets/cdn/three-r128/planets/earth_atmos_2048.jpg",
+  earthNormal: "/assets/cdn/three-r128/planets/earth_normal_2048.jpg",
+  earthSpec: "/assets/cdn/three-r128/planets/earth_specular_2048.jpg",
+  earthClouds: "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
   earthCloudsFallbacks: [
+    "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
     "https://threejs.org/examples/textures/planets/earth_clouds_1024.png",
     "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/earth_clouds_1024.png",
   ],
-  moon:
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
+  moon: "/assets/cdn/three-r128/planets/moon_1024.jpg",
+  // Fallback map for TextureLoader when local 404
+  remote: {
+    earth:
+      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg",
+    earthNormal:
+      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg",
+    earthSpec:
+      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg",
+    moon:
+      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
+  },
 };
 
 const EARTH_R = 8;
@@ -93,17 +101,27 @@ function ensureGlareEl() {
   return el;
 }
 
-function loadTexture(loader, url) {
+function loadTexture(loader, url, fallbackUrl) {
   return new Promise((resolve) => {
-    loader.load(
-      url,
-      (tex) => {
-        tex.anisotropy = 4;
-        resolve(tex);
-      },
-      undefined,
-      () => resolve(null)
-    );
+    const tryUrl = (u, next) => {
+      if (!u) {
+        resolve(null);
+        return;
+      }
+      loader.load(
+        u,
+        (tex) => {
+          tex.anisotropy = 4;
+          resolve(tex);
+        },
+        undefined,
+        () => {
+          if (next) tryUrl(next, null);
+          else resolve(null);
+        }
+      );
+    };
+    tryUrl(url, fallbackUrl || null);
   });
 }
 
@@ -647,10 +665,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   Promise.all([
-    loadTexture(loader, TEX.earth),
-    loadTexture(loader, TEX.earthNormal),
-    loadTexture(loader, TEX.earthSpec),
-    loadTexture(loader, TEX.moon),
+    loadTexture(loader, TEX.earth, TEX.remote.earth),
+    loadTexture(loader, TEX.earthNormal, TEX.remote.earthNormal),
+    loadTexture(loader, TEX.earthSpec, TEX.remote.earthSpec),
+    loadTexture(loader, TEX.moon, TEX.remote.moon),
     loadEarthCloudsBase(),
   ]).then(([day, normal, spec, moonTex, cloudBase]) => {
     if (disposed) return;
