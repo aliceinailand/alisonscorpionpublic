@@ -23,8 +23,9 @@ import {
 } from "./shell-chrome.js?v=20260810t240000z";
 
 /**
- * Three.js: major CDNs only — never serve from our origin.
- * 1) cdnjs (Cloudflare)  2) jsDelivr  3) unpkg
+ * Three.js: public CDNs only — never our origin.
+ * #1 Cloudflare via cdnjs → #2 jsDelivr → #3 unpkg
+ * (alisonscorpion.com is not in this chain; rank #4 is shell-only.)
  */
 const THREE_SOURCES = [
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",

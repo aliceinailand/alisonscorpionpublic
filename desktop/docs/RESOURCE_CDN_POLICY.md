@@ -5,52 +5,50 @@
 
 ## Goal
 
-- **Our site** = thin shell (HTML/CSS/app JS) + brand + policy.  
-- **Their sites** (cdnjs, jsDelivr, unpkg, threejs.org) = multi‑MB libraries and textures.  
-- Guests hit **well-funded, already-warm CDNs**. We do **not** add download volume or storage for files that are already public elsewhere.  
-- Even on GitHub Pages, the site is large enough — **offload every byte we can**.
+- **Our site** = thin shell only (HTML/CSS/app JS) + brand + policy.  
+- **Heavy vendor files** = already-public CDNs with real funding and global edges.  
+- Guests almost never pull multi‑MB libraries from GitHub Pages / our CF origin.  
+- **Our website is the last resort** (and for vendor assets: **not in the chain at all**).
 
-## Order of preference
+## Priority stack (think of it this way)
 
-1. **cdnjs** (Cloudflare-backed free CDN)  
-2. **jsDelivr**  
-3. **unpkg** / **threejs.org** / other well-known public hosts  
-4. **Never** our `/assets/cdn/` for hot path — **do not store vendor mirrors on our servers**
+| Rank | Who | Role |
+|------|-----|------|
+| **#1** | **Cloudflare** | Free global edge via **cdnjs.cloudflare.com**, and often the edge behind **jsDelivr** (and anything else already on Cloudflare). Best-funded, already warm for millions of sites. |
+| **#2** | **jsDelivr** (and similar multi-CDN) | npm/GitHub packages, Three textures; long immutable cache. |
+| **#3** | **Other public hosts** | unpkg, threejs.org, raw.githubusercontent — rare hops if #1/#2 fail. |
+| **#4** | **alisonscorpion.com** | **Extremely rare** for anything vendor. Shell + brand + `/safety` only. We do **not** store Three/D3/textures here. |
 
-Our origin is **not** a third CDN for Three/D3/textures. Multi-hop is **CDN → CDN → CDN**, not CDN → us.
+So: the browser hits **their** pipes first. We only “make the call” (a URL). We do **not** contribute downloads of public libraries.
 
-## What we still host (required first-party)
+## Load chains in code (vendor = public only)
 
-| Asset | Reason |
+| Asset | Order |
 |-------|--------|
-| Shell `index.html`, `css/*`, `js/*` (apps, WM) | Product code; ES modules |
-| Brand, favicon, OG images | Identity / SEO |
-| `/safety/hosts/*` | **Our** policy lists; load only when Browser opens |
+| **three.min.js** | 1 cdnjs (CF) → 2 jsDelivr → 3 unpkg |
+| **D3** | 1 cdnjs (CF) → 2 jsDelivr → 3 unpkg |
+| **Earth/moon/cloud textures** | 1 jsDelivr → 2 threejs.org → 3 raw.githubusercontent |
 
-## What we never host again
+No `/assets/cdn/` vendor blobs. No origin fallback for those files.
 
-| Asset | Source |
-|-------|--------|
-| three.min.js | cdnjs → jsDelivr → unpkg |
-| Earth/moon/cloud textures | jsDelivr → threejs.org → raw.githubusercontent |
-| d3 | jsDelivr → cdnjs → unpkg |
+## What we still host (must be first-party)
 
-## Operator checklist (new library)
+| Asset | Why |
+|-------|-----|
+| Shell `index.html`, `css/*`, `js/*` | Product code |
+| Brand / favicon / OG | Identity |
+| `/safety/hosts/*` | Our policy; **Browser-only** fetch |
 
-1. Search **cdnjs** and **jsDelivr** for a pinned version.  
-2. Prefer SRI when the primary is cdnjs.  
-3. Add 1–2 public CDN fallbacks.  
-4. **Do not** commit the minified library into this repo.  
-5. Document the pin in the importing module header.
+## Operator checklist
 
-## Why not mirror “just in case”?
-
-- Inflates our deploy and GH bandwidth for no hot-path gain.  
-- Major CDNs already long-cache and absorb hits.  
-- Failures are rare; multi-CDN chains cover that without storing copies here.
+1. Prefer **cdnjs** first when the library exists there (Cloudflare #1).  
+2. Then **jsDelivr**.  
+3. Then unpkg / project CDN.  
+4. **Do not** commit minified vendor files into this repo.  
+5. Pin versions; SRI on primary cdnjs URL when available.
 
 ## Related
 
-- `js/main.js` — Three load chain  
-- `js/three-bg.js` — texture URLs  
-- `js/ambient-d3-bg.js` — D3 load chain  
+- `js/main.js` — Three chain  
+- `js/three-bg.js` — texture chain  
+- `js/ambient-d3-bg.js` — D3 chain  

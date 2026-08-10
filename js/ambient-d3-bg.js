@@ -57,18 +57,19 @@ function loadD3() {
       s.onerror = () => resolve(null);
       document.head.appendChild(s);
     });
-  // Public CDNs only — never load D3 from our origin
-  return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js").then(
-    (d3) => {
-      if (d3) return d3;
-      return trySrc(
-        "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"
-      ).then((d3b) => {
+  // Public CDNs only — Cloudflare-backed first (cdnjs), never our origin
+  // 1 cdnjs (CF)  2 jsDelivr (often CF edge)  3 unpkg
+  return trySrc(
+    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"
+  ).then((d3) => {
+    if (d3) return d3;
+    return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js").then(
+      (d3b) => {
         if (d3b) return d3b;
         return trySrc("https://unpkg.com/d3@7.9.0/dist/d3.min.js");
-      });
-    }
-  );
+      }
+    );
+  });
 }
 
 /**

@@ -7,8 +7,8 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20260810t240000z";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t240000z";
+} from "./blocklist.js?v=20260810t241000z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t241000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =

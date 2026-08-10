@@ -18,9 +18,9 @@
  */
 
 /**
- * Textures: public CDNs only — never host multi-MB vendor files on our origin.
- * 1) jsDelivr  2) threejs.org  3) raw.githubusercontent (short cache; last public hop)
- * See docs/RESOURCE_CDN_POLICY.md
+ * Textures: public CDNs only — never our origin (rank #4 is shell-only).
+ * Prefer jsDelivr (often Cloudflare-fronted) → threejs.org → raw.githubusercontent.
+ * See docs/RESOURCE_CDN_POLICY.md (#1 Cloudflare ecosystem, then other CDNs).
  */
 const TEX = {
   earth:
