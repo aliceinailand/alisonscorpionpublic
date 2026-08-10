@@ -19,10 +19,10 @@ import {
   showLogoutScreen,
 } from "./shell-chrome.js?v=20260810t233000z";
 
-/** Prefer same-origin mirror (CF-cached on our zone); cdnjs is free Cloudflare CDN fallback */
-const THREE_LOCAL = "/assets/cdn/three-r128/three.min.js";
+/** cdnjs (Cloudflare free CDN) first; same-origin /assets/cdn mirror is fallback only */
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+const THREE_LOCAL = "/assets/cdn/three-r128/three.min.js";
 /** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs / local mirror same bytes) */
 const THREE_CDN_SRI =
   "sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu";

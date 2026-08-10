@@ -57,11 +57,13 @@ function loadD3() {
       s.onerror = () => resolve(null);
       document.head.appendChild(s);
     });
-  // Same-origin first (CF edge cache) → free jsDelivr fallback
-  return trySrc("/assets/cdn/d3/d3.min.js").then((d3) => {
-    if (d3) return d3;
-    return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js");
-  });
+  // Free jsDelivr first → our site mirror only if CDN fails
+  return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js").then(
+    (d3) => {
+      if (d3) return d3;
+      return trySrc("/assets/cdn/d3/d3.min.js");
+    }
+  );
 }
 
 /**

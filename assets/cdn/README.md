@@ -5,9 +5,11 @@ We **cannot** force-cache `cdn.jsdelivr.net` or other third-party hosts.
 
 **What we do instead (free):**
 
-1. Mirror pinned vendor files here under `/assets/cdn/`  
-2. Load same-origin first (hits CF edge after Cache Rules / `_headers`)  
-3. Fall back to jsDelivr / cdnjs if local 404  
+1. **Primary:** public CDNs — **cdnjs** (Three.js) / **jsDelivr** (textures, D3)  
+2. **Fallback only:** mirrors here under `/assets/cdn/` if the CDN fails  
+3. Mirrors stay on-repo so Alison’s desktop still boots offline-ish / CDN-down  
+
+Order is intentional: free multi-CDN first; our origin is the safety net, not the hot path.
 
 | Path | Source | License notes |
 |------|--------|----------------|

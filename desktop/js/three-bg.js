@@ -17,32 +17,32 @@
  */
 
 /**
- * Prefer same-origin /assets/cdn/* (CF-cacheable on our zone).
- * jsDelivr / threejs.org remain free fallbacks — we cannot set Cache Rules
- * for jsdelivr.com itself (not our zone).
+ * Free public CDNs first (jsDelivr / threejs.org); our /assets/cdn/* is fallback only.
+ * (We cannot Cache-Rule jsdelivr.com — not our zone — but they already long-cache.)
  */
 const TEX = {
-  earth: "/assets/cdn/three-r128/planets/earth_atmos_2048.jpg",
-  earthNormal: "/assets/cdn/three-r128/planets/earth_normal_2048.jpg",
-  earthSpec: "/assets/cdn/three-r128/planets/earth_specular_2048.jpg",
-  earthClouds: "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
+  earth:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg",
+  earthNormal:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg",
+  earthSpec:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg",
+  earthClouds:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
   earthCloudsFallbacks: [
-    "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
     "https://threejs.org/examples/textures/planets/earth_clouds_1024.png",
+    "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
     "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/earth_clouds_1024.png",
   ],
-  moon: "/assets/cdn/three-r128/planets/moon_1024.jpg",
-  // Fallback map for TextureLoader when local 404
-  remote: {
-    earth:
-      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg",
-    earthNormal:
-      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg",
-    earthSpec:
-      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg",
-    moon:
-      "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
+  moon:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
+  // Same-origin mirror if free CDN fails
+  local: {
+    earth: "/assets/cdn/three-r128/planets/earth_atmos_2048.jpg",
+    earthNormal: "/assets/cdn/three-r128/planets/earth_normal_2048.jpg",
+    earthSpec: "/assets/cdn/three-r128/planets/earth_specular_2048.jpg",
+    moon: "/assets/cdn/three-r128/planets/moon_1024.jpg",
   },
 };
 
