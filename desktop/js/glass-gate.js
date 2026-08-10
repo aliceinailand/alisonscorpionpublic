@@ -1,10 +1,9 @@
 /**
- * Alison glass gate — Zero-inspired “draw a circle” captcha.
- * Purple universe glass · female left hand tracks pointer · fog clears on click ·
- * complete circle → shatter → desktop boot.
+ * Alison glass gate — only the “draw a circle on glass” beat (Zero-inspired).
+ * NOT their full WebGL product — no Zero assets, no second experience after this.
  *
- * Inspired by https://why.zero.university/ (draw-a-zero interaction), ASX themed.
- * Not a copy of their 3D stack — DOM/SVG for weight + reliability.
+ * Universe-purple glass · purple satin glove (female left, long nails) follows
+ * pointer · fog clears on click · complete circle → shatter → ASX boot only.
  */
 
 const GATE_SESSION = "asx-glass-gate-ok";
@@ -42,10 +41,10 @@ export function runGlassGate() {
       <canvas class="gg-draw" aria-hidden="true"></canvas>
       <div class="gg-hint">
         <p class="gg-title">DRAW A CIRCLE</p>
-        <p class="gg-sub">Alison is on the other side of the glass · move the hand · hold and draw</p>
+        <p class="gg-sub">Alison’s glove on the glass · follow the finger · hold and draw a circle</p>
       </div>
       <div class="gg-hand" aria-hidden="true">
-        ${femaleLeftHandSvg()}
+        ${alisonPurpleGloveSvg()}
       </div>
       <div class="gg-shatter" aria-hidden="true"></div>
       <button type="button" class="gg-skip">Skip (accessibility)</button>

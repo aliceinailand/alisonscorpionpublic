@@ -1886,10 +1886,10 @@ body.asx-gate-active #boot-splash {
   z-index: 5;
   pointer-events: none;
   will-change: transform;
-  /* tip of index near (0,0) of transform origin — SVG offset */
-  margin-left: -158px;
-  margin-top: -8px;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+  /* Index nail tip ≈ (100, 8) in 200×320 viewBox → center tip on cursor */
+  margin-left: -100px; /* half of 200 */
+  margin-top: -10px;   /* nail tip near top */
+  filter: drop-shadow(0 10px 20px rgba(76, 29, 149, 0.55));
   transition: opacity 0.5s ease;
 }
 .gg-hand-out {
@@ -1898,8 +1898,9 @@ body.asx-gate-active #boot-splash {
 }
 .gg-hand-svg {
   display: block;
-  width: min(42vw, 200px);
+  width: min(48vw, 220px);
   height: auto;
+  overflow: visible;
 }
 .gg-skip {
   position: absolute;

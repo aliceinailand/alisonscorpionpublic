@@ -6,10 +6,10 @@
  * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
  * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t251500z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t251500z";
-import { WindowManager } from "./wm.js?v=20260810t251500z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t251500z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t252500z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t252500z";
+import { WindowManager } from "./wm.js?v=20260810t252500z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t252500z";
 import {
   initPresence,
   initSessionTimer,
@@ -20,8 +20,8 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t251500z";
-import { runGlassGate } from "./glass-gate.js?v=20260810t251500z";
+} from "./shell-chrome.js?v=20260810t252500z";
+import { runGlassGate } from "./glass-gate.js?v=20260810t252500z";
 
 /**
  * Three.js: public CDNs only — never our origin.
