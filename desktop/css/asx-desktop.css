@@ -467,34 +467,38 @@ body {
   scrollbar-width: none;
 }
 #taskbar-windows::-webkit-scrollbar { display: none; }
+/* Start launcher: icon only (like real desktop panels — no distro name plate) */
 .tb-start {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, var(--brand-deep), #6d28d9);
-  color: var(--gold-white);
-  border: 1px solid rgba(245,237,216,0.25);
-  border-radius: 10px;
-  padding: 4px 12px 4px 6px;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 4px;
   min-height: var(--touch-min);
-  font: 700 11px var(--font);
-  letter-spacing: 0.06em;
+  min-width: var(--touch-min);
   cursor: pointer;
   flex-shrink: 0;
   touch-action: manipulation;
+  box-shadow: none;
+}
+.tb-start:hover {
+  background: rgba(124, 58, 237, 0.18);
+}
+.tb-start:active {
+  background: rgba(124, 58, 237, 0.28);
 }
 .tb-start-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 0;
   display: block;
   flex-shrink: 0;
-  background: rgba(10, 8, 9, 0.35);
-  box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.35);
-}
-.tb-start-label {
-  line-height: 1;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
 }
 .tb-item {
   background: transparent;
