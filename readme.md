@@ -4,6 +4,8 @@ Guest desktop experience for **alisonscorpion.com** — thin universe-purple gla
 
 **Three.js documentation:** [threejs.md](./threejs.md) · full website map: [../docs/THREEJS_WEBSITE.md](../docs/THREEJS_WEBSITE.md)
 
+**Resource delivery:** [docs/RESOURCE_CDN_POLICY.md](./docs/RESOURCE_CDN_POLICY.md) — **major CDNs first** (cdnjs / jsDelivr); our origin is shell + cold fallback only. Offload multi‑MB vendor delivery to their edges.
+
 ## Local preview
 
 ```bash

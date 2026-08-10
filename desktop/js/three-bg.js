@@ -14,6 +14,7 @@
  * - agents/research/threejs/google_earth_threejs_matchup_20260810.md
  * - agents/research/threejs/cloud_cover_simulation_20260810.md
  * - agents/research/threejs/sun_angular_scale_architecture_20260810.md
+ * - website/desktop-os/docs/RESOURCE_CDN_POLICY.md (CDN-first delivery)
  */
 
 /**
@@ -665,10 +666,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   Promise.all([
-    loadTexture(loader, TEX.earth, TEX.remote.earth),
-    loadTexture(loader, TEX.earthNormal, TEX.remote.earthNormal),
-    loadTexture(loader, TEX.earthSpec, TEX.remote.earthSpec),
-    loadTexture(loader, TEX.moon, TEX.remote.moon),
+    loadTexture(loader, TEX.earth, TEX.local.earth),
+    loadTexture(loader, TEX.earthNormal, TEX.local.earthNormal),
+    loadTexture(loader, TEX.earthSpec, TEX.local.earthSpec),
+    loadTexture(loader, TEX.moon, TEX.local.moon),
     loadEarthCloudsBase(),
   ]).then(([day, normal, spec, moonTex, cloudBase]) => {
     if (disposed) return;

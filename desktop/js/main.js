@@ -2,11 +2,14 @@
  * ASX Desktop OS — boot, icons, taskbar, start menu.
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
+ *
+ * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
+ * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t233000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t233000z";
-import { WindowManager } from "./wm.js?v=20260810t233000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t233000z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t235500z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t235500z";
+import { WindowManager } from "./wm.js?v=20260810t235500z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t235500z";
 import {
   initPresence,
   initSessionTimer,
@@ -17,9 +20,9 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t233000z";
+} from "./shell-chrome.js?v=20260810t235500z";
 
-/** cdnjs (Cloudflare free CDN) first; same-origin /assets/cdn mirror is fallback only */
+/** Policy: cdnjs first (their Cloudflare edge); our /assets/cdn only if CDN fails */
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 const THREE_LOCAL = "/assets/cdn/three-r128/three.min.js";
@@ -98,8 +101,8 @@ function loadThreeJs() {
       s.onerror = () => reject(new Error("Three.js load failed: " + src));
       document.head.appendChild(s);
     });
-  // Local first (edge-cached on alisonscorpion.com) → free Cloudflare cdnjs
-  return inject(THREE_LOCAL, true).catch(() => inject(THREE_CDN, true));
+  // cdnjs first (free Cloudflare CDN) → our site mirror only if CDN fails
+  return inject(THREE_CDN, true).catch(() => inject(THREE_LOCAL, true));
 }
 
 function bootSplash() {
