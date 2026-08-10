@@ -7,8 +7,8 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20260810t241000z";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t241000z";
+} from "./blocklist.js?v=20260810t242000z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t242000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =
@@ -891,16 +891,115 @@ function showPolicyBlocked(frame, url, reason) {
   </div>`;
 }
 
-function showFrameHint(frame, url) {
+/**
+ * Sites that refuse iframes (X-Frame-Options / CSP frame-ancestors).
+ * NOT the adult blocklist — safe public sites that ban embedding.
+ */
+const NO_EMBED_HOSTS = [
+  "youtube.com",
+  "youtu.be",
+  "music.youtube.com",
+  "drive.google.com",
+  "docs.google.com",
+  "sheets.google.com",
+  "slides.google.com",
+  "mail.google.com",
+  "accounts.google.com",
+  "google.com",
+  "facebook.com",
+  "twitter.com",
+  "x.com",
+  "instagram.com",
+  "tiktok.com",
+  "linkedin.com",
+  "github.com",
+  "netflix.com",
+  "open.spotify.com",
+  "reddit.com",
+];
+
+function hostBare(url) {
+  try {
+    return new URL(url.includes("://") ? url : `https://${url}`).hostname
+      .toLowerCase()
+      .replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function isKnownNoEmbed(url) {
+  const h = hostBare(url);
+  if (!h) return false;
+  if (h === "google.com" || h.endsWith(".google.com")) return true;
+  if (h === "youtube.com" || h.endsWith(".youtube.com") || h === "youtu.be")
+    return true;
+  for (let i = 0; i < NO_EMBED_HOSTS.length; i++) {
+    const b = NO_EMBED_HOSTS[i].replace(/^www\./, "");
+    if (h === b || h.endsWith("." + b)) return true;
+  }
+  return false;
+}
+
+function noEmbedLabel(url) {
+  const h = hostBare(url);
+  if (h.includes("youtube") || h === "youtu.be") return "YouTube";
+  if (h.includes("drive.google") || h.includes("docs.google"))
+    return "Google Drive / Docs";
+  if (h.endsWith("google.com") || h === "google.com") return "Google";
+  if (h.includes("facebook")) return "Facebook";
+  if (h === "x.com" || h.includes("twitter")) return "X / Twitter";
+  if (h.includes("github")) return "GitHub";
+  return h || "This site";
+}
+
+/**
+ * Interstitial: site refuses iframe. Different from adult 🛡 policy block.
+ */
+function showNoEmbedPage(frame, url, openOutsideFn) {
+  const name = noEmbedLabel(url);
+  frame.innerHTML = `<div class="browser-blocked browser-noembed">
+    <div class="blocked-icon" aria-hidden="true">⧉</div>
+    <h2>${escapeHtml(name)} won’t open inside this window</h2>
+    <p class="blocked-lead"><strong>This is not a porn / policy block.</strong>
+      ${escapeHtml(name)} sets <code>X-Frame-Options</code> or CSP
+      <code>frame-ancestors</code> so it cannot be embedded in another site’s iframe
+      (anti–clickjacking). Browsers then show “refused to connect.”</p>
+    <p class="blocked-url">${escapeHtml(url)}</p>
+    <p class="blocked-why">ASX Browser is a framed guest view on Alison’s desktop.
+      Use <strong>Open outside</strong> for a normal full browser tab — that works for
+      public YouTube, Drive folders, Wikipedia, etc.</p>
+    <p style="margin-top:18px">
+      <button type="button" class="noembed-open">Open outside →</button>
+    </p>
+    <p class="blocked-foot">Adult sites are blocked separately (red 🛡 policy screen).
+      YouTube / Drive are allowed — they just refuse the iframe.</p>
+  </div>`;
+  frame.querySelector(".noembed-open")?.addEventListener("click", () => {
+    if (typeof openOutsideFn === "function") openOutsideFn(url);
+    else {
+      try {
+        window.open(url, "_blank", "noopener,noreferrer");
+      } catch {
+        /* ignore */
+      }
+    }
+  });
+}
+
+function showFrameHint(frame, url, openOutsideFn) {
   const bar = document.createElement("div");
   bar.className = "browser-frame-hint";
-  bar.innerHTML = `<span>If this panel is blank, the site blocks embedding (X-Frame-Options). Safe sites can still be opened outside.</span>
+  bar.innerHTML = `<span>Blank panel? Site blocks embedding (X-Frame-Options) — not ASX policy. YouTube / Drive need Open outside.</span>
     <button type="button" class="open-out">Open outside</button>`;
   bar.querySelector(".open-out").addEventListener("click", () => {
-    try {
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      /* ignore */
+    if (typeof openOutsideFn === "function") openOutsideFn(url);
+    else {
+      try {
+        window.open(url, "_blank", "noopener,noreferrer");
+      } catch {
+        /* ignore */
+      }
     }
   });
   frame.appendChild(bar);
@@ -993,6 +1092,13 @@ function openBrowser(wm, opts = {}) {
       hi = history.length - 1;
     }
 
+    // Known non-embeddable (YouTube, Drive, Google…) — not a policy block
+    if (url !== ASX_HOME && isKnownNoEmbed(url)) {
+      showNoEmbedPage(frame, url, openOutside);
+      asxSee(url, "no-embed (open outside) — not policy blocked");
+      return;
+    }
+
     frame.innerHTML = "";
     const wrap = document.createElement("div");
     wrap.className = "browser-iframe-wrap";
@@ -1042,7 +1148,7 @@ function openBrowser(wm, opts = {}) {
     iframe.src = url;
     wrap.appendChild(iframe);
     frame.appendChild(wrap);
-    showFrameHint(frame, url);
+    showFrameHint(frame, url, openOutside);
     asxSee(url, "navigating");
 
     // After a moment, surface embed note if still on this URL
