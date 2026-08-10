@@ -1,0 +1,7 @@
+channel=desktop-os-apex
+deployed_at=2026-08-10T06:44:50Z
+source=/home/alice/alisonscorpion/website/desktop-os
+homepage=/
+desktop_alias=/desktop/
+containers=/website/staging/
+threejs=r128-cdnjs
