@@ -1,15 +1,19 @@
 /**
  * ASX Desktop window manager — thin glass terminal windows.
- * Pattern: Claude extract_01 WindowManager + CSS glass purple.
- * Windows shrink with viewport (not forced full-screen on narrow).
+ * Geometry is live-measured from #windows-root (no hardcoded screen sizes).
+ * Side-by-side browser panes and phones both get smaller floating windows.
  */
 
+/** Coarse pointer or narrow pane — for UX only, not geometry hardcodes */
 function isMobileLayout() {
+  const b = desktopBounds();
+  const narrowPane = b.w > 0 && b.w / Math.max(window.innerWidth, 1) < 0.55;
   return (
+    narrowPane ||
     (typeof matchMedia === "function" && matchMedia("(max-width: 768px)").matches) ||
     (typeof matchMedia === "function" &&
       matchMedia("(pointer: coarse)").matches &&
-      window.innerWidth <= 900)
+      b.w <= 900)
   );
 }
 
@@ -18,6 +22,9 @@ function taskbarOffset() {
   return tb ? tb.offsetHeight : 44;
 }
 
+/**
+ * Live desktop work area only — measured, never assumed from a design resolution.
+ */
 function desktopBounds() {
   const tb = taskbarOffset();
   const root = document.getElementById("windows-root");
@@ -27,55 +34,73 @@ function desktopBounds() {
       return { w: Math.floor(r.width), h: Math.floor(r.height) };
     }
   }
+  const vw = window.visualViewport?.width || window.innerWidth || 0;
+  const vh = window.visualViewport?.height || window.innerHeight || 0;
   return {
-    w: Math.max(200, window.innerWidth),
-    h: Math.max(160, window.innerHeight - tb),
+    w: Math.max(120, Math.floor(vw || document.documentElement.clientWidth || 320)),
+    h: Math.max(100, Math.floor((vh || document.documentElement.clientHeight || 480) - tb)),
   };
 }
 
 /**
- * Fit preferred window size into current viewport.
- * Smaller screens → smaller windows (with margins so chrome stays usable).
+ * Fit preferred (app design) size into *current* desktop bounds.
+ * - Uses only fractions of measured bounds (no 1280/720/etc. breakpoints)
+ * - Smaller pane → smaller window; leaves margin so × − □ and desktop stay usable
  */
 function fitWindowGeom(prefW, prefH, prefX, prefY) {
   const b = desktopBounds();
-  const margin = b.w < 480 ? 8 : b.w < 900 ? 12 : 16;
-  const maxW = Math.max(160, b.w - margin * 2);
-  const maxH = Math.max(140, b.h - margin * 2);
+  // Margin scales with pane (2% of shorter side, clamped)
+  const margin = Math.round(
+    Math.min(24, Math.max(6, Math.min(b.w, b.h) * 0.025))
+  );
+  const availW = Math.max(100, b.w - margin * 2);
+  const availH = Math.max(80, b.h - margin * 2);
 
-  let w = Number(prefW) || 640;
-  let h = Number(prefH) || 420;
+  // Design defaults only when app omits size — relative to avail, not a fixed monitor
+  let w = Number(prefW);
+  let h = Number(prefH);
+  if (!(w > 0)) w = availW * 0.58;
+  if (!(h > 0)) h = availH * 0.52;
 
-  // Cap to available area
-  w = Math.min(w, maxW);
-  h = Math.min(h, maxH);
+  // Uniform scale-to-fit so aspect of preferred size is kept when possible
+  const fitScale = Math.min(1, availW / w, availH / h);
+  w = Math.floor(w * fitScale);
+  h = Math.floor(h * fitScale);
 
-  // Progressive shrink: window becomes a fraction of the screen as width drops
-  if (b.w <= 1280) {
-    const t = Math.min(1, Math.max(0, (1280 - b.w) / 960)); // 0 at 1280, 1 at 320
-    const maxFracW = 0.96 - t * 0.04; // 0.96 → 0.92
-    const maxFracH = 0.88 - t * 0.2; // 0.88 → 0.68 (leave desktop/taskbar visible)
-    w = Math.min(w, Math.floor(b.w * maxFracW) - margin);
-    h = Math.min(h, Math.floor(b.h * maxFracH));
+  // Never dominate the whole guest desktop (icons + taskbar must remain)
+  // Max cover tightens slightly as the pane gets relatively short/narrow (smooth, not stepped)
+  const aspect = b.w / Math.max(b.h, 1);
+  const tallNarrow = aspect < 0.85; // phone-ish
+  const sidePane = aspect < 1.1 && b.w < window.innerWidth * 0.7; // split browser
+  let maxCoverW = 0.92;
+  let maxCoverH = 0.78;
+  if (sidePane || tallNarrow) {
+    maxCoverW = 0.9;
+    maxCoverH = 0.7;
   }
+  // Even tighter when window would cover almost everything
+  if (w / availW > maxCoverW) w = Math.floor(availW * maxCoverW);
+  if (h / availH > maxCoverH) h = Math.floor(availH * maxCoverH);
 
-  // Hard floors that still fit
-  w = Math.max(Math.min(200, maxW), Math.min(w, maxW));
-  h = Math.max(Math.min(160, maxH), Math.min(h, maxH));
+  // Readable minimums as fractions of this pane (not global pixel constants)
+  const minW = Math.min(availW, Math.max(Math.floor(availW * 0.4), Math.min(180, availW)));
+  const minH = Math.min(availH, Math.max(Math.floor(availH * 0.32), Math.min(140, availH)));
+  w = Math.max(minW, Math.min(w, availW));
+  h = Math.max(minH, Math.min(h, availH));
 
   let x = Number(prefX);
   let y = Number(prefY);
-  if (!Number.isFinite(x)) x = margin + 40;
-  if (!Number.isFinite(y)) y = margin + 28;
+  if (!Number.isFinite(x)) x = margin + Math.floor(availW * 0.05);
+  if (!Number.isFinite(y)) y = margin + Math.floor(availH * 0.05);
 
-  // Keep fully on-screen
-  x = Math.min(Math.max(margin, x), Math.max(margin, b.w - w - margin));
-  y = Math.min(Math.max(margin, y), Math.max(margin, b.h - h - margin));
-
-  // Center horizontally on narrow viewports
-  if (b.w < 720) {
-    x = Math.max(margin, Math.floor((b.w - w) / 2));
-    y = Math.max(margin, Math.min(y, Math.floor(b.h * 0.08)));
+  // If the window is large relative to the pane, center it so controls stay in view
+  const largeRel = w / b.w > 0.5 || h / b.h > 0.45;
+  if (largeRel || sidePane || tallNarrow) {
+    x = margin + Math.floor((availW - w) / 2);
+    y = margin + Math.floor((availH - h) * 0.1);
+  } else {
+    x = Math.min(Math.max(margin, x), Math.max(margin, b.w - w - margin));
+    y = Math.min(Math.max(margin, y), Math.max(margin, b.h - h - margin));
   }
 
   return { w, h, x, y, bounds: b };
@@ -129,20 +154,34 @@ export class WindowManager {
   }
 
   _clampAll() {
-    const b = desktopBounds();
     for (const w of this.windows.values()) {
       if (w.el.classList.contains("minimized")) continue;
-      // Maximized: only ensure class geometry via CSS; do not re-force max on every resize
+      // Maximized stays CSS 100%; skip
       if (w.el.classList.contains("maximized")) continue;
-      const rect = w.el.getBoundingClientRect();
-      let width = Math.min(Math.max(rect.width, 200), b.w);
-      let height = Math.min(Math.max(rect.height, 140), b.h);
-      let left = Math.min(Math.max(0, rect.left), Math.max(0, b.w - 48));
-      let top = Math.min(Math.max(0, rect.top), Math.max(0, b.h - 32));
-      w.el.style.width = width + "px";
-      w.el.style.height = height + "px";
-      w.el.style.left = left + "px";
-      w.el.style.top = top + "px";
+
+      const prefW = w.prefW || parseInt(w.el.style.width, 10) || 640;
+      const prefH = w.prefH || parseInt(w.el.style.height, 10) || 420;
+      const prefX = parseInt(w.el.style.left, 10);
+      const prefY = parseInt(w.el.style.top, 10);
+      const g = fitWindowGeom(
+        prefW,
+        prefH,
+        Number.isFinite(prefX) ? prefX : undefined,
+        Number.isFinite(prefY) ? prefY : undefined
+      );
+      w.el.style.width = g.w + "px";
+      w.el.style.height = g.h + "px";
+      w.el.style.left = g.x + "px";
+      w.el.style.top = g.y + "px";
+      // Keep prevGeom in sync if user had restored from max
+      if (w.prevGeom && !w.el.classList.contains("maximized")) {
+        w.prevGeom = {
+          left: g.x + "px",
+          top: g.y + "px",
+          width: g.w + "px",
+          height: g.h + "px",
+        };
+      }
     }
   }
 
@@ -178,25 +217,18 @@ export class WindowManager {
     const el = document.createElement("div");
     el.className = "asx-window active";
     el.dataset.winId = id;
-    const b = desktopBounds();
     const mobile = isMobileLayout();
-    let w = opts.w ?? 640;
-    let h = opts.h ?? 420;
-    let x = opts.x ?? 60 + (this.windows.size % 6) * 28;
-    let y = opts.y ?? 40 + (this.windows.size % 6) * 24;
-
-    if (mobile) {
-      w = b.w;
-      h = b.h;
-      x = 0;
-      y = 0;
-      el.classList.add("maximized");
-    } else {
-      w = Math.min(w, b.w - 16);
-      h = Math.min(h, b.h - 16);
-      x = Math.min(x, Math.max(0, b.w - w));
-      y = Math.min(y, Math.max(0, b.h - h));
-    }
+    // Preferred design size (apps pass 640×420 etc.) — shrink to fit viewport
+    const prefW = opts.w ?? 640;
+    const prefH = opts.h ?? 420;
+    const prefX = opts.x ?? 60 + (this.windows.size % 6) * 28;
+    const prefY = opts.y ?? 40 + (this.windows.size % 6) * 24;
+    const g = fitWindowGeom(prefW, prefH, prefX, prefY);
+    // Do NOT auto-maximize on mobile — user asked windows to get smaller with screen
+    const w = g.w;
+    const h = g.h;
+    const x = g.x;
+    const y = g.y;
 
     el.style.width = w + "px";
     el.style.height = h + "px";
@@ -236,6 +268,8 @@ export class WindowManager {
       body,
       onClose: opts.onClose,
       prevGeom: null,
+      prefW,
+      prefH,
     };
     this.windows.set(id, rec);
 
@@ -307,12 +341,12 @@ export class WindowManager {
     this.focus(id);
     this._notifyWindowsOpen();
     // Auto-collapse SEO panel when a window opens on narrow viewports
-    if (mobile) {
+    if (mobile || g.bounds.w < 720) {
       const seo = document.getElementById("seo-main");
       if (seo && !seo.classList.contains("seo-minimized")) {
         seo.classList.add("seo-minimized");
-        const b = document.getElementById("seo-minimize");
-        if (b) b.textContent = "Expand about";
+        const btn = document.getElementById("seo-minimize");
+        if (btn) btn.textContent = "Expand about";
       }
     }
     if (typeof opts.onMount === "function") opts.onMount(body, rec);
@@ -363,18 +397,26 @@ export class WindowManager {
   toggleMax(id) {
     const w = this.windows.get(id);
     if (!w) return;
-    const b = desktopBounds();
     if (w.el.classList.contains("maximized")) {
-      // Always allow restore — including narrow (user was stuck before)
       w.el.classList.remove("maximized");
       if (w.prevGeom) {
-        Object.assign(w.el.style, w.prevGeom);
-      } else if (isMobileLayout()) {
-        // Sensible nearly-full restore on narrow
-        w.el.style.left = "8px";
-        w.el.style.top = "8px";
-        w.el.style.width = Math.max(240, b.w - 16) + "px";
-        w.el.style.height = Math.max(200, b.h - 16) + "px";
+        // Re-fit stored geometry to current viewport
+        const g = fitWindowGeom(
+          parseInt(w.prevGeom.width, 10) || w.prefW || 640,
+          parseInt(w.prevGeom.height, 10) || w.prefH || 420,
+          parseInt(w.prevGeom.left, 10),
+          parseInt(w.prevGeom.top, 10)
+        );
+        w.el.style.left = g.x + "px";
+        w.el.style.top = g.y + "px";
+        w.el.style.width = g.w + "px";
+        w.el.style.height = g.h + "px";
+      } else {
+        const g = fitWindowGeom(w.prefW || 640, w.prefH || 420);
+        w.el.style.left = g.x + "px";
+        w.el.style.top = g.y + "px";
+        w.el.style.width = g.w + "px";
+        w.el.style.height = g.h + "px";
       }
     } else {
       w.prevGeom = {

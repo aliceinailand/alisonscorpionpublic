@@ -354,17 +354,19 @@ body {
   gap: 6px;
   align-items: center;
   flex: 0 0 auto; /* never shrink / never push off-screen */
-  order: -1; /* ensure leftmost even if markup changes */
+  order: -1; /* leftmost — always visible in side-by-side narrow panes */
   z-index: 6;
+  margin-right: 4px;
 }
 .titlebar .btn {
   box-sizing: border-box;
-  width: 28px;
-  height: 28px;
+  /* Relative to titlebar height where possible */
+  width: max(28px, calc(var(--title-h) - 8px));
+  height: max(28px, calc(var(--title-h) - 8px));
   min-width: 28px;
   min-height: 28px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.45);
   cursor: pointer;
   opacity: 1;
   position: relative;
@@ -379,6 +381,7 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   z-index: 7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .titlebar .btn:hover { filter: brightness(1.08); }
 .titlebar .btn:active { transform: scale(0.96); }
@@ -811,18 +814,19 @@ body {
   .desk-icon .label { font-size: 9px; }
 
   .asx-window {
-    min-width: 0;
-    min-height: 0;
-    border-radius: 0;
+    min-width: min(200px, 100%);
+    min-height: min(140px, 100%);
+    border-radius: 10px; /* keep rounded floating windows (not forced full-bleed) */
   }
   .asx-window.maximized {
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
     height: 100% !important;
+    border-radius: 0;
   }
-  /* Hide resize on phones — full-bleed windows */
-  .asx-window .resize-handle { display: none; }
+  /* Resize handle stays available when not maximized */
+  .asx-window.maximized .resize-handle { display: none; }
 
   .titlebar {
     padding: 0 6px;
