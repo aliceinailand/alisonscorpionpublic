@@ -28,4 +28,14 @@ python3 tools/refresh_safety_hosts.py   # if present
 
 ## Loader
 
-`js/blocklist.js` keeps a small instant core list, then loads these parts when the Browser app needs a check.
+`js/blocklist.js` keeps a small instant core list. **Shards load only when the Browser app opens** (not on Earth wallpaper / desktop boot). Guests who never open Browser never download ~1 MB of lists.
+
+### Caching
+
+- Browser: `fetch(..., { cache: "force-cache" })`
+- Edge: see root `_headers` (Cloudflare Pages style) for `/safety/*` → `max-age=86400`
+- If apex is Cloudflare in front of GitHub Pages, add a **Cache Rule** for `alisonscorpion.com/safety/*` (Cache Everything / eligible for cache, Edge TTL ≥ 1 day)
+
+### Why not always hot-link raw GitHub?
+
+Possible (CORS allows it), but multi-MB + every visit + no version pin. Prefer this folder + optional operator refresh script.

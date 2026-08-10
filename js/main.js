@@ -3,10 +3,21 @@
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t220500z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t220500z";
-import { WindowManager } from "./wm.js?v=20260810t220500z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t220500z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t231000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t231000z";
+import { WindowManager } from "./wm.js?v=20260810t231000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t231000z";
+import {
+  initPresence,
+  initSessionTimer,
+  initTravelingEyes,
+  bindShowDesktop,
+  restoreLockIfNeeded,
+  promptLock,
+  showShutdownScreen,
+  showRebootScreen,
+  showLogoutScreen,
+} from "./shell-chrome.js?v=20260810t231000z";
 
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
@@ -184,6 +195,29 @@ function buildStartMenu(menu, openApp) {
     openApp("applications");
     menu.classList.remove("open");
   });
+
+  // Linux-style power bar (buttons only)
+  const power = document.createElement("div");
+  power.className = "sm-power";
+  power.setAttribute("role", "group");
+  power.setAttribute("aria-label", "Power");
+  power.innerHTML = `
+    <button type="button" data-power="shutdown" title="Shut down">Shut down</button>
+    <button type="button" data-power="reboot" title="Reboot">Reboot</button>
+    <button type="button" data-power="logout" title="Log out">Logout</button>
+    <button type="button" data-power="lock" title="Lock screen">Lock</button>`;
+  power.querySelectorAll("[data-power]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.remove("open");
+      const act = btn.getAttribute("data-power");
+      if (act === "shutdown") showShutdownScreen();
+      else if (act === "reboot") showRebootScreen();
+      else if (act === "logout") showLogoutScreen();
+      else if (act === "lock") promptLock();
+    });
+  });
+  menu.appendChild(power);
 }
 
 function clock() {
@@ -269,6 +303,13 @@ async function main() {
   });
 
   clock();
+  // Taskbar widgets (no safety/hosts fetch here)
+  initPresence(document.getElementById("tb-visitors"));
+  initSessionTimer(document.getElementById("tb-session"));
+  initTravelingEyes(document.getElementById("tb-eyes"));
+  bindShowDesktop(document.getElementById("tb-show-desktop"), wm);
+  restoreLockIfNeeded();
+
   // Auto-open terminal on desktop only — on mobile it steals the whole screen
   if (!isMobileUi()) {
     setTimeout(() => open("terminal"), 400);

@@ -1,0 +1,15 @@
+# Cloudflare Pages / compatible static hosts — long-cache safety lists
+# (If apex is CF in front of GH Pages, mirror these as Cache Rules on /safety/*)
+
+/safety/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Access-Control-Allow-Origin: *
+
+/safety/hosts/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/js/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+
+/css/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600

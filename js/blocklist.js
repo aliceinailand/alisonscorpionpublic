@@ -218,21 +218,21 @@ export function ensureSafetyListsLoaded() {
     const base = safetyHostsBaseUrl();
     safetyLoadStatus.base = String(base);
     try {
-      const manRes = await fetch(new URL("manifest.json", base), {
+      // Prefer HTTP cache (Cloudflare / browser). force-cache = use disk cache when valid.
+      const fetchOpts = {
         credentials: "same-origin",
         cache: "force-cache",
-      });
+        mode: "cors",
+      };
+      const manRes = await fetch(new URL("manifest.json", base), fetchOpts);
       if (!manRes.ok) throw new Error("manifest HTTP " + manRes.status);
       const man = await manRes.json();
       const parts = Array.isArray(man.parts) ? man.parts : [];
-      // Parallel shard fetch — total ~1 MB compact domains, not 5 MB hosts format
+      // Parallel shard fetch — only when Browser opens (~1 MB total; CF-cacheable static)
       await Promise.all(
         parts.map(async (part) => {
           try {
-            const r = await fetch(new URL(part, base), {
-              credentials: "same-origin",
-              cache: "force-cache",
-            });
+            const r = await fetch(new URL(part, base), fetchOpts);
             if (!r.ok) return;
             const text = await r.text();
             const lines = text.split("\n");
@@ -328,16 +328,15 @@ function hostMatchesBlocked(host, foldedExtra) {
   return false;
 }
 
-/** O(1) host set + suffix + confusable fold; keywords host-scoped */
+/**
+ * Sync check against **already loaded** lists + core brands.
+ * Does NOT fetch safety/hosts — Browser must call ensureSafetyListsLoaded() first.
+ * (Guests who never open Browser never download the ~1 MB shards.)
+ */
 export function isBlockedUrl(url) {
   const raw = String(url || "").trim();
   if (!raw) return false;
   if (SCHEME_DENY.test(raw)) return true;
-
-  // Kick off safety list load (non-blocking); core list still applies immediately
-  if (!safetyLoadStatus.loaded && !safetyLoadStatus.loading) {
-    ensureSafetyListsLoaded();
-  }
 
   const uni = hostUnicodeOf(raw);
   const idna = hostOf(raw);
@@ -358,7 +357,7 @@ export function isBlockedUrl(url) {
 }
 
 /**
- * Await full safety list then re-check (Browser app uses this on Go).
+ * Await safety shards then re-check. **Only** Browser / policy UI should call this.
  * @param {string} url
  * @returns {Promise<boolean>}
  */

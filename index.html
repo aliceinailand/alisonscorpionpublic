@@ -10,7 +10,7 @@
   <meta name="description" content="Guest session on Alison Scorpion's desktop. Verification-first AI governance: Containers product, Honey Bee Engine, terminal tools, and a Three.js universe workspace." />
   <meta name="theme-color" content="#7c3aed" />
   <meta name="asx-channel" content="desktop-os-apex" />
-  <meta name="asx-build-stamp" content="20260810t220500z-clean-desktop" />
+  <meta name="asx-build-stamp" content="20260810t231000z-shell-chrome" />
   <!-- SEO markup present; crawl/index OFF until operator flips robots -->
   <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
   <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
@@ -37,7 +37,7 @@
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-  <link rel="stylesheet" href="css/asx-desktop.css?v=20260810t220500z" />
+  <link rel="stylesheet" href="css/asx-desktop.css?v=20260810t231000z" />
 
   <script type="application/ld+json">
   {
@@ -146,8 +146,19 @@
     </button>
     <div id="taskbar-windows"></div>
     <div class="tb-spacer"></div>
+    <span class="tb-widget tb-visitors" id="tb-visitors" title="Visitors on this desktop">…</span>
+    <span class="tb-widget tb-session" id="tb-session" title="Session time">00:00</span>
     <span class="tb-status" title="Guest session">guest@asx</span>
     <span class="tb-clock" id="tb-clock">00:00:00</span>
+    <div class="tb-eyes" id="tb-eyes" aria-hidden="true"></div>
+    <button
+      type="button"
+      class="tb-show-desktop"
+      id="tb-show-desktop"
+      title="Show desktop (minimize all)"
+      aria-label="Show desktop"
+      aria-pressed="false"
+    ></button>
   </footer>
 
   <!-- Kill legacy staging service worker that may pin old apex HTML -->
@@ -165,6 +176,6 @@
   })();
   </script>
   <!-- Three.js loaded after first paint via main.js (SEO/perf: not blocking body text) -->
-  <script type="module" src="js/main.js?v=20260810t220500z"></script>
+  <script type="module" src="js/main.js?v=20260810t231000z"></script>
 </body>
 </html>
