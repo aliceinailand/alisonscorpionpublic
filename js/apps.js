@@ -206,8 +206,17 @@ function openTerminal(wm) {
     w: 680,
     h: 420,
     body: wrap,
-    onMount: () => {
-      input.focus();
+    onMount: (body) => {
+      // LeoAI: mobile keyboards need focus inside/near trusted touch; re-focus on pointerdown
+      const focusIn = () => {
+        try {
+          input.focus({ preventScroll: true });
+        } catch {
+          input.focus();
+        }
+      };
+      focusIn();
+      body.addEventListener("pointerdown", focusIn, { passive: true });
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           run(input.value);

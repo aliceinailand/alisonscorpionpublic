@@ -20,9 +20,21 @@ Terminal, Files (PCManFM-Qt style), Browser (+ blocklist + ASX see-strip), Chat,
 
 Containers snapshot: `../website-backup-containers-20260810_061303Z` (sibling of `website/` under monorepo root).
 
-## Security notes (OCodex 2026-08-10)
+## Architecture (LeoAI / Brave hybrid)
+
+Illusion of a Linux desktop **in the browser** — not a real OS kernel.
+
+| Layer | Tech |
+|-------|------|
+| Universe “room” | Three.js **or** ambient D3/SVG (`?bg=ambient` / auto ≤420px) |
+| Windows / taskbar / apps | **DOM** (not 3D meshes) |
+| VFS + terminal | In-memory `fs.js` + command parser |
+| Mobile | Pointer events, `overscroll-behavior: none`, tap-to-open |
+
+See `agents/research/threejs/leoai_linux_os_threejs_review_20260810.md`.
+
+## Security notes
 
 - Calculator uses a safe arithmetic parser (no `eval` / `Function`).
-- Browser blocklist is **soft/client** policy; label in UI.
-- Three.js from cdnjs without SRI pin — pin integrity when locking production version.
-- Guest FS is virtual only.
+- Browser blocklist is **soft/client** policy; confusable fold + SRI on Three CDN.
+- Guest FS is virtual only (`normalizePath` for `..`).

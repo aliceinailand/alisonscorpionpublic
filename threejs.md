@@ -59,6 +59,22 @@ Smallest width: `agents/research/threejs/small_width_ambient_fallback_20260810.m
 Shell CSS: icon **grid** under 768px, full-bleed windows, safe-area, **100svh**.  
 Modules: `three-bg.js`, `ambient-d3-bg.js`, router in `main.js`.
 
+## LeoAI / Brave hybrid OS illusion (2026-08-10)
+
+Source: `Documents/AI_DATA/LeoAI/linux-os-three-js-render.txt`  
+Review: `agents/research/threejs/leoai_linux_os_threejs_review_20260810.md`
+
+| Leo recommendation | ASX choice |
+|--------------------|------------|
+| Not a real OS — browser illusion | Guest desktop session |
+| Three for 3D “room” | Universe bg only |
+| HTML for text/inputs/windows | DOM WM + apps (not CSS3D windows) |
+| Virtual FS + command parser | `fs.js` + terminal |
+| Pointer events + touch-action | WM pointers; canvas `touch-action: none` |
+| Persist VFS in IndexedDB | Optional future (guest notes partial) |
+
+**Do not** migrate windows into pure Three meshes (raycast drag / focus hell on mobile).
+
 ## Preview
 
 ```bash
