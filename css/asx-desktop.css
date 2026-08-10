@@ -1886,21 +1886,26 @@ body.asx-gate-active #boot-splash {
   z-index: 5;
   pointer-events: none;
   will-change: transform;
-  /* Index nail tip ≈ (100, 8) in 200×320 viewBox → center tip on cursor */
-  margin-left: -100px; /* half of 200 */
-  margin-top: -10px;   /* nail tip near top */
-  filter: drop-shadow(0 10px 20px rgba(76, 29, 149, 0.55));
   transition: opacity 0.5s ease;
 }
 .gg-hand-out {
   opacity: 0;
   transition: opacity 0.4s ease, transform 0.6s ease;
 }
-.gg-hand-svg {
+/* Photoreal finger PNG — tip pinned to cursor (~48.6% x, ~1.7% y of asset) */
+.gg-hand-img {
   display: block;
-  width: min(48vw, 220px);
+  width: min(42vw, 240px);
   height: auto;
-  overflow: visible;
+  max-height: min(70vh, 420px);
+  object-fit: contain;
+  transform: translate(-48.6%, -1.7%);
+  filter:
+    drop-shadow(0 0 10px rgba(255, 255, 255, 0.35))
+    drop-shadow(0 12px 28px rgba(10, 6, 18, 0.55));
+  user-select: none;
+  -webkit-user-drag: none;
+  opacity: 0.96;
 }
 .gg-skip {
   position: absolute;
@@ -1963,5 +1968,5 @@ body.asx-gate-active #boot-splash {
 }
 @media (pointer: coarse) {
   #asx-glass-gate { cursor: auto; }
-  .gg-hand-svg { width: min(48vw, 160px); }
+  .gg-hand-img { width: min(48vw, 180px); }
 }

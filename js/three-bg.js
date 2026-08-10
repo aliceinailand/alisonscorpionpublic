@@ -207,26 +207,39 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   group.name = "celestial-sphere";
   const disposables = [];
 
-  const STAR_R = 920;
+  // Shell radius: outside Moon (~23) and Earth, inside camera far plane.
+  // sizeAttenuation:false → size is *pixels* (old 0.3 world-units at r=920 = invisible).
+  // fog:false → Exp2 fog was eating the far shell.
+  const STAR_R = 280;
   const rng = mulberry32(0xa5c_2026); // stable field (not re-random each boot)
 
+  const starMat = (sizePx, opacity) =>
+    new THREE.PointsMaterial({
+      size: sizePx,
+      vertexColors: true,
+      transparent: true,
+      opacity,
+      sizeAttenuation: false, // pixel stars — readable at any camera distance
+      depthWrite: false,
+      fog: false, // don't let void fog erase the sky
+      blending: THREE.AdditiveBlending,
+    });
+
   // --- Layer A: dense far dust (background only — never compete with Earth) ---
-  const nFar = reduceMotion ? 900 : tiny ? 2200 : mobile ? 4500 : 9000;
+  const nFar = reduceMotion ? 1200 : tiny ? 2800 : mobile ? 5500 : 11000;
   const farPos = new Float32Array(nFar * 3);
   const farCol = new Float32Array(nFar * 3);
   for (let i = 0; i < nFar; i++) {
-    // Slight radius jitter so shell isn't a hard wall
-    const r = STAR_R * (0.92 + rng() * 0.16);
+    const r = STAR_R * (0.94 + rng() * 0.12);
     const p = randomOnSphere(r, rng);
     farPos[i * 3] = p[0];
     farPos[i * 3 + 1] = p[1];
     farPos[i * 3 + 2] = p[2];
     // Universe-purple white (cool violet, not pure white)
-    const t = rng();
-    const cool = t < 0.55;
-    farCol[i * 3] = cool ? 0.55 + rng() * 0.25 : 0.75 + rng() * 0.2;
-    farCol[i * 3 + 1] = cool ? 0.45 + rng() * 0.25 : 0.7 + rng() * 0.15;
-    farCol[i * 3 + 2] = cool ? 0.85 + rng() * 0.15 : 0.95 + rng() * 0.05;
+    const cool = rng() < 0.6;
+    farCol[i * 3] = cool ? 0.65 + rng() * 0.3 : 0.85 + rng() * 0.15;
+    farCol[i * 3 + 1] = cool ? 0.55 + rng() * 0.3 : 0.78 + rng() * 0.15;
+    farCol[i * 3 + 2] = cool ? 0.95 + rng() * 0.05 : 0.98;
   }
   const farGeo = new THREE.BufferGeometry();
   farGeo.setAttribute("position", new THREE.BufferAttribute(farPos, 3));
@@ -234,34 +247,25 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   disposables.push(farGeo);
   const farStars = new THREE.Points(
     farGeo,
-    new THREE.PointsMaterial({
-      size: tiny ? 0.55 : mobile ? 0.42 : 0.32,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.42,
-      sizeAttenuation: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
+    starMat(tiny ? 1.35 : mobile ? 1.15 : 1.05, 0.72)
   );
   farStars.name = "stars-far";
   group.add(farStars);
 
   // --- Layer B: mid field (still background; a bit brighter) ---
-  const nMid = reduceMotion ? 180 : tiny ? 400 : mobile ? 900 : 1800;
+  const nMid = reduceMotion ? 280 : tiny ? 600 : mobile ? 1200 : 2400;
   const midPos = new Float32Array(nMid * 3);
   const midCol = new Float32Array(nMid * 3);
   for (let i = 0; i < nMid; i++) {
-    const r = STAR_R * (0.88 + rng() * 0.1);
+    const r = STAR_R * (0.9 + rng() * 0.1);
     const p = randomOnSphere(r, rng);
     midPos[i * 3] = p[0];
     midPos[i * 3 + 1] = p[1];
     midPos[i * 3 + 2] = p[2];
-    // Soft purple-lavender / warm white mix
-    const warm = rng() > 0.7;
-    midCol[i * 3] = warm ? 0.95 : 0.7 + rng() * 0.2;
-    midCol[i * 3 + 1] = warm ? 0.82 : 0.55 + rng() * 0.25;
-    midCol[i * 3 + 2] = warm ? 0.9 : 0.95 + rng() * 0.05;
+    const warm = rng() > 0.72;
+    midCol[i * 3] = warm ? 1.0 : 0.78 + rng() * 0.2;
+    midCol[i * 3 + 1] = warm ? 0.88 : 0.62 + rng() * 0.25;
+    midCol[i * 3 + 2] = warm ? 0.95 : 1.0;
   }
   const midGeo = new THREE.BufferGeometry();
   midGeo.setAttribute("position", new THREE.BufferAttribute(midPos, 3));
@@ -269,62 +273,39 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   disposables.push(midGeo);
   const midStars = new THREE.Points(
     midGeo,
-    new THREE.PointsMaterial({
-      size: tiny ? 0.75 : mobile ? 0.55 : 0.45,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.55,
-      sizeAttenuation: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
+    starMat(tiny ? 1.9 : mobile ? 1.55 : 1.45, 0.85)
   );
   midStars.name = "stars-mid";
   group.add(midStars);
 
   // --- Layer C: Milky Way band (galactic-plane-ish density, purple glow) ---
   if (!reduceMotion) {
-    const nBand = tiny ? 1200 : mobile ? 2400 : 4200;
+    const nBand = tiny ? 1600 : mobile ? 3200 : 5200;
     const bandPos = new Float32Array(nBand * 3);
     const bandCol = new Float32Array(nBand * 3);
-    // Galactic plane ≈ 60° to celestial equator; approximate with tilted belt
     const tilt = (60 * Math.PI) / 180;
     for (let i = 0; i < nBand; i++) {
       const lon = rng() * Math.PI * 2;
-      // Concentrate near plane; thicker toward Sagittarius bulge (lon~0 bias)
-      const lat = (rng() + rng() + rng() - 1.5) * 0.22; // ~±0.5 rad soft
+      const lat = (rng() + rng() + rng() - 1.5) * 0.22;
       const cl = Math.cos(lat);
-      let x = STAR_R * 0.96 * cl * Math.cos(lon);
-      let y = STAR_R * 0.96 * Math.sin(lat);
-      let z = STAR_R * 0.96 * cl * Math.sin(lon);
-      // Tilt band
+      const x = STAR_R * 0.97 * cl * Math.cos(lon);
+      const y = STAR_R * 0.97 * Math.sin(lat);
+      const z = STAR_R * 0.97 * cl * Math.sin(lon);
       const y2 = y * Math.cos(tilt) - z * Math.sin(tilt);
       const z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
       bandPos[i * 3] = x;
       bandPos[i * 3 + 1] = y2;
       bandPos[i * 3 + 2] = z2;
-      // Universe purple dust
-      const glow = 0.35 + rng() * 0.45;
-      bandCol[i * 3] = 0.45 + glow * 0.35;
-      bandCol[i * 3 + 1] = 0.28 + glow * 0.25;
-      bandCol[i * 3 + 2] = 0.75 + glow * 0.25;
+      const glow = 0.45 + rng() * 0.55;
+      bandCol[i * 3] = 0.55 + glow * 0.4;
+      bandCol[i * 3 + 1] = 0.35 + glow * 0.3;
+      bandCol[i * 3 + 2] = 0.85 + glow * 0.15;
     }
     const bandGeo = new THREE.BufferGeometry();
     bandGeo.setAttribute("position", new THREE.BufferAttribute(bandPos, 3));
     bandGeo.setAttribute("color", new THREE.BufferAttribute(bandCol, 3));
     disposables.push(bandGeo);
-    const band = new THREE.Points(
-      bandGeo,
-      new THREE.PointsMaterial({
-        size: tiny ? 0.7 : 0.5,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.28,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      })
-    );
+    const band = new THREE.Points(bandGeo, starMat(tiny ? 1.5 : 1.25, 0.48));
     band.name = "milky-way-band";
     group.add(band);
   }
@@ -336,39 +317,28 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   const catCol = new Float32Array(nCat * 3);
   for (let i = 0; i < nCat; i++) {
     const [name, ra, dec, mag, rgb] = BRIGHT_STARS[i];
-    const p = raDecToXYZ(ra, dec, STAR_R * 0.98);
+    const p = raDecToXYZ(ra, dec, STAR_R * 0.99);
     nameToPos[name] = p;
     catPos[i * 3] = p[0];
     catPos[i * 3 + 1] = p[1];
     catPos[i * 3 + 2] = p[2];
-    // Mag → brightness (brighter = larger/more opaque color)
-    const bright = Math.max(0.35, Math.min(1.2, 1.15 - mag * 0.18));
-    catCol[i * 3] = rgb[0] * bright;
-    catCol[i * 3 + 1] = rgb[1] * bright;
-    catCol[i * 3 + 2] = rgb[2] * bright;
+    const bright = Math.max(0.45, Math.min(1.35, 1.25 - mag * 0.18));
+    catCol[i * 3] = Math.min(1, rgb[0] * bright);
+    catCol[i * 3 + 1] = Math.min(1, rgb[1] * bright);
+    catCol[i * 3 + 2] = Math.min(1, rgb[2] * bright);
   }
   const catGeo = new THREE.BufferGeometry();
   catGeo.setAttribute("position", new THREE.BufferAttribute(catPos, 3));
   catGeo.setAttribute("color", new THREE.BufferAttribute(catCol, 3));
   disposables.push(catGeo);
-  // Size per-point needs custom shader in modern three; r128 PointsMaterial is uniform.
-  // Use average size; brightest still read via color intensity.
   const catStars = new THREE.Points(
     catGeo,
-    new THREE.PointsMaterial({
-      size: tiny ? 1.6 : mobile ? 1.25 : 1.1,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.88,
-      sizeAttenuation: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
+    starMat(tiny ? 2.8 : mobile ? 2.4 : 2.2, 0.95)
   );
   catStars.name = "stars-catalog";
   group.add(catStars);
 
-  // Soft halo points for the very brightest (Sirius … Antares) so they twinkle faintly as discs
+  // Soft halo for the very brightest (first ~18 by catalog order / mag)
   const nHalo = Math.min(18, nCat);
   const haloPos = new Float32Array(nHalo * 3);
   const haloCol = new Float32Array(nHalo * 3);
@@ -384,18 +354,7 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   haloGeo.setAttribute("position", new THREE.BufferAttribute(haloPos, 3));
   haloGeo.setAttribute("color", new THREE.BufferAttribute(haloCol, 3));
   disposables.push(haloGeo);
-  const haloStars = new THREE.Points(
-    haloGeo,
-    new THREE.PointsMaterial({
-      size: tiny ? 3.2 : 2.6,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.22,
-      sizeAttenuation: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
-  );
+  const haloStars = new THREE.Points(haloGeo, starMat(tiny ? 5.5 : 4.5, 0.28));
   haloStars.name = "stars-halo";
   group.add(haloStars);
 
@@ -418,10 +377,11 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
       const lines = new THREE.LineSegments(
         lineGeo,
         new THREE.LineBasicMaterial({
-          color: 0x7c3aed,
+          color: 0xa78bfa,
           transparent: true,
-          opacity: 0.07,
+          opacity: 0.12,
           depthWrite: false,
+          fog: false,
           blending: THREE.AdditiveBlending,
         })
       );
@@ -799,7 +759,8 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const scene = new THREE.Scene();
   // Universe purple void (not pure black) — brand night sky
   scene.background = new THREE.Color(VOID_PURPLE);
-  scene.fog = new THREE.FogExp2(VOID_FOG, tiny ? 0.006 : 0.0022);
+  // Light fog only near camera — stars use fog:false so sky stays readable
+  scene.fog = new THREE.FogExp2(VOID_FOG, tiny ? 0.004 : 0.0012);
 
   const { w: iw, h: ih } = viewSize(canvas);
   const camera = new THREE.PerspectiveCamera(tiny ? 55 : 48, iw / ih, 0.1, 8000);
