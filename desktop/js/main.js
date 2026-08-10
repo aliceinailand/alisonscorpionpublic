@@ -285,6 +285,15 @@ async function main() {
 
 main().catch((err) => {
   console.error("ASX Desktop boot failed", err);
+  const splash = document.getElementById("boot-splash");
   const sub = document.querySelector("#boot-splash .sub");
-  if (sub) sub.textContent = "Boot error — see console";
+  if (sub) {
+    sub.textContent =
+      "Boot error — " + (err && err.message ? err.message : "see console");
+  }
+  if (splash) {
+    splash.classList.remove("gone");
+    splash.style.opacity = "1";
+    splash.style.pointerEvents = "auto";
+  }
 });
