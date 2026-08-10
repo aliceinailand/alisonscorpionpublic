@@ -47,14 +47,16 @@ python3 tools/apply_cf_static_cache_rules.py
 
 Or GitHub Actions: workflow `cf-static-cache-rules` / `cf-safety-cache-rule.yml` (secret `CLOUDFLARE_API_TOKEN`).
 
-**Rules covered (ASX cache:*):**
+**Rules covered (ASX cache:*):** all **1 year** (31536000) edge + browser.
 
-| Path | Edge/browser TTL |
-|------|------------------|
-| `/safety/*` | 1 day |
-| `/assets/*` (not `/assets/backups/*`) | 7 days |
-| `/brand/`, `/fonts/`, favicons, `scorpion-icon-512.png` | 7 days |
-| `/css/`, `/js/`, `/desktop/css|js/` | 1 day (`?v=` bust) |
+| Path | Notes |
+|------|--------|
+| `/safety/*` | Re-shard + purge if lists update |
+| `/assets/*` (not `/assets/backups/*`) | Vendor mirror under `/assets/cdn/` |
+| `/brand/`, `/fonts/`, favicons, `scorpion-icon-512.png` | Static brand |
+| `/css/`, `/js/`, `/desktop/css|js/` | Bump `?v=` on deploy |
+
+No short TTL — change content via new URL or manual CF purge.
 
 **2026-08-10 note:** first apply failed with CF `10000 Authentication error` on GH secret — refresh token with *Cache Rules Edit*, re-run workflow.
 

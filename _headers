@@ -1,53 +1,50 @@
-# Static asset Cache-Control (Cloudflare Pages / compatible hosts).
-# Edge Cache Rules (zone alisonscorpion.com) applied via tools/apply_cf_static_cache_rules.py
+# Long-lived static Cache-Control (1 year + immutable).
+# Pin/version in the URL (path or ?v=) when content changes; purge CF manually if needed.
+# Edge Cache Rules: tools/apply_cf_static_cache_rules.py (TTL 31536000)
 
-# Safety blocklist shards — long cache (browser-only fetch)
 /safety/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *
 
 /safety/hosts/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
-# Hashed SPA / marketing assets (exclude backups Worker path via CF rule)
 /assets/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
-# Brand + fonts
 /brand/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /fonts/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /website/staging/brand/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
-# Desktop shell CSS/JS (cache-busted with ?v=)
+# Shell CSS/JS — cache-busted via ?v= on <script>/<link>
 /css/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
 /js/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
 /desktop/css/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
 /desktop/js/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
-# Root icons
 /favicon.ico
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /favicon-16x16.png
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /favicon-32x32.png
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /apple-touch-icon.png
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /scorpion-icon-512.png
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=31536000, immutable

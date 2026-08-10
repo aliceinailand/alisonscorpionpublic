@@ -30,8 +30,12 @@ API = "https://api.cloudflare.com/client/v4"
 HOSTS = 'http.host in {"alisonscorpion.com" "www.alisonscorpion.com"}'
 ASX_PREFIX = "ASX cache:"
 
+# 1 year — CF edge_ttl max practical long-lived static; "indefinite" isn't a TTL mode.
+# Content changes only when we ship a new path or ?v= query (or manual purge).
+YEAR = 31536000
 
-def rule(desc: str, path_expr: str, edge: int, browser: int) -> dict:
+
+def rule(desc: str, path_expr: str, edge: int = YEAR, browser: int = YEAR) -> dict:
     return {
         "description": f"{ASX_PREFIX} {desc}",
         "expression": f"({HOSTS}) and ({path_expr})",
@@ -45,23 +49,19 @@ def rule(desc: str, path_expr: str, edge: int, browser: int) -> dict:
     }
 
 
-# Order: more specific first is fine; all are independent expressions
+# All static — 1y both edge and browser. Renew by deploy + new URL or CF purge.
 DESIRED_RULES = [
     rule(
-        "safety hosts shards",
+        "safety hosts shards (1y)",
         'starts_with(http.request.uri.path, "/safety/")',
-        edge=86400,
-        browser=86400,
     ),
     rule(
-        "hashed /assets + /assets/cdn vendor mirror (excl backups Worker)",
+        "assets + /assets/cdn vendor mirror (1y, excl backups Worker)",
         'starts_with(http.request.uri.path, "/assets/") '
         'and not starts_with(http.request.uri.path, "/assets/backups/")',
-        edge=604800,  # 7d — three/d3/planets textures live under /assets/cdn/
-        browser=604800,
     ),
     rule(
-        "brand fonts icons root",
+        "brand fonts icons root (1y)",
         'starts_with(http.request.uri.path, "/brand/") '
         'or starts_with(http.request.uri.path, "/fonts/") '
         'or starts_with(http.request.uri.path, "/website/staging/brand/") '
@@ -69,19 +69,15 @@ DESIRED_RULES = [
         'or starts_with(http.request.uri.path, "/favicon-") '
         'or http.request.uri.path eq "/apple-touch-icon.png" '
         'or http.request.uri.path eq "/scorpion-icon-512.png"',
-        edge=604800,
-        browser=604800,
     ),
     rule(
-        "desktop css js",
+        "desktop css js (1y; bust with ?v=)",
         'starts_with(http.request.uri.path, "/css/") '
         'or starts_with(http.request.uri.path, "/js/") '
         'or starts_with(http.request.uri.path, "/desktop/css/") '
         'or starts_with(http.request.uri.path, "/desktop/js/") '
         'or starts_with(http.request.uri.path, "/website/desktop-os/css/") '
         'or starts_with(http.request.uri.path, "/website/desktop-os/js/")',
-        edge=86400,
-        browser=86400,
     ),
 ]
 

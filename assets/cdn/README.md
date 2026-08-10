@@ -15,6 +15,6 @@ We **cannot** force-cache `cdn.jsdelivr.net` or other third-party hosts.
 | `three-r128/planets/*` | three.js r128 example textures | MIT (three.js) |
 | `d3/d3.min.js` | d3@7.9.0 | ISC |
 
-Covered by CF rule **ASX cache: hashed /assets** (7d) and `_headers` `/assets/*`.
+Covered by CF rule **ASX cache: assets + /assets/cdn** (**1 year**) and `_headers` `max-age=31536000, immutable`.
 
 Refresh: re-download from upstream pins if upgrading Three/D3 versions; keep SRI in `main.js` in sync.
