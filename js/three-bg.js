@@ -1,10 +1,15 @@
 /**
  * ASX Desktop — Three.js universe purple background
  * CDN: three.js r128 (cdnjs). Patterns from Claude extract_00 / extract_03 gates.
+ * SEO/perf: pause when tab hidden; static frame if prefers-reduced-motion.
  */
 export function initThreeBg(canvasId = "three-bg") {
   const canvas = document.getElementById(canvasId);
   if (!canvas || typeof THREE === "undefined") return null;
+
+  const reduceMotion =
+    typeof matchMedia === "function" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0a0809, 0.012);
@@ -81,7 +86,7 @@ export function initThreeBg(canvasId = "three-bg") {
   }
 
   const starGeo = new THREE.BufferGeometry();
-  const n = 1400;
+  const n = reduceMotion ? 400 : 1400;
   const positions = new Float32Array(n * 3);
   for (let i = 0; i < n * 3; i++) {
     positions[i] = (Math.random() - 0.5) * 220;
@@ -100,9 +105,10 @@ export function initThreeBg(canvasId = "three-bg") {
   scene.add(stars);
 
   let raf = 0;
-  function animate() {
-    raf = requestAnimationFrame(animate);
-    const t = performance.now() * 0.00035;
+  let running = true;
+
+  function frame(tMs) {
+    const t = tMs * 0.00035;
     core.rotation.x = t * 0.6;
     core.rotation.y = t * 0.9;
     wire.rotation.x = -t * 0.4;
@@ -116,19 +122,47 @@ export function initThreeBg(canvasId = "three-bg") {
     purple.position.y = Math.cos(t * 0.7) * 8;
     renderer.render(scene, camera);
   }
-  animate();
+
+  function animate() {
+    if (!running) return;
+    raf = requestAnimationFrame(animate);
+    frame(performance.now());
+  }
+
+  if (reduceMotion) {
+    frame(0);
+  } else {
+    animate();
+  }
+
+  function onVisibility() {
+    if (reduceMotion) return;
+    if (document.hidden) {
+      running = false;
+      cancelAnimationFrame(raf);
+    } else {
+      running = true;
+      animate();
+    }
+  }
+  document.addEventListener("visibilitychange", onVisibility);
 
   function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    if (reduceMotion || document.hidden) {
+      frame(performance.now());
+    }
   }
   window.addEventListener("resize", onResize);
 
   return {
     dispose() {
+      running = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
       renderer.dispose();
     },
   };

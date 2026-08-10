@@ -1,0 +1,11 @@
+# Alison Scorpion — public crawl policy
+User-agent: *
+Allow: /
+Allow: /desktop/
+Allow: /website/staging/
+Allow: /verify.html
+
+Disallow: /sw-staging-nocache.js
+Disallow: /website/staging/sw-staging-nocache.js
+
+Sitemap: https://alisonscorpion.com/sitemap.xml

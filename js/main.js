@@ -1,9 +1,13 @@
 /**
  * ASX Desktop OS — boot, icons, taskbar, start menu.
+ * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  */
 import { initThreeBg } from "./three-bg.js";
 import { WindowManager } from "./wm.js";
 import { registerApps, APP_CATALOG } from "./apps.js";
+
+const THREE_CDN =
+  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 
 const DESKTOP_ICONS = [
   { id: "terminal", label: "Terminal", glyph: "❯", x: 18, y: 18 },
@@ -23,6 +27,18 @@ const DESKTOP_ICONS = [
   { id: "about", label: "About", glyph: "ℹ", x: 202, y: 294 },
   { id: "settings", label: "Settings", glyph: "⚙", x: 202, y: 386 },
 ];
+
+function loadThreeJs() {
+  if (typeof THREE !== "undefined") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = THREE_CDN;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Three.js CDN load failed"));
+    document.head.appendChild(s);
+  });
+}
 
 function bootSplash() {
   return new Promise((resolve) => {
@@ -96,10 +112,35 @@ function clock() {
   setInterval(tick, 1000);
 }
 
-async function main() {
-  await bootSplash();
-  initThreeBg("three-bg");
+function wireSeoPanel() {
+  const main = document.getElementById("seo-main");
+  const btn = document.getElementById("seo-minimize");
+  if (!main || !btn) return;
+  const key = "asx-seo-panel-min";
+  const apply = (min) => {
+    main.classList.toggle("seo-minimized", min);
+    btn.textContent = min ? "Expand about" : "Minimize panel";
+    try {
+      localStorage.setItem(key, min ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  };
+  try {
+    if (localStorage.getItem(key) === "1") apply(true);
+  } catch {
+    /* ignore */
+  }
+  btn.addEventListener("click", () => {
+    apply(!main.classList.contains("seo-minimized"));
+  });
+}
 
+async function main() {
+  wireSeoPanel();
+  await bootSplash();
+
+  // Desktop shell first; Three.js after paint (SEO + LCP)
   const wm = new WindowManager({
     rootId: "windows-root",
     taskbarId: "taskbar-windows",
@@ -122,7 +163,6 @@ async function main() {
     }
   });
 
-  // Desktop empty click deselect
   layer?.addEventListener("click", (e) => {
     if (e.target === layer) {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
@@ -130,9 +170,18 @@ async function main() {
   });
 
   clock();
-
-  // Open welcome terminal after short delay
   setTimeout(() => open("terminal"), 400);
+
+  const startThree = () => {
+    loadThreeJs()
+      .then(() => initThreeBg("three-bg"))
+      .catch((err) => console.warn("ASX Three.js background skipped", err));
+  };
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(startThree, { timeout: 2000 });
+  } else {
+    setTimeout(startThree, 0);
+  }
 }
 
 main().catch((err) => {
