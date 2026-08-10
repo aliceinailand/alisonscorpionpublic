@@ -1,5 +1,7 @@
-# Alison Scorpion — crawl OFF (operator: noindex / noarchive / nogoogle)
-# SEO HTML/meta may still exist; robots policy is disallow all.
+# Alison Scorpion operator policy (2026-08-10):
+# SEO markup is present; INDEXING IS OFF.
+# noindex / noarchive / nogoogle — do not crawl or archive.
+
 User-agent: *
 Disallow: /
 
@@ -9,7 +11,22 @@ Disallow: /
 User-agent: Googlebot-Image
 Disallow: /
 
+User-agent: Googlebot-News
+Disallow: /
+
 User-agent: Bingbot
 Disallow: /
 
-# No sitemap published for indexing while robots are off.
+User-agent: Slurp
+Disallow: /
+
+User-agent: DuckDuckBot
+Disallow: /
+
+User-agent: Baiduspider
+Disallow: /
+
+User-agent: YandexBot
+Disallow: /
+
+# No sitemap while indexing is disabled.
