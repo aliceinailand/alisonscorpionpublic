@@ -2,7 +2,8 @@
  * ASX Desktop — Three.js satellite view of Earth
  *
  * ASX as protector-of-Earth viewpoint: textured Earth + lattice grid (no outer rings).
- * Distant sun (glare-first, not a nearby ball). Moon orbit.
+ * Distant sun sized by *angular diameter* (not linear AU) so it still reads as a
+ * ball of fire — real sky θ≈0.53°; ASX art ~2° disc + bloom. Moon orbit good.
  * Climate-weighted randomized cloud cover each page load (never a cloudless Earth).
  * Drag empty desktop to look; release → auto orbit.
  * Double-click Earth → Google-Earth-like zoom toward that point; wheel zoom;
@@ -11,6 +12,7 @@
  * Research (audit-log / public transparency):
  * - agents/research/threejs/google_earth_threejs_matchup_20260810.md
  * - agents/research/threejs/cloud_cover_simulation_20260810.md
+ * - agents/research/threejs/sun_angular_scale_architecture_20260810.md
  */
 
 const TEX = {
@@ -379,39 +381,90 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     renderer.outputEncoding = THREE.sRGBEncoding;
   }
 
-  // --- Lights: distant sun (real-sun feel: tiny disc, strong parallel light) ---
-  scene.add(new THREE.AmbientLight(0x0a1528, 0.28));
-  // Sun direction unit (from far away)
+  // --- Sun: architecture scale (angular size first, not 1 AU linear) ---
+  // Real physics: 1 AU ≈ 8.3 light-minutes, θ_sun ≈ 0.53° from Earth *and* from
+  // LEO (altitude << AU). Moon θ similar. Linear 1:1 AU makes a useless speck on
+  // a website; we keep the sun *optically* far (low parallax past the Moon) but
+  // size the photosphere for a readable fireball disc + bloom.
+  // Research: sun_angular_scale_architecture_20260810.md
+  scene.add(new THREE.AmbientLight(0x0a1528, 0.32));
   const sunDir = new THREE.Vector3(0.65, 0.22, -0.73).normalize();
-  const SUN_DIST = 2800; // way beyond Earth scale
+  // ~65 Earth radii out — far past Moon (~2.85 R), still inside far plane
+  const SUN_DIST = 520;
+  // Art-directed angular diameter (~real 0.53° is tiny on FOV 48°; ~2.3° + corona
+  // still reads "distant ball of fire" without becoming a nearby lantern)
+  const SUN_ANGULAR_DEG = tiny ? 2.8 : mobile ? 2.5 : 2.3;
+  const SUN_R =
+    SUN_DIST * Math.tan(((SUN_ANGULAR_DEG * Math.PI) / 180) / 2);
   const sunWorld = sunDir.clone().multiplyScalar(SUN_DIST);
 
-  const sunLight = new THREE.DirectionalLight(0xfff2dd, 1.55);
+  const sunLight = new THREE.DirectionalLight(0xfff4e0, 1.75);
   sunLight.position.copy(sunWorld);
   scene.add(sunLight);
-  // Tiny fill only on lit side
-  const sunFill = new THREE.AmbientLight(0x1a2030, 0.08);
-  scene.add(sunFill);
+  // Soft fill so night side isn't pure void
+  scene.add(new THREE.AmbientLight(0x121a2c, 0.1));
+  // Warm point at photosphere — local fireball presence without moving the sun closer
+  const sunPoint = new THREE.PointLight(0xffddaa, 0.55, SUN_DIST * 1.8, 2);
+  sunPoint.position.copy(sunWorld);
+  scene.add(sunPoint);
 
-  // Distant sun: almost point-like (angular size tiny like real sun ~0.5°)
   const sunGroup = new THREE.Group();
   sunGroup.position.copy(sunWorld);
+
+  // Photosphere — hard disc you can resolve as a ball (not a 1-pixel star)
   const sunCore = new THREE.Mesh(
-    new THREE.SphereGeometry(4.2, 16, 12),
-    new THREE.MeshBasicMaterial({ color: 0xfff8e7 })
+    new THREE.SphereGeometry(SUN_R, tiny ? 20 : 32, tiny ? 16 : 24),
+    new THREE.MeshBasicMaterial({ color: 0xfffaf0 })
   );
-  // Soft corona only — no large nearby ball
-  const sunCorona = new THREE.Mesh(
-    new THREE.SphereGeometry(14, 16, 12),
+  // Chromosphere rim
+  const sunChromo = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_R * 1.12, 24, 18),
     new THREE.MeshBasicMaterial({
-      color: 0xffcc88,
+      color: 0xffc266,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.55,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  // Inner corona
+  const sunCorona = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_R * 2.1, 24, 18),
+    new THREE.MeshBasicMaterial({
+      color: 0xffb060,
+      transparent: true,
+      opacity: 0.28,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  // Outer halo — why space photos still feel like a "ball of fire"
+  const sunHalo = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_R * 4.2, 20, 16),
+    new THREE.MeshBasicMaterial({
+      color: 0xff9940,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  // Faint outer scatter
+  const sunScatter = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_R * 7.5, 16, 12),
+    new THREE.MeshBasicMaterial({
+      color: 0xff8822,
+      transparent: true,
+      opacity: 0.06,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
     })
   );
   sunGroup.add(sunCore);
+  sunGroup.add(sunChromo);
   sunGroup.add(sunCorona);
+  sunGroup.add(sunHalo);
+  sunGroup.add(sunScatter);
   scene.add(sunGroup);
 
   // --- Stars ---
@@ -712,22 +765,30 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     _vNdc.copy(sunGroup.position).project(camera);
     const onScreen =
       _vNdc.z < 1 &&
-      Math.abs(_vNdc.x) < 1.15 &&
-      Math.abs(_vNdc.y) < 1.15;
+      Math.abs(_vNdc.x) < 1.35 &&
+      Math.abs(_vNdc.y) < 1.35;
     glareEl.style.setProperty("--gx", 50 + _vNdc.x * 50 + "%");
     glareEl.style.setProperty("--gy", 50 - _vNdc.y * 50 + "%");
 
-    // Real-sun style: only a tight glare bloom when nearly looking at the sun
-    if (onScreen && align > 0.965) {
-      glareHold = Math.max(glareHold, 3.2);
+    // Bright disc + bloom when the sun is in view (space photos: always a fireball,
+    // not a one-frame spark). Peak when looking near it; soft presence otherwise.
+    if (onScreen && align > 0.82) {
+      glareHold = Math.max(glareHold, 2.8);
     }
-    if (glareHold > 0) {
-      const peak = onScreen ? Math.max(0, (align - 0.94) / 0.06) : 0;
-      const hold = Math.min(1, glareHold / 3.2);
-      const op = Math.min(0.72, (peak * 0.85 + hold * 0.25) * hold);
+    if (onScreen) {
+      const near = Math.max(0, (align - 0.72) / 0.28);
+      const hold = Math.min(1, glareHold / 2.8);
+      // Soft floor so a visible sun always contributes glare
+      const op = Math.min(0.88, 0.12 + near * 0.62 + hold * 0.22 * near);
       glareEl.style.opacity = String(op);
+      glareEl.classList.toggle("hot", near > 0.55);
+    } else if (glareHold > 0) {
+      const hold = Math.min(1, glareHold / 2.8);
+      glareEl.style.opacity = String(0.08 * hold);
+      glareEl.classList.remove("hot");
     } else {
       glareEl.style.opacity = "0";
+      glareEl.classList.remove("hot");
     }
   }
 

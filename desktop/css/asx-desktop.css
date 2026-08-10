@@ -73,21 +73,40 @@ body {
 }
 
 /* Distant-sun glare (tight bloom when looking near the solar disc) */
+/* Screen-space solar bloom — real sun is only ~0.5° but *feels* huge via glare.
+   Mesh photosphere is sized by angular diameter; this layer sells "ball of fire". */
 #sun-glare {
   position: fixed;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.55s ease-out;
+  transition: opacity 0.4s ease-out;
   mix-blend-mode: screen;
-  background: radial-gradient(
-    circle at var(--gx, 50%) var(--gy, 45%),
-    rgba(255, 255, 250, 0.95) 0%,
-    rgba(255, 236, 200, 0.55) 6%,
-    rgba(255, 200, 120, 0.2) 14%,
-    transparent 28%
-  );
+  background:
+    radial-gradient(
+      circle at var(--gx, 50%) var(--gy, 45%),
+      rgba(255, 255, 252, 1) 0%,
+      rgba(255, 250, 230, 0.95) 1.2%,
+      rgba(255, 230, 160, 0.7) 4%,
+      rgba(255, 190, 100, 0.35) 10%,
+      rgba(255, 150, 60, 0.14) 20%,
+      rgba(255, 120, 40, 0.05) 34%,
+      transparent 50%
+    );
+}
+#sun-glare.hot {
+  background:
+    radial-gradient(
+      circle at var(--gx, 50%) var(--gy, 45%),
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 248, 220, 1) 1.5%,
+      rgba(255, 220, 140, 0.85) 5%,
+      rgba(255, 180, 80, 0.45) 12%,
+      rgba(255, 140, 50, 0.18) 24%,
+      rgba(255, 100, 30, 0.06) 40%,
+      transparent 58%
+    );
 }
 
 /* Brief lat/lng / zoom HUD (Google-Earth-like feedback, not a full Maps stack) */
