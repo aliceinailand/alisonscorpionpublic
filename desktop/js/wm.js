@@ -76,27 +76,27 @@ export class WindowManager {
   _clampAll() {
     const b = desktopBounds();
     for (const w of this.windows.values()) {
-      if (w.el.classList.contains("maximized") || w.el.classList.contains("minimized")) {
-        continue;
-      }
+      if (w.el.classList.contains("minimized")) continue;
+      // Maximized: only ensure class geometry via CSS; do not re-force max on every resize
+      if (w.el.classList.contains("maximized")) continue;
       const rect = w.el.getBoundingClientRect();
-      let width = Math.min(rect.width, b.w);
-      let height = Math.min(rect.height, b.h);
+      let width = Math.min(Math.max(rect.width, 200), b.w);
+      let height = Math.min(Math.max(rect.height, 140), b.h);
       let left = Math.min(Math.max(0, rect.left), Math.max(0, b.w - 48));
       let top = Math.min(Math.max(0, rect.top), Math.max(0, b.h - 32));
-      if (isMobileLayout()) {
-        // Keep near full usable area on phones after rotate
-        width = b.w;
-        height = b.h;
-        left = 0;
-        top = 0;
-        w.el.classList.add("maximized");
-      }
       w.el.style.width = width + "px";
       w.el.style.height = height + "px";
       w.el.style.left = left + "px";
       w.el.style.top = top + "px";
     }
+  }
+
+  _notifyWindowsOpen() {
+    const n = [...this.windows.values()].filter(
+      (w) => !w.el.classList.contains("minimized")
+    ).length;
+    document.body.classList.toggle("asx-window-open", n > 0);
+    document.body.classList.toggle("asx-narrow", isMobileLayout());
   }
 
   /**
