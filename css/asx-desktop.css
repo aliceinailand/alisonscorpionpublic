@@ -285,8 +285,8 @@ body {
 }
 .asx-window {
   position: absolute;
-  min-width: 280px;
-  min-height: 180px;
+  min-width: min(200px, 100%);
+  min-height: min(140px, 100%);
   max-width: 100%;
   max-height: 100%;
   display: flex;
@@ -825,18 +825,36 @@ body {
   .asx-window .resize-handle { display: none; }
 
   .titlebar {
-    padding: 0 8px 0 12px;
+    padding: 0 6px;
+    min-height: 48px;
+    height: 48px;
   }
+  /* Extreme narrow: large labeled controls (was 12px dots — unusable) */
   .titlebar .btn {
-    width: 12px;
-    height: 12px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 18px;
   }
-  .titlebar .btn::after {
-    inset: -14px;
-  }
+  .titlebar .btn-close { font-size: 22px; }
 
   #taskbar-windows {
-    max-width: min(42vw, 200px);
+    max-width: min(58vw, 280px);
+  }
+  .tb-close {
+    width: 40px;
+    min-width: 40px;
+    min-height: 44px;
+  }
+
+  /* When a window is open, tuck SEO so chrome stays usable */
+  body.asx-window-open .seo-main:not(.seo-minimized) {
+    max-height: 22vh;
+  }
+  body.asx-window-open .seo-main.seo-minimized {
+    opacity: 0.92;
   }
   .tb-clock { font-size: 10px; }
   .tb-status { display: none; }

@@ -1,7 +1,7 @@
 /**
  * ASX Desktop window manager — thin glass terminal windows.
  * Pattern: Claude extract_01 WindowManager + CSS glass purple.
- * Mobile: pointer events, default maximize, viewport clamp (2026-08-10).
+ * Windows shrink with viewport (not forced full-screen on narrow).
  */
 
 function isMobileLayout() {
@@ -20,10 +20,65 @@ function taskbarOffset() {
 
 function desktopBounds() {
   const tb = taskbarOffset();
+  const root = document.getElementById("windows-root");
+  if (root) {
+    const r = root.getBoundingClientRect();
+    if (r.width > 40 && r.height > 40) {
+      return { w: Math.floor(r.width), h: Math.floor(r.height) };
+    }
+  }
   return {
-    w: Math.max(280, window.innerWidth),
-    h: Math.max(180, window.innerHeight - tb),
+    w: Math.max(200, window.innerWidth),
+    h: Math.max(160, window.innerHeight - tb),
   };
+}
+
+/**
+ * Fit preferred window size into current viewport.
+ * Smaller screens → smaller windows (with margins so chrome stays usable).
+ */
+function fitWindowGeom(prefW, prefH, prefX, prefY) {
+  const b = desktopBounds();
+  const margin = b.w < 480 ? 8 : b.w < 900 ? 12 : 16;
+  const maxW = Math.max(160, b.w - margin * 2);
+  const maxH = Math.max(140, b.h - margin * 2);
+
+  let w = Number(prefW) || 640;
+  let h = Number(prefH) || 420;
+
+  // Cap to available area
+  w = Math.min(w, maxW);
+  h = Math.min(h, maxH);
+
+  // Progressive shrink: window becomes a fraction of the screen as width drops
+  if (b.w <= 1280) {
+    const t = Math.min(1, Math.max(0, (1280 - b.w) / 960)); // 0 at 1280, 1 at 320
+    const maxFracW = 0.96 - t * 0.04; // 0.96 → 0.92
+    const maxFracH = 0.88 - t * 0.2; // 0.88 → 0.68 (leave desktop/taskbar visible)
+    w = Math.min(w, Math.floor(b.w * maxFracW) - margin);
+    h = Math.min(h, Math.floor(b.h * maxFracH));
+  }
+
+  // Hard floors that still fit
+  w = Math.max(Math.min(200, maxW), Math.min(w, maxW));
+  h = Math.max(Math.min(160, maxH), Math.min(h, maxH));
+
+  let x = Number(prefX);
+  let y = Number(prefY);
+  if (!Number.isFinite(x)) x = margin + 40;
+  if (!Number.isFinite(y)) y = margin + 28;
+
+  // Keep fully on-screen
+  x = Math.min(Math.max(margin, x), Math.max(margin, b.w - w - margin));
+  y = Math.min(Math.max(margin, y), Math.max(margin, b.h - h - margin));
+
+  // Center horizontally on narrow viewports
+  if (b.w < 720) {
+    x = Math.max(margin, Math.floor((b.w - w) / 2));
+    y = Math.max(margin, Math.min(y, Math.floor(b.h * 0.08)));
+  }
+
+  return { w, h, x, y, bounds: b };
 }
 
 export class WindowManager {
@@ -149,15 +204,16 @@ export class WindowManager {
     el.style.top = y + "px";
     el.style.zIndex = String(++this.z);
 
+    // Controls first (left) so extreme-narrow never clips them off the right edge
     const titlebar = document.createElement("div");
     titlebar.className = "titlebar";
     titlebar.innerHTML = `
-      <span class="title">▪ ${escapeHtml(opts.title)}</span>
-      <div class="btns">
-        <button type="button" class="btn btn-min" title="Minimize" aria-label="Minimize"></button>
-        <button type="button" class="btn btn-max" title="Maximize" aria-label="Maximize"></button>
-        <button type="button" class="btn btn-close" title="Close" aria-label="Close"></button>
-      </div>`;
+      <div class="btns" role="toolbar" aria-label="Window controls">
+        <button type="button" class="btn btn-close" title="Close" aria-label="Close window">×</button>
+        <button type="button" class="btn btn-min" title="Minimize" aria-label="Minimize">−</button>
+        <button type="button" class="btn btn-max" title="Maximize / restore" aria-label="Maximize or restore">□</button>
+      </div>
+      <span class="title">▪ ${escapeHtml(opts.title)}</span>`;
 
     const body = document.createElement("div");
     body.className = "win-body";
@@ -183,6 +239,11 @@ export class WindowManager {
     };
     this.windows.set(id, rec);
 
+    const stopBtn = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+    };
+
     titlebar.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".btn")) return;
       if (e.button != null && e.button !== 0) return;
@@ -199,11 +260,31 @@ export class WindowManager {
         oy: e.clientY - el.offsetTop,
       };
     });
-    titlebar.addEventListener("dblclick", () => this.toggleMax(id));
+    titlebar.addEventListener("dblclick", (e) => {
+      if (e.target.closest(".btn")) return;
+      this.toggleMax(id);
+    });
     el.addEventListener("pointerdown", () => this.focus(id));
-    titlebar.querySelector(".btn-close").addEventListener("click", () => this.close(id));
-    titlebar.querySelector(".btn-min").addEventListener("click", () => this.minimize(id));
-    titlebar.querySelector(".btn-max").addEventListener("click", () => this.toggleMax(id));
+
+    const btnClose = titlebar.querySelector(".btn-close");
+    const btnMin = titlebar.querySelector(".btn-min");
+    const btnMax = titlebar.querySelector(".btn-max");
+    // pointerup + click for reliable mobile hit (empty hit areas were too small)
+    const bindBtn = (btn, fn) => {
+      btn.addEventListener("pointerdown", stopBtn);
+      btn.addEventListener("pointerup", (e) => {
+        stopBtn(e);
+        fn();
+      });
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fn();
+      });
+    };
+    bindBtn(btnClose, () => this.close(id));
+    bindBtn(btnMin, () => this.minimize(id));
+    bindBtn(btnMax, () => this.toggleMax(id));
+
     handle.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
       if (el.classList.contains("maximized")) return;
@@ -224,6 +305,16 @@ export class WindowManager {
 
     this._addTaskbar(id, opts.title);
     this.focus(id);
+    this._notifyWindowsOpen();
+    // Auto-collapse SEO panel when a window opens on narrow viewports
+    if (mobile) {
+      const seo = document.getElementById("seo-main");
+      if (seo && !seo.classList.contains("seo-minimized")) {
+        seo.classList.add("seo-minimized");
+        const b = document.getElementById("seo-minimize");
+        if (b) b.textContent = "Expand about";
+      }
+    }
     if (typeof opts.onMount === "function") opts.onMount(body, rec);
     return rec;
   }
@@ -250,6 +341,7 @@ export class WindowManager {
     this.windows.delete(id);
     const tb = this.taskbar?.querySelector(`[data-tb="${CSS.escape(id)}"]`);
     if (tb) tb.remove();
+    this._notifyWindowsOpen();
   }
 
   minimize(id) {
@@ -257,6 +349,7 @@ export class WindowManager {
     if (!w) return;
     w.el.classList.add("minimized");
     this._syncTaskbar(null);
+    this._notifyWindowsOpen();
   }
 
   restore(id) {
@@ -264,19 +357,24 @@ export class WindowManager {
     if (!w) return;
     w.el.classList.remove("minimized");
     this.focus(id);
+    this._notifyWindowsOpen();
   }
 
   toggleMax(id) {
     const w = this.windows.get(id);
     if (!w) return;
+    const b = desktopBounds();
     if (w.el.classList.contains("maximized")) {
-      if (isMobileLayout()) {
-        // On phones, stay maximized — restore to tiny float is poor UX
-        return;
-      }
+      // Always allow restore — including narrow (user was stuck before)
       w.el.classList.remove("maximized");
       if (w.prevGeom) {
         Object.assign(w.el.style, w.prevGeom);
+      } else if (isMobileLayout()) {
+        // Sensible nearly-full restore on narrow
+        w.el.style.left = "8px";
+        w.el.style.top = "8px";
+        w.el.style.width = Math.max(240, b.w - 16) + "px";
+        w.el.style.height = Math.max(200, b.h - 16) + "px";
       }
     } else {
       w.prevGeom = {
@@ -287,15 +385,31 @@ export class WindowManager {
       };
       w.el.classList.add("maximized");
     }
+    this._syncMaxButton(id);
+  }
+
+  _syncMaxButton(id) {
+    const w = this.windows.get(id);
+    if (!w) return;
+    const maxBtn = w.el.querySelector(".btn-max");
+    if (!maxBtn) return;
+    const maxed = w.el.classList.contains("maximized");
+    maxBtn.textContent = maxed ? "❐" : "□";
+    maxBtn.setAttribute("aria-label", maxed ? "Restore window" : "Maximize window");
+    maxBtn.title = maxed ? "Restore" : "Maximize";
   }
 
   _addTaskbar(id, title) {
     if (!this.taskbar) return;
+    const wrap = document.createElement("div");
+    wrap.className = "tb-win";
+    wrap.dataset.tb = id;
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "tb-item active";
-    btn.dataset.tb = id;
     btn.textContent = title;
+    btn.title = title;
     btn.addEventListener("click", () => {
       const w = this.windows.get(id);
       if (!w) return;
@@ -303,13 +417,30 @@ export class WindowManager {
       else if (w.el.classList.contains("active")) this.minimize(id);
       else this.focus(id);
     });
-    this.taskbar.appendChild(btn);
+
+    // Always-visible close on taskbar (extreme narrow escape hatch)
+    const x = document.createElement("button");
+    x.type = "button";
+    x.className = "tb-close";
+    x.setAttribute("aria-label", `Close ${title}`);
+    x.title = "Close";
+    x.textContent = "×";
+    x.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.close(id);
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(x);
+    this.taskbar.appendChild(wrap);
   }
 
   _syncTaskbar(activeId) {
     if (!this.taskbar) return;
-    this.taskbar.querySelectorAll(".tb-item").forEach((b) => {
-      b.classList.toggle("active", b.dataset.tb === activeId);
+    this.taskbar.querySelectorAll(".tb-win").forEach((wrap) => {
+      const active = wrap.dataset.tb === activeId;
+      wrap.classList.toggle("active", active);
+      wrap.querySelector(".tb-item")?.classList.toggle("active", active);
     });
   }
 }
