@@ -1,10 +1,11 @@
 /**
  * ASX Desktop — Three.js satellite view of Earth
  *
- * ASX as protector-of-Earth viewpoint: textured Earth + lattice grid (no outer rings).
+ * ASX as protector-of-Earth viewpoint: natural textured Earth (no lattice lines).
  * Distant sun sized by *angular diameter* (not linear AU) so it still reads as a
  * ball of fire — real sky θ≈0.53°; ASX art ~2° disc + bloom. Moon orbit good.
- * Climate-weighted randomized cloud cover each page load (never a cloudless Earth).
+ * Translucent drifting clouds (NASA + climate priors) — continents stay readable;
+ * weather scrolls and fades so cover never freezes into an ice sheet.
  * Drag empty desktop to look; release → auto orbit.
  * Double-click Earth → Google-Earth-like zoom toward that point; wheel zoom;
  * double-click empty space → zoom back out.
@@ -322,16 +323,20 @@ function generateCloudCoverMap(opts) {
   let mean = sum / (width * height);
   // Force global coverage into realistic band — real Earth is almost never clear
   const scaleMean = mean > 1e-6 ? targetMean / mean : 1;
+  // Soft max alpha: veil, not ice sheet — landmasses (and Pacific) stay legible
+  const softCap = 0.62;
   sum = 0;
   for (let i = 0; i < alphas.length; i++) {
     let a = Math.min(1, alphas[i] * scaleMean);
-    if (a > 0.02 && a < 0.08) a = 0.08;
+    a = Math.pow(a, 1.12) * softCap;
+    if (a > 0.015 && a < 0.04) a = 0.04;
     alphas[i] = a;
     sum += a;
     const pi = i * 4;
-    data[pi] = 245;
-    data[pi + 1] = 248;
-    data[pi + 2] = 255;
+    // Warm-grey mist (not pure white polar ice)
+    data[pi] = 232;
+    data[pi + 1] = 236;
+    data[pi + 2] = 242;
     data[pi + 3] = Math.round(a * 255);
   }
   mean = sum / alphas.length;
@@ -530,15 +535,15 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   );
   scene.add(stars);
 
-  // --- Earth + grid (no outer torus rings) ---
+  // --- Earth (natural — no lattice / orbit lines; satellites stay invisible) ---
   const earthGroup = new THREE.Group();
   scene.add(earthGroup);
 
   const earthMat = new THREE.MeshPhongMaterial({
     color: 0x2266aa,
     emissive: 0x020810,
-    specular: 0x334455,
-    shininess: 16,
+    specular: 0x445566,
+    shininess: 22,
   });
   const earth = new THREE.Mesh(
     new THREE.SphereGeometry(
@@ -562,14 +567,14 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   );
   earthGroup.add(atmo);
 
-  // Cloud shell — climate-weighted random cover each page load (see generateCloudCoverMap)
+  // Cloud shell — translucent veil so continents (and the vast Pacific) stay legible
   const cloudSeed =
     (Math.floor(Math.random() * 0xffffffff) ^
       (Date.now() & 0xffffffff) ^
       ((performance.now() * 1000) | 0)) >>>
     0;
-  // Target global mean: real Earth ~67%; allow clear-ish days but never near zero
-  const cloudTargetMean = 0.58 + Math.random() * 0.16; // 58–74%
+  // Coverage still realistic; transparency is material + softCap, not zero clouds
+  const cloudTargetMean = 0.55 + Math.random() * 0.14; // 55–69%
   const cloudMapW = tiny ? 256 : mobile ? 512 : 1024;
   const cloudMapH = Math.max(128, cloudMapW >> 1);
   let cloudCoverMeta = {
@@ -580,11 +585,13 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   };
 
   const cloudMat = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
+    color: 0xe8ecf2,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.52,
     depthWrite: false,
     side: THREE.FrontSide,
+    specular: 0x222222,
+    shininess: 4,
   });
   const clouds = new THREE.Mesh(
     new THREE.SphereGeometry(
@@ -597,11 +604,11 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   clouds.renderOrder = 2;
   earthGroup.add(clouds);
 
-  // Thin high-cirrus shell (second octave / different rotation) for depth
+  // Thin high-cirrus shell — faster opposite drift for living weather
   const cirrusMat = new THREE.MeshBasicMaterial({
-    color: 0xe8f0ff,
+    color: 0xdde6f0,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.22,
     depthWrite: false,
     side: THREE.FrontSide,
   });
@@ -616,17 +623,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   cirrus.renderOrder = 3;
   earthGroup.add(cirrus);
 
-  // ASX protector lattice / graphical grid (outside clouds)
-  const grid = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(EARTH_R * 1.1, 1),
-    new THREE.MeshBasicMaterial({
-      color: 0xa78bfa,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.32,
-    })
-  );
-  earthGroup.add(grid);
+  // Weather motion state (texture scroll + opacity breath — clouds never frozen)
+  let cloudTexScroll = 0;
+  let cirrusTexScroll = 0;
+  let weatherPhase = Math.random() * Math.PI * 2;
 
   // Moon
   const moonMat = new THREE.MeshPhongMaterial({
@@ -706,7 +706,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     cloudMat.map = cloudTex;
     cloudMat.alphaMap = cloudTex;
     cloudMat.transparent = true;
-    cloudMat.opacity = 0.95;
+    cloudMat.opacity = 0.52;
     cloudMat.needsUpdate = true;
 
     // Cirrus: lighter NASA blend + different phase (high thin veil)
@@ -714,17 +714,19 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       seed: (cloudSeed ^ 0xa5a5a5a5) >>> 0,
       width: Math.max(128, cloudMapW >> 1),
       height: Math.max(64, cloudMapH >> 1),
-      targetMean: Math.min(0.55, cloudTargetMean * 0.55),
+      targetMean: Math.min(0.5, cloudTargetMean * 0.5),
       baseImage: cloudBaseImg,
       nasaWeight: cloudBaseImg ? 0.45 : 0,
       phaseX: (nasaPhase + 0.37) % 1,
     });
     const cirrusTex = new THREE.CanvasTexture(cirrusCover.canvas);
     cirrusTex.wrapS = THREE.RepeatWrapping;
+    cirrusTex.wrapT = THREE.ClampToEdgeWrapping;
     cirrusTex.offset.x = 0;
     cirrusTex.needsUpdate = true;
     cirrusMat.map = cirrusTex;
     cirrusMat.alphaMap = cirrusTex;
+    cirrusMat.opacity = 0.22;
     cirrusMat.needsUpdate = true;
 
     // Public transparency: audit attributes + console (source is shared)
@@ -857,12 +859,37 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     t0 = now;
 
     earth.rotation.y += dt * 0.06;
-    // Clouds drift slightly faster than ground (synoptic weather illusion)
-    clouds.rotation.y += dt * 0.078;
-    cirrus.rotation.y += dt * 0.09;
-    cirrus.rotation.x += dt * 0.004;
-    grid.rotation.y -= dt * 0.025;
-    grid.rotation.x += dt * 0.008;
+
+    // Living weather: differential rotation + UV scroll + opacity breath.
+    // Real clouds never sit still relative to the ground; they advect and thin.
+    if (!reduceMotion) {
+      weatherPhase += dt * 0.35;
+      // Shells drift relative to Earth (and each other)
+      clouds.rotation.y += dt * 0.095;
+      cirrus.rotation.y -= dt * 0.055;
+      cirrus.rotation.x += dt * 0.012;
+      // Texture scroll = weather systems moving / reforming
+      cloudTexScroll = (cloudTexScroll + dt * 0.018) % 1;
+      cirrusTexScroll = (cirrusTexScroll - dt * 0.027 + 1) % 1;
+      if (cloudMat.map) {
+        cloudMat.map.offset.x = cloudTexScroll;
+        cloudMat.map.needsUpdate = true;
+      }
+      if (cirrusMat.map) {
+        cirrusMat.map.offset.x = cirrusTexScroll;
+        cirrusMat.map.offset.y = Math.sin(weatherPhase * 0.4) * 0.02;
+        cirrusMat.map.needsUpdate = true;
+      }
+      // Soft pulse: patches thicken and thin (disappear / reappear feel)
+      const breath = 0.5 + 0.5 * Math.sin(weatherPhase);
+      const breath2 = 0.5 + 0.5 * Math.sin(weatherPhase * 1.37 + 1.1);
+      cloudMat.opacity = 0.42 + breath * 0.16; // ~0.42–0.58
+      cirrusMat.opacity = 0.14 + breath2 * 0.14; // ~0.14–0.28
+    } else {
+      clouds.rotation.y = earth.rotation.y * 1.05;
+      cirrus.rotation.y = earth.rotation.y * 0.92;
+    }
+
     moonOrbit.rotation.y += dt * 0.18;
     moon.rotation.y += dt * 0.04;
     stars.rotation.y += dt * 0.002;
@@ -1096,7 +1123,6 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       if (cirrusMat.map) cirrusMat.map.dispose();
       cloudMat.dispose();
       cirrusMat.dispose();
-      grid.geometry.dispose();
       moon.geometry.dispose();
       starGeo.dispose();
     } catch {
