@@ -95,10 +95,10 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
   // Gradient void
   const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
   defs.innerHTML = `
-    <radialGradient id="asx-void" cx="50%" cy="42%" r="65%">
-      <stop offset="0%" stop-color="#2e1065"/>
-      <stop offset="45%" stop-color="#1a1030"/>
-      <stop offset="100%" stop-color="#0a0809"/>
+    <radialGradient id="asx-void" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#3b1d7a"/>
+      <stop offset="40%" stop-color="#1a0f2e"/>
+      <stop offset="100%" stop-color="#0a0618"/>
     </radialGradient>
     <radialGradient id="asx-core-glow" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.95"/>
@@ -126,14 +126,17 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
   );
   svg.appendChild(gOrbits);
 
-  const starCount = Math.min(120, Math.max(40, Math.floor((w * h) / 4000)));
+  // Dense far field (background only) — universe-purple whites
+  const starCount = Math.min(420, Math.max(120, Math.floor((w * h) / 1800)));
   const stars = [];
   for (let i = 0; i < starCount; i++) {
+    const cool = Math.random() < 0.65;
     stars.push({
       x: Math.random() * w,
       y: Math.random() * h,
-      r: 0.4 + Math.random() * 1.4,
-      o: 0.25 + Math.random() * 0.55,
+      r: 0.25 + Math.random() * (cool ? 1.1 : 1.6),
+      o: 0.18 + Math.random() * 0.45,
+      fill: cool ? "#c4b5fd" : "#f5edd8",
     });
   }
 
@@ -149,7 +152,7 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y)
       .attr("r", (d) => d.r)
-      .attr("fill", "#f5edd8")
+      .attr("fill", (d) => d.fill || "#c4b5fd")
       .attr("opacity", (d) => d.o);
 
     const rings = [Math.min(w, h) * 0.12, Math.min(w, h) * 0.2, Math.min(w, h) * 0.3];
@@ -198,7 +201,7 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
       c.setAttribute("cx", String(d.x));
       c.setAttribute("cy", String(d.y));
       c.setAttribute("r", String(d.r));
-      c.setAttribute("fill", "#f5edd8");
+      c.setAttribute("fill", d.fill || "#c4b5fd");
       c.setAttribute("opacity", String(d.o));
       gStars.appendChild(c);
     });

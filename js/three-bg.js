@@ -6,6 +6,9 @@
  * ball of fire — real sky θ≈0.53°; ASX art ~2° disc + bloom. Moon orbit good.
  * Translucent drifting clouds (NASA + climate priors) — continents stay readable;
  * weather scrolls and fades so cover never freezes into an ice sheet.
+ * Celestial sphere: dense far stars + real RA/Dec catalog + faint constellations
+ * (Orion, Scorpius, Dipper, Cassiopeia, Summer Triangle, Southern Cross) on a
+ * universe-purple void — background only; Earth/Moon stay the focus.
  * Drag empty desktop to look; release → auto orbit.
  * Double-click Earth → Google-Earth-like zoom toward that point; wheel zoom;
  * double-click empty space → zoom back out.
@@ -54,6 +57,381 @@ const EARTH_R = 8;
 const RADIUS_FAR = 36;
 const RADIUS_NEAR = EARTH_R * 1.28; // surface approach (not through crust)
 const RADIUS_MID = EARTH_R * 2.1;
+
+/** Universe-purple void — brand night sky (not pure black). */
+const VOID_PURPLE = 0x0a0618;
+const VOID_FOG = 0x12081f;
+const VOID_AMBIENT = 0x1a0f2e;
+
+/**
+ * Celestial sphere helpers — same sky from Earth surface and LEO
+ * (stellar parallax ≪ 1″ for catalog stars; altitude ≪ AU).
+ * RA hours (J2000-ish) + Dec degrees → Three.js Y-up cartesian.
+ * Research: agents/research/threejs/earth_view_stars_constellations_20260810.md
+ */
+function raDecToXYZ(raHours, decDeg, radius) {
+  const ra = (raHours / 24) * Math.PI * 2;
+  const dec = (decDeg * Math.PI) / 180;
+  const c = Math.cos(dec);
+  return [
+    radius * c * Math.cos(ra),
+    radius * Math.sin(dec),
+    radius * c * Math.sin(ra),
+  ];
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function randomOnSphere(radius, rng) {
+  // Uniform on sphere (not cube fill — avoids dense cube corners)
+  const u = rng() * 2 - 1;
+  const phi = rng() * Math.PI * 2;
+  const s = Math.sqrt(Math.max(0, 1 - u * u));
+  return [radius * s * Math.cos(phi), radius * u, radius * s * Math.sin(phi)];
+}
+
+/**
+ * Bright catalog stars (approx J2000 RA/Dec, Vmag) — naked-eye anchors
+ * visible from Earth. Colors lean spectral type (O/B blue-white … M orange-red).
+ * Scorpius (Antares, Shaula, …) kept for ASX brand resonance.
+ */
+const BRIGHT_STARS = [
+  // name, raH, decDeg, mag, rgb
+  ["Sirius", 6.7525, -16.7161, -1.46, [0.72, 0.82, 1.0]],
+  ["Canopus", 6.3992, -52.6957, -0.74, [1.0, 0.95, 0.88]],
+  ["Rigil Kentaurus", 14.6601, -60.8339, -0.27, [1.0, 0.94, 0.82]],
+  ["Arcturus", 14.261, 19.1824, -0.05, [1.0, 0.72, 0.42]],
+  ["Vega", 18.6156, 38.7837, 0.03, [0.78, 0.88, 1.0]],
+  ["Capella", 5.2782, 45.998, 0.08, [1.0, 0.9, 0.7]],
+  ["Rigel", 5.2423, -8.2016, 0.13, [0.68, 0.78, 1.0]],
+  ["Procyon", 7.655, 5.225, 0.34, [1.0, 0.94, 0.82]],
+  ["Achernar", 1.6286, -57.2368, 0.46, [0.7, 0.8, 1.0]],
+  ["Betelgeuse", 5.9195, 7.4071, 0.5, [1.0, 0.48, 0.28]],
+  ["Hadar", 14.0637, -60.373, 0.61, [0.68, 0.78, 1.0]],
+  ["Altair", 19.8464, 8.8683, 0.76, [1.0, 0.94, 0.88]],
+  ["Acrux", 12.4433, -63.0991, 0.76, [0.7, 0.8, 1.0]],
+  ["Aldebaran", 4.5987, 16.5093, 0.85, [1.0, 0.55, 0.28]],
+  ["Antares", 16.4901, -26.4319, 0.96, [1.0, 0.38, 0.22]],
+  ["Spica", 13.4199, -11.1613, 0.97, [0.72, 0.8, 1.0]],
+  ["Pollux", 7.7553, 28.0262, 1.14, [1.0, 0.72, 0.45]],
+  ["Fomalhaut", 22.9608, -29.6222, 1.16, [1.0, 0.96, 0.9]],
+  ["Deneb", 20.6905, 45.2803, 1.25, [0.82, 0.9, 1.0]],
+  ["Mimosa", 12.7954, -59.6888, 1.25, [0.68, 0.78, 1.0]],
+  ["Regulus", 10.1395, 11.9672, 1.35, [0.72, 0.82, 1.0]],
+  ["Adhara", 6.9771, -28.9721, 1.5, [0.65, 0.75, 1.0]],
+  ["Shaula", 17.5601, -37.1038, 1.62, [0.7, 0.8, 1.0]],
+  ["Castor", 7.5766, 31.8883, 1.58, [0.78, 0.88, 1.0]],
+  ["Gacrux", 12.5194, -57.1132, 1.63, [1.0, 0.55, 0.4]],
+  ["Bellatrix", 5.4189, 6.3497, 1.64, [0.7, 0.8, 1.0]],
+  ["Elnath", 5.4382, 28.6075, 1.65, [0.75, 0.85, 1.0]],
+  ["Alnilam", 5.6036, -1.2019, 1.69, [0.68, 0.78, 1.0]],
+  ["Alnitak", 5.6793, -1.9426, 1.74, [0.65, 0.75, 1.0]],
+  ["Alioth", 12.9004, 55.9598, 1.76, [0.78, 0.86, 1.0]],
+  ["Dubhe", 11.0621, 61.751, 1.79, [1.0, 0.82, 0.55]],
+  ["Mirfak", 3.4054, 49.8612, 1.79, [1.0, 0.9, 0.72]],
+  ["Alkaid", 13.7923, 49.3133, 1.85, [0.7, 0.8, 1.0]],
+  ["Sargas", 17.6219, -42.9978, 1.86, [1.0, 0.82, 0.55]],
+  ["Polaris", 2.5303, 89.2641, 1.98, [1.0, 0.94, 0.82]],
+  ["Mintaka", 5.5334, -0.2991, 2.23, [0.68, 0.78, 1.0]],
+  ["Saiph", 5.7959, -9.6696, 2.09, [0.7, 0.8, 1.0]],
+  ["Dschubba", 16.0056, -22.6217, 2.29, [0.7, 0.8, 1.0]],
+  ["Larawag", 17.7081, -39.0299, 2.29, [1.0, 0.82, 0.55]],
+  ["Merak", 11.0307, 56.3824, 2.37, [0.78, 0.86, 1.0]],
+  ["Phecda", 11.8972, 53.6948, 2.44, [0.78, 0.86, 1.0]],
+  ["Mizar", 13.3987, 54.9254, 2.27, [0.78, 0.86, 1.0]],
+  ["Megrez", 12.2571, 57.0326, 3.31, [0.78, 0.86, 1.0]],
+  ["Schedar", 0.6751, 56.5373, 2.24, [1.0, 0.7, 0.48]],
+  ["Caph", 0.1529, 59.1498, 2.28, [1.0, 0.94, 0.85]],
+  ["Gamma Cas", 0.9451, 60.7167, 2.47, [0.7, 0.8, 1.0]],
+  ["Ruchbah", 1.4302, 60.2353, 2.68, [0.78, 0.86, 1.0]],
+  ["Segin", 1.9066, 63.67, 3.35, [0.7, 0.8, 1.0]],
+  ["Nunki", 18.9211, -26.2967, 2.05, [0.72, 0.82, 1.0]],
+  ["Kaus Australis", 18.4029, -34.3846, 1.85, [1.0, 0.82, 0.55]],
+];
+
+/** Stick figures for a few iconic figures (Earth-sky pattern recognition). */
+const CONSTELLATION_LINES = [
+  // Orion
+  ["Betelgeuse", "Bellatrix"],
+  ["Bellatrix", "Mintaka"],
+  ["Mintaka", "Alnilam"],
+  ["Alnilam", "Alnitak"],
+  ["Alnitak", "Saiph"],
+  ["Saiph", "Rigel"],
+  ["Rigel", "Mintaka"],
+  ["Betelgeuse", "Alnitak"],
+  // Scorpius (ASX brand)
+  ["Dschubba", "Antares"],
+  ["Antares", "Larawag"],
+  ["Larawag", "Shaula"],
+  ["Shaula", "Sargas"],
+  // Big Dipper / Ursa Major
+  ["Dubhe", "Merak"],
+  ["Merak", "Phecda"],
+  ["Phecda", "Megrez"],
+  ["Megrez", "Dubhe"],
+  ["Megrez", "Alioth"],
+  ["Alioth", "Mizar"],
+  ["Mizar", "Alkaid"],
+  // Cassiopeia W
+  ["Caph", "Schedar"],
+  ["Schedar", "Gamma Cas"],
+  ["Gamma Cas", "Ruchbah"],
+  ["Ruchbah", "Segin"],
+  // Summer Triangle
+  ["Vega", "Deneb"],
+  ["Deneb", "Altair"],
+  ["Altair", "Vega"],
+  // Southern Cross
+  ["Acrux", "Mimosa"],
+  ["Mimosa", "Gacrux"],
+  ["Gacrux", "Acrux"],
+  ["Acrux", "Gacrux"],
+];
+
+/**
+ * Build distant starfield: dense dim background + catalog brights + faint lines.
+ * Stars sit on a large sphere so they feel infinitely far (no cube-clump).
+ */
+function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
+  const group = new THREE.Group();
+  group.name = "celestial-sphere";
+  const disposables = [];
+
+  const STAR_R = 920;
+  const rng = mulberry32(0xa5c_2026); // stable field (not re-random each boot)
+
+  // --- Layer A: dense far dust (background only — never compete with Earth) ---
+  const nFar = reduceMotion ? 900 : tiny ? 2200 : mobile ? 4500 : 9000;
+  const farPos = new Float32Array(nFar * 3);
+  const farCol = new Float32Array(nFar * 3);
+  for (let i = 0; i < nFar; i++) {
+    // Slight radius jitter so shell isn't a hard wall
+    const r = STAR_R * (0.92 + rng() * 0.16);
+    const p = randomOnSphere(r, rng);
+    farPos[i * 3] = p[0];
+    farPos[i * 3 + 1] = p[1];
+    farPos[i * 3 + 2] = p[2];
+    // Universe-purple white (cool violet, not pure white)
+    const t = rng();
+    const cool = t < 0.55;
+    farCol[i * 3] = cool ? 0.55 + rng() * 0.25 : 0.75 + rng() * 0.2;
+    farCol[i * 3 + 1] = cool ? 0.45 + rng() * 0.25 : 0.7 + rng() * 0.15;
+    farCol[i * 3 + 2] = cool ? 0.85 + rng() * 0.15 : 0.95 + rng() * 0.05;
+  }
+  const farGeo = new THREE.BufferGeometry();
+  farGeo.setAttribute("position", new THREE.BufferAttribute(farPos, 3));
+  farGeo.setAttribute("color", new THREE.BufferAttribute(farCol, 3));
+  disposables.push(farGeo);
+  const farStars = new THREE.Points(
+    farGeo,
+    new THREE.PointsMaterial({
+      size: tiny ? 0.55 : mobile ? 0.42 : 0.32,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.42,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  farStars.name = "stars-far";
+  group.add(farStars);
+
+  // --- Layer B: mid field (still background; a bit brighter) ---
+  const nMid = reduceMotion ? 180 : tiny ? 400 : mobile ? 900 : 1800;
+  const midPos = new Float32Array(nMid * 3);
+  const midCol = new Float32Array(nMid * 3);
+  for (let i = 0; i < nMid; i++) {
+    const r = STAR_R * (0.88 + rng() * 0.1);
+    const p = randomOnSphere(r, rng);
+    midPos[i * 3] = p[0];
+    midPos[i * 3 + 1] = p[1];
+    midPos[i * 3 + 2] = p[2];
+    // Soft purple-lavender / warm white mix
+    const warm = rng() > 0.7;
+    midCol[i * 3] = warm ? 0.95 : 0.7 + rng() * 0.2;
+    midCol[i * 3 + 1] = warm ? 0.82 : 0.55 + rng() * 0.25;
+    midCol[i * 3 + 2] = warm ? 0.9 : 0.95 + rng() * 0.05;
+  }
+  const midGeo = new THREE.BufferGeometry();
+  midGeo.setAttribute("position", new THREE.BufferAttribute(midPos, 3));
+  midGeo.setAttribute("color", new THREE.BufferAttribute(midCol, 3));
+  disposables.push(midGeo);
+  const midStars = new THREE.Points(
+    midGeo,
+    new THREE.PointsMaterial({
+      size: tiny ? 0.75 : mobile ? 0.55 : 0.45,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.55,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  midStars.name = "stars-mid";
+  group.add(midStars);
+
+  // --- Layer C: Milky Way band (galactic-plane-ish density, purple glow) ---
+  if (!reduceMotion) {
+    const nBand = tiny ? 1200 : mobile ? 2400 : 4200;
+    const bandPos = new Float32Array(nBand * 3);
+    const bandCol = new Float32Array(nBand * 3);
+    // Galactic plane ≈ 60° to celestial equator; approximate with tilted belt
+    const tilt = (60 * Math.PI) / 180;
+    for (let i = 0; i < nBand; i++) {
+      const lon = rng() * Math.PI * 2;
+      // Concentrate near plane; thicker toward Sagittarius bulge (lon~0 bias)
+      const lat = (rng() + rng() + rng() - 1.5) * 0.22; // ~±0.5 rad soft
+      const cl = Math.cos(lat);
+      let x = STAR_R * 0.96 * cl * Math.cos(lon);
+      let y = STAR_R * 0.96 * Math.sin(lat);
+      let z = STAR_R * 0.96 * cl * Math.sin(lon);
+      // Tilt band
+      const y2 = y * Math.cos(tilt) - z * Math.sin(tilt);
+      const z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
+      bandPos[i * 3] = x;
+      bandPos[i * 3 + 1] = y2;
+      bandPos[i * 3 + 2] = z2;
+      // Universe purple dust
+      const glow = 0.35 + rng() * 0.45;
+      bandCol[i * 3] = 0.45 + glow * 0.35;
+      bandCol[i * 3 + 1] = 0.28 + glow * 0.25;
+      bandCol[i * 3 + 2] = 0.75 + glow * 0.25;
+    }
+    const bandGeo = new THREE.BufferGeometry();
+    bandGeo.setAttribute("position", new THREE.BufferAttribute(bandPos, 3));
+    bandGeo.setAttribute("color", new THREE.BufferAttribute(bandCol, 3));
+    disposables.push(bandGeo);
+    const band = new THREE.Points(
+      bandGeo,
+      new THREE.PointsMaterial({
+        size: tiny ? 0.7 : 0.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.28,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    band.name = "milky-way-band";
+    group.add(band);
+  }
+
+  // --- Layer D: real bright stars (Earth-view catalog) ---
+  const nameToPos = Object.create(null);
+  const nCat = BRIGHT_STARS.length;
+  const catPos = new Float32Array(nCat * 3);
+  const catCol = new Float32Array(nCat * 3);
+  for (let i = 0; i < nCat; i++) {
+    const [name, ra, dec, mag, rgb] = BRIGHT_STARS[i];
+    const p = raDecToXYZ(ra, dec, STAR_R * 0.98);
+    nameToPos[name] = p;
+    catPos[i * 3] = p[0];
+    catPos[i * 3 + 1] = p[1];
+    catPos[i * 3 + 2] = p[2];
+    // Mag → brightness (brighter = larger/more opaque color)
+    const bright = Math.max(0.35, Math.min(1.2, 1.15 - mag * 0.18));
+    catCol[i * 3] = rgb[0] * bright;
+    catCol[i * 3 + 1] = rgb[1] * bright;
+    catCol[i * 3 + 2] = rgb[2] * bright;
+  }
+  const catGeo = new THREE.BufferGeometry();
+  catGeo.setAttribute("position", new THREE.BufferAttribute(catPos, 3));
+  catGeo.setAttribute("color", new THREE.BufferAttribute(catCol, 3));
+  disposables.push(catGeo);
+  // Size per-point needs custom shader in modern three; r128 PointsMaterial is uniform.
+  // Use average size; brightest still read via color intensity.
+  const catStars = new THREE.Points(
+    catGeo,
+    new THREE.PointsMaterial({
+      size: tiny ? 1.6 : mobile ? 1.25 : 1.1,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.88,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  catStars.name = "stars-catalog";
+  group.add(catStars);
+
+  // Soft halo points for the very brightest (Sirius … Antares) so they twinkle faintly as discs
+  const nHalo = Math.min(18, nCat);
+  const haloPos = new Float32Array(nHalo * 3);
+  const haloCol = new Float32Array(nHalo * 3);
+  for (let i = 0; i < nHalo; i++) {
+    haloPos[i * 3] = catPos[i * 3];
+    haloPos[i * 3 + 1] = catPos[i * 3 + 1];
+    haloPos[i * 3 + 2] = catPos[i * 3 + 2];
+    haloCol[i * 3] = catCol[i * 3];
+    haloCol[i * 3 + 1] = catCol[i * 3 + 1];
+    haloCol[i * 3 + 2] = catCol[i * 3 + 2];
+  }
+  const haloGeo = new THREE.BufferGeometry();
+  haloGeo.setAttribute("position", new THREE.BufferAttribute(haloPos, 3));
+  haloGeo.setAttribute("color", new THREE.BufferAttribute(haloCol, 3));
+  disposables.push(haloGeo);
+  const haloStars = new THREE.Points(
+    haloGeo,
+    new THREE.PointsMaterial({
+      size: tiny ? 3.2 : 2.6,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.22,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  haloStars.name = "stars-halo";
+  group.add(haloStars);
+
+  // --- Faint constellation guides (subtle; Earth patterns, not diagram-loud) ---
+  if (!reduceMotion && !tiny) {
+    const lineVerts = [];
+    for (const [a, b] of CONSTELLATION_LINES) {
+      const pa = nameToPos[a];
+      const pb = nameToPos[b];
+      if (!pa || !pb) continue;
+      lineVerts.push(pa[0], pa[1], pa[2], pb[0], pb[1], pb[2]);
+    }
+    if (lineVerts.length) {
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(lineVerts, 3)
+      );
+      disposables.push(lineGeo);
+      const lines = new THREE.LineSegments(
+        lineGeo,
+        new THREE.LineBasicMaterial({
+          color: 0x7c3aed,
+          transparent: true,
+          opacity: 0.07,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      lines.name = "constellation-lines";
+      group.add(lines);
+    }
+  }
+
+  return { group, disposables, farStars, midStars, catStars };
+}
 
 function isMobileClient() {
   if (typeof window === "undefined") return false;
@@ -419,8 +797,9 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     (window.visualViewport && window.visualViewport.width <= 420);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x010208);
-  scene.fog = new THREE.FogExp2(0x010208, tiny ? 0.008 : 0.0035);
+  // Universe purple void (not pure black) — brand night sky
+  scene.background = new THREE.Color(VOID_PURPLE);
+  scene.fog = new THREE.FogExp2(VOID_FOG, tiny ? 0.006 : 0.0022);
 
   const { w: iw, h: ih } = viewSize(canvas);
   const camera = new THREE.PerspectiveCamera(tiny ? 55 : 48, iw / ih, 0.1, 8000);
@@ -445,7 +824,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   canvas.style.display = "block";
   canvas.style.width = "100%";
   canvas.style.height = "100%";
-  renderer.setClearColor(0x010208, 1);
+  renderer.setClearColor(VOID_PURPLE, 1);
   if (renderer.outputEncoding !== undefined) {
     renderer.outputEncoding = THREE.sRGBEncoding;
   }
@@ -456,7 +835,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   // a website; we keep the sun *optically* far (low parallax past the Moon) but
   // size the photosphere for a readable fireball disc + bloom.
   // Research: sun_angular_scale_architecture_20260810.md
-  scene.add(new THREE.AmbientLight(0x0a1528, 0.32));
+  scene.add(new THREE.AmbientLight(VOID_AMBIENT, 0.38));
   const sunDir = new THREE.Vector3(0.65, 0.22, -0.73).normalize();
   // ~65 Earth radii out — far past Moon (~2.85 R), still inside far plane
   const SUN_DIST = 520;
@@ -470,8 +849,8 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const sunLight = new THREE.DirectionalLight(0xfff4e0, 1.75);
   sunLight.position.copy(sunWorld);
   scene.add(sunLight);
-  // Soft fill so night side isn't pure void
-  scene.add(new THREE.AmbientLight(0x121a2c, 0.1));
+  // Soft purple fill so night side + starfield read as universe purple
+  scene.add(new THREE.AmbientLight(0x2a1848, 0.14));
   // Warm point at photosphere — local fireball presence without moving the sun closer
   const sunPoint = new THREE.PointLight(0xffddaa, 0.55, SUN_DIST * 1.8, 2);
   sunPoint.position.copy(sunWorld);
@@ -536,25 +915,12 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   sunGroup.add(sunScatter);
   scene.add(sunGroup);
 
-  // --- Stars ---
-  const starGeo = new THREE.BufferGeometry();
-  const nStars = reduceMotion ? 220 : tiny ? 400 : mobile ? 800 : 1800;
-  const starPos = new Float32Array(nStars * 3);
-  for (let i = 0; i < nStars * 3; i++) {
-    starPos[i] = (Math.random() - 0.5) * 1200;
-  }
-  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-  const stars = new THREE.Points(
-    starGeo,
-    new THREE.PointsMaterial({
-      color: 0xdce6ff,
-      size: tiny ? 0.4 : 0.28,
-      transparent: true,
-      opacity: 0.9,
-      sizeAttenuation: true,
-      depthWrite: false,
-    })
-  );
+  // --- Celestial sphere: Earth-view stars + faint constellations + purple dust ---
+  // Dense background field stays subordinate to Earth/Moon focus.
+  const {
+    group: stars,
+    disposables: starDisposables,
+  } = buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile });
   scene.add(stars);
 
   // --- Earth (natural — no lattice / orbit lines; satellites stay invisible) ---
@@ -914,7 +1280,9 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
 
     moonOrbit.rotation.y += dt * 0.18;
     moon.rotation.y += dt * 0.04;
-    stars.rotation.y += dt * 0.002;
+    // Sidereal drift — very slow so sky feels infinite, not a busy prop
+    stars.rotation.y += dt * 0.0012;
+    stars.rotation.x += dt * 0.00015;
 
     // Smooth zoom / look
     radius += (targetRadius - radius) * Math.min(1, dt * 3.2);
@@ -1146,7 +1514,19 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       cloudMat.dispose();
       cirrusMat.dispose();
       moon.geometry.dispose();
-      starGeo.dispose();
+      for (const d of starDisposables) {
+        try {
+          d.dispose();
+        } catch {
+          /* ignore */
+        }
+      }
+      stars.traverse((obj) => {
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+          else obj.material.dispose();
+        }
+      });
     } catch {
       /* ignore */
     }

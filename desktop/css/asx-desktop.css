@@ -3,7 +3,7 @@
    Backup Containers app remains at /website/staging/ */
 
 :root {
-  --void: #0a0809;
+  --void: #0a0618;
   --panel: rgba(19, 17, 26, 0.82);
   --panel-solid: #13111a;
   --border: rgba(167, 139, 250, 0.35);
@@ -145,7 +145,7 @@ body {
 }
 #ambient-bg,
 .ambient-bg {
-  background: #0a0809;
+  background: #0a0618;
 }
 @keyframes asx-orbit-spin {
   from { transform: rotate(0deg); }
@@ -154,7 +154,7 @@ body {
 /* Tiny phones: denser icon grid, ensure bg visible under chrome */
 @media (max-width: 420px) {
   body.asx-bg-ambient {
-    background: radial-gradient(ellipse at 50% 40%, #2e1065 0%, #0a0809 70%);
+    background: radial-gradient(ellipse at 50% 40%, #3b1d7a 0%, #0a0618 72%);
   }
   #desktop-layer {
     padding-top: 8px;
