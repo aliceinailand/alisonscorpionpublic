@@ -1,6 +1,7 @@
-# Cloudflare Pages / compatible static hosts — long-cache safety lists
-# (If apex is CF in front of GH Pages, mirror these as Cache Rules on /safety/*)
+# Static asset Cache-Control (Cloudflare Pages / compatible hosts).
+# Edge Cache Rules (zone alisonscorpion.com) applied via tools/apply_cf_static_cache_rules.py
 
+# Safety blocklist shards — long cache (browser-only fetch)
 /safety/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
   Access-Control-Allow-Origin: *
@@ -8,8 +9,45 @@
 /safety/hosts/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-/js/*
-  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+# Hashed SPA / marketing assets (exclude backups Worker path via CF rule)
+/assets/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
 
+# Brand + fonts
+/brand/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/fonts/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/website/staging/brand/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+# Desktop shell CSS/JS (cache-busted with ?v=)
 /css/*
-  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/js/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/desktop/css/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/desktop/js/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Root icons
+/favicon.ico
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/favicon-16x16.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/favicon-32x32.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/scorpion-icon-512.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000

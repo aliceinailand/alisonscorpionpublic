@@ -1,6 +1,6 @@
-# Apply Cloudflare Cache Rule for /safety/* (ASX desktop blocklist shards).
-# Uses repo secret CLOUDFLARE_API_TOKEN (Zone → Cache Rules → Edit).
-name: cf-safety-cache-rule
+# Upsert Cloudflare Cache Rules for ASX static paths:
+# /safety/*, /assets/* (excl backups), /brand/, /fonts/, /css/, /js/, favicons, scorpion icon
+name: cf-static-cache-rules
 
 on:
   workflow_dispatch:
@@ -8,7 +8,13 @@ on:
     branches: [main]
     paths:
       - "safety/**"
+      - "assets/**"
+      - "brand/**"
+      - "css/**"
+      - "js/**"
+      - "_headers"
       - ".github/workflows/cf-safety-cache-rule.yml"
+      - "tools/apply_cf_static_cache_rules.py"
       - "tools/apply_cf_safety_cache_rule.py"
 
 permissions:
@@ -19,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply Cache Rule via Rulesets API
+      - name: Apply ASX static Cache Rules (Rulesets API)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ZONE_ID: fdfc2f6f3598393dc37bd9a4bed467b6
@@ -28,4 +34,4 @@ jobs:
             echo "CLOUDFLARE_API_TOKEN secret missing"
             exit 1
           fi
-          python3 tools/apply_cf_safety_cache_rule.py
+          python3 tools/apply_cf_static_cache_rules.py

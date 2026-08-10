@@ -42,12 +42,21 @@ python3 tools/refresh_safety_hosts.py   # if present
 ```bash
 export CLOUDFLARE_API_TOKEN=…   # Zone → Cache Rules → Edit
 export CF_ZONE_ID=fdfc2f6f3598393dc37bd9a4bed467b6
-python3 tools/apply_cf_safety_cache_rule.py
+python3 tools/apply_cf_static_cache_rules.py
 ```
 
-Or GitHub Actions: workflow `cf-safety-cache-rule` (uses secret `CLOUDFLARE_API_TOKEN`).
+Or GitHub Actions: workflow `cf-static-cache-rules` / `cf-safety-cache-rule.yml` (secret `CLOUDFLARE_API_TOKEN`).
 
-**2026-08-10 note:** workflow ran; CF API returned `10000 Authentication error` for that secret — token missing, expired, or lacks *Cache Rules Edit*. Fix token in GitHub repo secrets, re-run workflow.
+**Rules covered (ASX cache:*):**
+
+| Path | Edge/browser TTL |
+|------|------------------|
+| `/safety/*` | 1 day |
+| `/assets/*` (not `/assets/backups/*`) | 7 days |
+| `/brand/`, `/fonts/`, favicons, `scorpion-icon-512.png` | 7 days |
+| `/css/`, `/js/`, `/desktop/css|js/` | 1 day (`?v=` bust) |
+
+**2026-08-10 note:** first apply failed with CF `10000 Authentication error` on GH secret — refresh token with *Cache Rules Edit*, re-run workflow.
 
 ### Why not always hot-link raw GitHub?
 
