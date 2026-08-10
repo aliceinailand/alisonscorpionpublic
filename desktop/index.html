@@ -38,8 +38,23 @@
     <span class="tb-clock" id="tb-clock">00:00:00</span>
   </footer>
 
+  <!-- Kill legacy staging service worker that may pin old apex HTML -->
+  <script>
+  (function () {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) {
+        var s = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || "";
+        if (s.indexOf("sw-staging") !== -1 || s.indexOf("staging") !== -1) {
+          r.unregister();
+        }
+      });
+    }).catch(function () {});
+  })();
+  </script>
   <!-- Three.js r128 from cdnjs (Claude extracts use same family) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
+
