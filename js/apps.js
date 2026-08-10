@@ -7,12 +7,25 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20260810t242000z";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t242000z";
+} from "./blocklist.js?v=20260810t250000z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t250000z";
+import { routeFreeChat } from "./chat-router.js?v=20260810t250000z";
+import {
+  createAccount,
+  softDeleteAccount,
+  restoreAccount,
+  listActiveAccounts,
+  listTrashedAccounts,
+  getSessionUser,
+  setSessionUser,
+  daysLeftInTrash,
+  randomOtherProfiles,
+} from "./accounts.js?v=20260810t250000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =
   "https://drive.google.com/drive/folders/1Qx-z9L8QkcKYF_4CMqEPEdoJkvG1chU6?usp=sharing";
+export const GDRIVE_FOLDER_ID = "1Qx-z9L8QkcKYF_4CMqEPEdoJkvG1chU6";
 
 /** Resolve Containers product URL for this host layout. */
 export function containersUrl() {
@@ -41,6 +54,8 @@ export const APP_CATALOG = [
   { id: "trash", label: "Trash", glyph: "🗑" },
   { id: "network", label: "Network", glyph: "🖧" },
   { id: "gdrive", label: "GDrive", glyph: "☁" },
+  { id: "youtube", label: "YouTube", glyph: "▶" },
+  { id: "users", label: "Users", glyph: "👥" },
   { id: "applications", label: "Applications", glyph: "📦" },
   { id: "agent-asx", label: "Agent ASX", glyph: "α" },
   { id: "containers", label: "Containers", glyph: "📦" },
@@ -63,13 +78,13 @@ export const APP_CATEGORIES = [
     id: "system",
     label: "System",
     glyph: "⚙",
-    apps: ["terminal", "computer", "files", "settings", "about"],
+    apps: ["terminal", "computer", "files", "settings", "about", "users"],
   },
   {
     id: "internet",
     label: "Internet",
     glyph: "🌐",
-    apps: ["browser", "network", "gdrive", "chat"],
+    apps: ["browser", "network", "gdrive", "youtube", "chat"],
   },
   {
     id: "office",
@@ -81,13 +96,13 @@ export const APP_CATEGORIES = [
     id: "media",
     label: "Media",
     glyph: "🎬",
-    apps: ["image", "video"],
+    apps: ["image", "video", "youtube"],
   },
   {
     id: "asx",
     label: "ASX Products",
     glyph: "🦂",
-    apps: ["containers", "honeybee", "agent-asx"],
+    apps: ["containers", "honeybee", "agent-asx", "chat"],
   },
   {
     id: "utils",
@@ -106,6 +121,8 @@ const APP_OPENERS = {
   trash: openTrash,
   network: openNetwork,
   gdrive: openGDrive,
+  youtube: openYoutube,
+  users: openUsers,
   applications: openApplications,
   "agent-asx": openAgentAsx,
   containers: openContainers,
@@ -169,9 +186,10 @@ function openTerminal(wm, opts = {}) {
   const input = wrap.querySelector("input");
   const lines = agentMode
     ? [
-        "Agent ASX α — terminal channel [guest session]",
-        "DIM:You are speaking with Alison's agent surface on her workstation.",
-        "DIM:Type freely — deeper agent tools wire up later. try: help, whoami, status",
+        "Agent ASX α — desktop actions [free demo]",
+        "DIM:Unlike Chat (Q&A only), Agent can open apps and navigate.",
+        "DIM:Try: open settings | open browser | navigate to github.com | open youtube | help",
+        "DIM:Downloadable full Agent ASX later. Complex multi-step AI still needs an account.",
         "",
       ]
     : [
@@ -212,12 +230,15 @@ function openTerminal(wm, opts = {}) {
     if (!raw) return paint();
     const [base, ...rest] = raw.split(/\s+/);
     const arg = rest.join(" ");
-    if (agentMode && !["help", "clear", "whoami", "status", "about", "date", "echo"].includes(base)) {
-      // Chat-like: free text becomes a guest line + agent stub reply
-      lines.push(
-        `DIM:ASX · noted (agent channel demo). Wire to API later. You said: "${raw}"`
-      );
-      return paint();
+    if (agentMode) {
+      const acted = runAgentAction(wm, raw, lines);
+      if (acted) return paint();
+      if (!["help", "clear", "whoami", "status", "about", "date", "echo"].includes(base)) {
+        lines.push(
+          `DIM:Agent ASX α · no matching action. Try: open settings | open browser | navigate to github.com | open youtube | open drive | open chat | help`
+        );
+        return paint();
+      }
     }
     switch (base) {
       case "help":
@@ -330,11 +351,120 @@ function openTerminal(wm, opts = {}) {
   });
 }
 
+/**
+ * Agent ASX α — desktop actions (open apps, navigate). Free demo of a real agent.
+ * Chat is Q&A only; Agent *does* things on the desktop.
+ */
+function runAgentAction(wm, raw, lines) {
+  const q = String(raw || "").trim();
+  const lower = q.toLowerCase();
+
+  const goUrl = (url) => {
+    openBrowser(wm, { id: "browser-agent", title: "Browser — Agent", initialUrl: url });
+    lines.push(`OK:navigating browser → ${url}`);
+    return true;
+  };
+
+  if (/^help\b/i.test(q)) {
+    lines.push(
+      "DIM:Agent actions: open settings | open browser | open files | open terminal | open youtube | open drive | open chat | open applications | navigate to <url> | go to github.com"
+    );
+    lines.push(
+      "DIM:Full downloadable Agent ASX later. Free Chat = Q&A only (no actions)."
+    );
+    return true;
+  }
+  if (/open\s+settings/i.test(q)) {
+    openSettings(wm);
+    lines.push("OK:opened Settings");
+    return true;
+  }
+  if (/open\s+browser|open\s+internet/i.test(q)) {
+    openBrowser(wm);
+    lines.push("OK:opened Browser");
+    return true;
+  }
+  if (/open\s+files|open\s+file\s*manager/i.test(q)) {
+    openFiles(wm);
+    lines.push("OK:opened Files");
+    return true;
+  }
+  if (/open\s+terminal/i.test(q)) {
+    openTerminal(wm);
+    lines.push("OK:opened Terminal");
+    return true;
+  }
+  if (/open\s+youtube/i.test(q)) {
+    openYoutube(wm);
+    lines.push("OK:opened YouTube (AlisonScorpionX)");
+    return true;
+  }
+  if (/open\s+drive|open\s+gdrive|open\s+google\s*drive/i.test(q)) {
+    openGDrive(wm);
+    lines.push("OK:opened Alison Drive");
+    return true;
+  }
+  if (/open\s+chat/i.test(q)) {
+    openChat(wm);
+    lines.push("OK:opened Chat (Q&A — no desktop actions)");
+    return true;
+  }
+  if (/open\s+applications|open\s+apps/i.test(q)) {
+    openApplications(wm);
+    lines.push("OK:opened Applications");
+    return true;
+  }
+  if (/open\s+network/i.test(q)) {
+    openNetwork(wm);
+    lines.push("OK:opened Network");
+    return true;
+  }
+  if (/open\s+users|sign\s*up|create\s+account/i.test(q)) {
+    openUsers(wm);
+    lines.push("OK:opened Users (Add = sign up)");
+    return true;
+  }
+  if (/open\s+containers/i.test(q)) {
+    openContainers(wm);
+    lines.push("OK:opened Containers");
+    return true;
+  }
+  if (/open\s+trash/i.test(q)) {
+    openTrash(wm);
+    lines.push("OK:opened Trash");
+    return true;
+  }
+
+  const nav =
+    q.match(/navigate\s+to\s+(\S+)/i) ||
+    q.match(/go\s+to\s+(\S+)/i) ||
+    q.match(/open\s+(https?:\/\/\S+)/i);
+  if (nav) {
+    let target = nav[1].replace(/[.,)]+$/, "");
+    if (!/^https?:\/\//i.test(target) && target.includes(".")) {
+      target = "https://" + target;
+    }
+    if (/github\.com/i.test(target) || /^github$/i.test(target)) {
+      return goUrl("https://github.com");
+    }
+    return goUrl(normalizeNavUrl(target));
+  }
+  if (/github\.com|go\s+to\s+github/i.test(lower)) {
+    return goUrl("https://github.com");
+  }
+  if (/youtube\.com|go\s+to\s+youtube/i.test(lower)) {
+    openYoutube(wm);
+    lines.push("OK:opened YouTube app (embeds work; full site needs Open outside)");
+    return true;
+  }
+  return false;
+}
+
 function openAgentAsx(wm) {
   openTerminal(wm, {
     agentMode: true,
     id: "agent-asx",
-    title: "Agent ASX α — Terminal",
+    title: "Agent ASX α — actions",
   });
 }
 
@@ -532,16 +662,47 @@ function sessionTrashFiles() {
 
 function openTrash(wm) {
   const files = sessionTrashFiles();
+  const trashedUsers = listTrashedAccounts();
   const root = document.createElement("div");
   root.className = "trash-view";
+  const total = files.length + trashedUsers.length;
   root.innerHTML = `
     <div class="places-bar">
       <span class="places-uri">trash:///</span>
-      <span class="places-hint">${files.length} item(s) · Alison's trash</span>
+      <span class="places-hint">${total} item(s) · 30-day account hold</span>
     </div>
     <div class="trash-list"></div>
-    <p class="trash-foot">Guest cannot empty or restore — ASX only.</p>`;
+    <p class="trash-foot">Deleted accounts stay 30 days. Other items are Alison's — guests cannot open them.</p>`;
   const list = root.querySelector(".trash-list");
+
+  trashedUsers.forEach((u) => {
+    const days = daysLeftInTrash(u);
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "file-row trash-row";
+    row.innerHTML = `<span>👤</span><span class="n">${escapeHtml(
+      u.username
+    )}</span><span class="m">account · ${days}d left</span>`;
+    const ask = () => {
+      const ok = window.confirm(
+        `Accounts are deleted after 30 days. Once an account is deleted, this action cannot be undone.\n\nDo you want to restore your account “${u.username}”? (${days} day(s) remaining)`
+      );
+      if (!ok) return;
+      const r = restoreAccount(u.id);
+      if (r.error) window.alert(r.error);
+      else {
+        setSessionUser(u.id);
+        window.alert(`Account “${u.username}” restored. You are signed in.`);
+        openTrash(wm);
+      }
+    };
+    row.addEventListener("dblclick", ask);
+    row.addEventListener("click", () => {
+      if (matchMedia("(pointer: coarse)").matches) ask();
+    });
+    list.appendChild(row);
+  });
+
   files.forEach((name) => {
     const row = document.createElement("button");
     row.type = "button";
@@ -564,7 +725,7 @@ function openTrash(wm) {
   });
   wm.open({
     id: "trash",
-    title: `Trash (${files.length} items)`,
+    title: `Trash (${total} items)`,
     w: 480,
     h: 360,
     body: root,
@@ -584,10 +745,22 @@ function openNetwork(wm) {
   const grid = root.querySelector(".places-grid");
   const items = [
     {
+      glyph: "👥",
+      label: "Users",
+      sub: "Add / Remove accounts",
+      go: () => openUsers(wm),
+    },
+    {
       glyph: "☁",
       label: "GDrive",
-      sub: "Alison public folder",
+      sub: "Alison Drive",
       go: () => openGDrive(wm),
+    },
+    {
+      glyph: "▶",
+      label: "YouTube",
+      sub: "AlisonScorpionX",
+      go: () => openYoutube(wm),
     },
     {
       glyph: "🌐",
@@ -625,14 +798,342 @@ function openNetwork(wm) {
     });
     grid.appendChild(el);
   });
-  wm.open({ id: "network", title: "Network", w: 560, h: 380, body: root });
+  wm.open({ id: "network", title: "Network", w: 560, h: 400, body: root });
 }
 
+/* ── Users (signup / remove) ─────────────────────────────── */
+function openUsers(wm) {
+  const root = document.createElement("div");
+  root.className = "places-view users-view";
+  const me = getSessionUser();
+  root.innerHTML = `
+    <div class="places-bar">
+      <span class="places-uri">network:///Users</span>
+      <span class="places-hint">${me ? "signed in: " + escapeHtml(me.username) : "guest"}</span>
+    </div>
+    <div class="places-grid" id="users-grid"></div>
+    <p class="trash-foot">Your work folder (future) lives under your user id. Other profiles are permission-denied.</p>`;
+  const grid = root.querySelector("#users-grid");
+
+  const tile = (glyph, label, sub, go) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "place-tile";
+    el.innerHTML = `<span class="g">${glyph}</span><span class="n">${escapeHtml(
+      label
+    )}</span><span class="s">${escapeHtml(sub)}</span>`;
+    el.addEventListener("dblclick", go);
+    el.addEventListener("click", () => {
+      if (matchMedia("(pointer: coarse)").matches) go();
+    });
+    grid.appendChild(el);
+  };
+
+  tile("➕", "Add", "Sign up", () => openSignup(wm));
+  tile("➖", "Remove", "Delete my account", () => {
+    const u = getSessionUser();
+    if (!u) {
+      window.alert("No account signed in on this device. Use Add to sign up first.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Remove account “${u.username}”? It will move to Trash for 30 days, then be permanently deleted.`
+      )
+    ) {
+      return;
+    }
+    softDeleteAccount(u.id);
+    window.alert("Account moved to Trash (30-day hold). Open Trash to restore.");
+    openUsers(wm);
+  });
+
+  // Active accounts on this browser
+  listActiveAccounts().forEach((u) => {
+    tile("👤", u.username, u.email, () => {
+      setSessionUser(u.id);
+      window.alert(`Signed in as ${u.username}. Your work folder will live here later.`);
+    });
+  });
+
+  // Random decorative others
+  randomOtherProfiles(Date.now()).forEach((p) => {
+    tile("👤", p.username, "system", () =>
+      accessDenied(
+        wm,
+        `network:///Users/${p.username}`,
+        "You do not have permission to view this folder.",
+        { isDir: true, warn: true }
+      )
+    );
+  });
+
+  wm.open({ id: "users", title: "Users", w: 560, h: 420, body: root });
+}
+
+function openSignup(wm) {
+  const root = document.createElement("div");
+  root.className = "app-pad signup-form";
+  root.innerHTML = `
+    <h2>Create account</h2>
+    <p class="dim">Free guest signup is stored in this browser (localStorage) until the real backend ships. Advanced Chat reasoning will require this later.</p>
+    <label>Username <input type="text" id="su-user" autocomplete="username" /></label>
+    <label>Email <input type="email" id="su-email" autocomplete="email" /></label>
+    <label>Password <input type="password" id="su-pass" autocomplete="new-password" /></label>
+    <p id="su-err" class="err" hidden></p>
+    <button type="button" class="primary" id="su-go">Create account</button>`;
+  wm.open({
+    id: "signup",
+    title: "Sign up",
+    w: 420,
+    h: 400,
+    body: root,
+    onMount: (body) => {
+      body.querySelector("#su-go")?.addEventListener("click", () => {
+        const r = createAccount({
+          username: body.querySelector("#su-user").value,
+          email: body.querySelector("#su-email").value,
+          password: body.querySelector("#su-pass").value,
+        });
+        const err = body.querySelector("#su-err");
+        if (r.error) {
+          err.hidden = false;
+          err.textContent = r.error;
+          return;
+        }
+        err.hidden = true;
+        window.alert(`Welcome, ${r.user.username}. You are signed in on this device.`);
+        wm.close("signup");
+        openUsers(wm);
+      });
+    },
+  });
+}
+
+/* ── Alison Drive (Drive-like UI; public share + local tree) ─ */
+const ALISON_DRIVE_TREE = {
+  "/": [
+    { name: "Messages for guests", type: "folder", id: "messages" },
+    { name: "Downloads", type: "folder", id: "downloads" },
+    { name: "Public share", type: "folder", id: "public" },
+    { name: "README-ASX.txt", type: "file", id: "readme" },
+  ],
+  messages: [
+    { name: "welcome.txt", type: "file", id: "welcome" },
+    { name: "from-alison.md", type: "file", id: "from-alison" },
+  ],
+  downloads: [
+    { name: "brand-kit-note.txt", type: "file", id: "brand-note" },
+  ],
+  public: [
+    {
+      name: "Open real Google Drive folder…",
+      type: "link",
+      id: "real-drive",
+      url: GDRIVE_PUBLIC_URL,
+    },
+  ],
+};
+
+const ALISON_DRIVE_FILES = {
+  readme:
+    "Alison Drive — simulated view of Alison Scorpion's shared workspace.\n\nPublic Google Drive folder (real files):\n" +
+    GDRIVE_PUBLIC_URL +
+    "\n\nListing the live Drive API needs an API key (Settings later). This UI shows structure + opens the public share outside when framed.",
+  welcome:
+    "Welcome to Alison's desktop, guest.\n\nChat = free Q&A (low router).\nAgent ASX α = open apps / navigate.\nSign up under Network → Users → Add for advanced processing later.",
+  "from-alison":
+    "# From Alison\n\nLeave messages and downloads in the public Drive share.\nYou're on my machine — be kind to the Earth wallpaper.",
+  "brand-note":
+    "Brand assets live under /brand on the site. Vendor libraries load from cdnjs/jsDelivr — not from this Drive.",
+};
+
 function openGDrive(wm) {
-  openBrowser(wm, {
-    id: "browser-gdrive",
-    title: "Browser — GDrive (Alison public)",
-    initialUrl: GDRIVE_PUBLIC_URL,
+  let cwd = "/";
+  const root = document.createElement("div");
+  root.className = "drive-app";
+  root.innerHTML = `
+    <div class="drive-top">
+      <div class="drive-brand">
+        <img src="/brand/scorpion-universe-purple.png" alt="" width="28" height="28"
+          onerror="this.src='/scorpion-icon-512.png'" />
+        <span>Drive</span>
+        <span class="drive-who">Alison Scorpion</span>
+      </div>
+      <button type="button" class="drive-real" title="Open public Google folder">Public folder ↗</button>
+    </div>
+    <div class="drive-path"></div>
+    <div class="drive-list"></div>
+    <p class="drive-foot">Simulated Drive UI · live files via public share (Open outside if framed)</p>`;
+  const pathEl = root.querySelector(".drive-path");
+  const list = root.querySelector(".drive-list");
+  root.querySelector(".drive-real")?.addEventListener("click", () => {
+    openBrowser(wm, {
+      id: "browser-gdrive",
+      title: "Browser — public Drive",
+      initialUrl: GDRIVE_PUBLIC_URL,
+    });
+  });
+
+  const render = () => {
+    pathEl.textContent = "My Drive" + (cwd === "/" ? "" : " › " + cwd);
+    list.innerHTML = "";
+    if (cwd !== "/") {
+      const up = document.createElement("button");
+      up.type = "button";
+      up.className = "drive-row";
+      up.innerHTML = `<span>⬆</span><span>.. (up)</span>`;
+      up.addEventListener("click", () => {
+        cwd = "/";
+        render();
+      });
+      list.appendChild(up);
+    }
+    const items = ALISON_DRIVE_TREE[cwd === "/" ? "/" : cwd] || [];
+    items.forEach((it) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "drive-row";
+      const icon = it.type === "folder" ? "📁" : it.type === "link" ? "☁" : "📄";
+      row.innerHTML = `<span>${icon}</span><span>${escapeHtml(it.name)}</span>`;
+      row.addEventListener("click", () => {
+        if (it.type === "folder") {
+          cwd = it.id;
+          render();
+        } else if (it.type === "link") {
+          openBrowser(wm, {
+            id: "browser-gdrive",
+            title: "Browser — public Drive",
+            initialUrl: it.url || GDRIVE_PUBLIC_URL,
+          });
+        } else {
+          const body = ALISON_DRIVE_FILES[it.id] || "(empty)";
+          wm.open({
+            id: `drive-${it.id}`,
+            title: it.name,
+            w: 480,
+            h: 360,
+            body: `<div class="app-pad"><h2>${escapeHtml(it.name)}</h2><pre class="drive-pre">${escapeHtml(
+              body
+            )}</pre></div>`,
+          });
+        }
+      });
+      list.appendChild(row);
+    });
+  };
+  render();
+  wm.open({ id: "gdrive", title: "Alison Drive", w: 640, h: 480, body: root });
+}
+
+/* ── YouTube (AlisonScorpionX) — embeds work; full site does not ─ */
+const YT_DEMO = [
+  { id: "aqz-KE-bpKQ", title: "Big Buck Bunny", ch: "Blender Foundation" },
+  { id: "eRsGyueVLvQ", title: "Sintel (trailer)", ch: "Blender Foundation" },
+  { id: "YE7VzlLtp-4", title: "Elephants Dream", ch: "Blender Foundation" },
+  { id: "ScMzIvxBSi4", title: "Sample — Peaceful Music", ch: "Public domain / demo" },
+];
+
+function parseYoutubeId(input) {
+  const s = String(input || "").trim();
+  if (/^[\w-]{11}$/.test(s)) return s;
+  const m = s.match(
+    /(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/
+  );
+  return m ? m[1] : null;
+}
+
+function openYoutube(wm) {
+  let playing = YT_DEMO[0].id;
+  const root = document.createElement("div");
+  root.className = "yt-app";
+  root.innerHTML = `
+    <div class="yt-top">
+      <div class="yt-logo">▶ YouTube</div>
+      <form class="yt-search" action="javascript:void(0)">
+        <input type="search" placeholder="Search or paste video URL / ID" class="yt-q" />
+        <button type="submit">Search</button>
+      </form>
+      <div class="yt-user">
+        <img class="yt-av" src="/brand/scorpion-universe-purple.png" alt="" width="32" height="32"
+          onerror="this.src='/scorpion-icon-512.png'" />
+        <span>AlisonScorpionX</span>
+      </div>
+    </div>
+    <div class="yt-body">
+      <div class="yt-player-wrap">
+        <iframe class="yt-player" title="YouTube player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      </div>
+      <div class="yt-side">
+        <div class="yt-now"></div>
+        <div class="yt-list"></div>
+        <p class="yt-note">Embed player (works in-frame). Full youtube.com needs Browser → Open outside. Free demo list + paste URL.</p>
+      </div>
+    </div>`;
+  const player = root.querySelector(".yt-player");
+  const list = root.querySelector(".yt-list");
+  const now = root.querySelector(".yt-now");
+  const qIn = root.querySelector(".yt-q");
+
+  const play = (id, title) => {
+    playing = id;
+    player.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
+      id
+    )}?rel=0`;
+    now.innerHTML = `<strong>${escapeHtml(title || id)}</strong><br/><span class="dim">AlisonScorpionX · watching</span>`;
+  };
+
+  const renderList = (items) => {
+    list.innerHTML = "";
+    items.forEach((v) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "yt-row" + (v.id === playing ? " on" : "");
+      row.innerHTML = `<span class="yt-thumb">▶</span><span><b>${escapeHtml(
+        v.title
+      )}</b><br/><span class="dim">${escapeHtml(v.ch || "")}</span></span>`;
+      row.addEventListener("click", () => {
+        play(v.id, v.title);
+        renderList(items);
+      });
+      list.appendChild(row);
+    });
+  };
+
+  root.querySelector(".yt-search")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const raw = qIn.value.trim();
+    const id = parseYoutubeId(raw);
+    if (id) {
+      play(id, raw);
+      renderList([{ id, title: "Pasted video", ch: "YouTube" }, ...YT_DEMO]);
+      return;
+    }
+    // No API key: filter demo + note
+    const q = raw.toLowerCase();
+    const filtered = YT_DEMO.filter(
+      (v) => v.title.toLowerCase().includes(q) || v.ch.toLowerCase().includes(q)
+    );
+    if (filtered.length) {
+      renderList(filtered);
+      play(filtered[0].id, filtered[0].title);
+    } else {
+      window.alert(
+        "Free YouTube app: paste a video URL/ID, or pick a demo. Full search needs a YouTube Data API key (account / Settings later)."
+      );
+      renderList(YT_DEMO);
+    }
+  });
+
+  play(YT_DEMO[0].id, YT_DEMO[0].title);
+  renderList(YT_DEMO);
+
+  wm.open({
+    id: "youtube",
+    title: "YouTube — AlisonScorpionX",
+    w: 900,
+    h: 560,
+    body: root,
   });
 }
 
@@ -866,13 +1367,14 @@ function browserHomeHtml() {
   <ul>
     <li><a href="https://example.com">example.com</a> — usually embeds</li>
     <li><a href="https://info.cern.ch">info.cern.ch</a> — first website</li>
-    <li><a href="https://en.wikipedia.org/wiki/Main_Page">Wikipedia</a> — may refuse iframe (use Open outside)</li>
+    <li><a href="https://example.com">example.com</a> — embeds OK</li>
+    <li>YouTube / Google Drive — allowed, but need <em>Open outside</em> (they ban iframes)</li>
     <li><a href="https://alisonscorpion.com">alisonscorpion.com</a></li>
   </ul>
 </div>
 <div class="card">
-  <strong>Why some pages look blank</strong>
-  <p style="margin:8px 0 0">Many sites set <code>X-Frame-Options</code> / CSP <code>frame-ancestors</code> so they cannot load inside another site's iframe. That is the site protecting itself — not ASX broken. Use <em>Open outside</em> in the toolbar.</p>
+  <strong>Why YouTube / Drive say “refused to connect”</strong>
+  <p style="margin:8px 0 0">Not the adult filter. Those sites ban embedding in iframes (X-Frame-Options). ASX Browser is framed — use <em>Open outside</em> for a normal tab. Adult sites show a red 🛡 policy screen instead.</p>
 </div>
 </body></html>`;
 }
@@ -1226,15 +1728,16 @@ function openBrowser(wm, opts = {}) {
   });
 }
 
-/* ── Chat ─────────────────────────────────────────────────── */
+/* ── Chat (free Q&A router — no desktop actions) ─────────── */
 function openChat(wm) {
   const root = document.createElement("div");
-  root.className = "term";
+  root.className = "term chat-free";
   root.innerHTML = `
+    <div class="chat-banner">Free Chat · low router (query → logic → answer) · no app control</div>
     <div class="term-out" style="padding:12px"></div>
     <div class="term-in">
       <span class="prompt">you ›</span>
-      <input type="text" placeholder="Message Alison Scorpion…" />
+      <input type="text" placeholder="Ask a simple question…" />
     </div>`;
   const out = root.querySelector(".term-out");
   const input = root.querySelector("input");
@@ -1242,12 +1745,32 @@ function openChat(wm) {
     const d = document.createElement("div");
     d.style.marginBottom = "8px";
     d.innerHTML = `<span class="${cls || ""}" style="color:${
-      who === "ASX" ? "var(--brand)" : "var(--gold)"
+      who === "Chat" || who === "ASX" ? "var(--brand)" : "var(--gold)"
     }">${who}</span> ${escapeHtml(text)}`;
     out.appendChild(d);
     out.scrollTop = out.scrollHeight;
   };
-  add("ASX", "You're on my desktop. Ask about Containers, Honey Bee Engine, or verification — guest mode is local-only for now.", "ok");
+  const addLinks = (links) => {
+    if (!links?.length) return;
+    const d = document.createElement("div");
+    d.className = "chat-links";
+    links.forEach((L) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = L.label;
+      b.addEventListener("click", () => {
+        if (L.action === "signup") openUsers(wm);
+        else if (L.action === "agent") openAgentAsx(wm);
+      });
+      d.appendChild(b);
+    });
+    out.appendChild(d);
+  };
+  add(
+    "Chat",
+    "Free path: simple questions only (local router / low LLM layer). Example: “Who was the first president?” For open/navigate actions, use Agent ASX α. Complex reasoning → sign up.",
+    "ok"
+  );
 
   const send = () => {
     const msg = input.value.trim();
@@ -1255,20 +1778,18 @@ function openChat(wm) {
     add("You", msg);
     input.value = "";
     setTimeout(() => {
-      add(
-        "ASX",
-        `Heard: "${msg}". Full Claude/API bridge lands with backend session. Meanwhile open Containers for the product shell.`,
-        "dim"
-      );
-    }, 450);
+      const r = routeFreeChat(msg);
+      add("Chat", r.text, r.type === "upgrade" ? "err" : "dim");
+      addLinks(r.links);
+    }, 280);
   };
   input.addEventListener("keydown", (e) => e.key === "Enter" && send());
 
   wm.open({
     id: "chat",
-    title: "Chat",
-    w: 480,
-    h: 400,
+    title: "Chat — free Q&A",
+    w: 520,
+    h: 440,
     body: root,
     onMount: () => input.focus(),
   });
