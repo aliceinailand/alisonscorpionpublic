@@ -3,33 +3,57 @@
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t212800z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t212800z";
-import { WindowManager } from "./wm.js?v=20260810t212800z";
-import { registerApps, APP_CATALOG } from "./apps.js?v=20260810t212800z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t220500z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t220500z";
+import { WindowManager } from "./wm.js?v=20260810t220500z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t220500z";
 
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 /** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs, sha384) */
 const THREE_CDN_SRI =
   "sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu";
+
+/**
+ * Clean desktop — only core places (inspired by Alison's Linux layout, not a replica).
+ * Everything else lives under Applications/ by category.
+ * Trash badge count is cosmetic (ASX "active") — contents always permission-denied.
+ */
+function trashBadgeCount() {
+  // Stable-ish per session, 2–5 items so Trash looks used
+  try {
+    const k = "asx-trash-badge";
+    let n = parseInt(sessionStorage.getItem(k), 10);
+    if (!(n >= 2 && n <= 7)) {
+      n = 2 + Math.floor(Math.random() * 4);
+      sessionStorage.setItem(k, String(n));
+    }
+    return n;
+  } catch {
+    return 3;
+  }
+}
+
+const TRASH_N = trashBadgeCount();
+
+/** Left column, top → bottom — organized workstation */
 const DESKTOP_ICONS = [
-  { id: "terminal", label: "Terminal", glyph: "❯", x: 18, y: 18 },
-  { id: "files", label: "Files", glyph: "📁", x: 18, y: 110 },
-  { id: "browser", label: "Browser", glyph: "🌐", x: 18, y: 202 },
-  { id: "chat", label: "ASX Chat", glyph: "💬", x: 18, y: 294 },
-  { id: "containers", label: "Containers", glyph: "📦", x: 18, y: 386 },
-  { id: "honeybee", label: "honeybee", glyph: "🐝", x: 18, y: 478 },
-  { id: "calculator", label: "Calculator", glyph: "🧮", x: 110, y: 18 },
-  { id: "notepad", label: "Notepad", glyph: "📝", x: 110, y: 110 },
-  { id: "sticky", label: "Stickies", glyph: "📌", x: 110, y: 202 },
-  { id: "sheet", label: "Sheet", glyph: "📊", x: 110, y: 294 },
-  { id: "mindmap", label: "Mind Map", glyph: "🕸", x: 110, y: 386 },
-  { id: "image", label: "Images", glyph: "🖼", x: 202, y: 18 },
-  { id: "pdf", label: "PDF", glyph: "📄", x: 202, y: 110 },
-  { id: "video", label: "Video", glyph: "🎬", x: 202, y: 202 },
-  { id: "about", label: "About", glyph: "ℹ", x: 202, y: 294 },
-  { id: "settings", label: "Settings", glyph: "⚙", x: 202, y: 386 },
+  { id: "terminal", label: "Terminal", glyph: "❯", x: 18, y: 16 },
+  { id: "computer", label: "Computer", glyph: "🖥", x: 18, y: 108 },
+  { id: "browser", label: "Browser", glyph: "🌐", x: 18, y: 200 },
+  { id: "chat", label: "Chat", glyph: "💬", x: 18, y: 292 },
+  {
+    id: "trash",
+    label: `Trash (${TRASH_N})`,
+    glyph: "🗑",
+    x: 18,
+    y: 384,
+    badge: TRASH_N,
+  },
+  { id: "network", label: "Network", glyph: "🖧", x: 18, y: 476 },
+  { id: "gdrive", label: "GDrive", glyph: "☁", x: 18, y: 568 },
+  { id: "applications", label: "Applications", glyph: "📦", x: 110, y: 16 },
+  { id: "agent-asx", label: "Agent ASX", glyph: "α", x: 110, y: 108, agent: true },
 ];
 
 function isMobileUi() {
@@ -94,14 +118,18 @@ function placeIcons(layer, openApp) {
   const mobile = isMobileUi();
   DESKTOP_ICONS.forEach((data) => {
     const el = document.createElement("div");
-    el.className = "desk-icon";
+    el.className = "desk-icon" + (data.agent ? " desk-icon-agent" : "");
     el.style.left = data.x + "px";
     el.style.top = data.y + "px";
     el.dataset.app = data.id;
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
     el.setAttribute("aria-label", `Open ${data.label}`);
-    el.innerHTML = `<div class="glyph">${data.glyph}</div><div class="label">${data.label}</div>`;
+    const badge =
+      data.badge != null
+        ? `<span class="desk-badge" aria-hidden="true">${data.badge}</span>`
+        : "";
+    el.innerHTML = `<div class="glyph">${data.glyph}${badge}</div><div class="label">${data.label}</div>`;
 
     const select = () => {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
@@ -130,16 +158,31 @@ function placeIcons(layer, openApp) {
 }
 
 function buildStartMenu(menu, openApp) {
-  menu.innerHTML = `<h3>◆ ASX applications</h3>`;
-  APP_CATALOG.forEach((app) => {
-    const row = document.createElement("div");
-    row.className = "sm-item";
-    row.innerHTML = `<span class="g">${app.glyph}</span><span>${app.label}</span>`;
-    row.addEventListener("click", () => {
-      openApp(app.id);
-      menu.classList.remove("open");
+  menu.innerHTML = `<h3>◆ Alison's desktop</h3>
+    <div class="sm-item" data-go="applications"><span class="g">📦</span><span>Applications</span></div>
+    <div class="sm-sep"></div>`;
+  // Categorized (same as Applications folder)
+  (APP_CATEGORIES || []).forEach((cat) => {
+    const h = document.createElement("div");
+    h.className = "sm-cat";
+    h.textContent = cat.label;
+    menu.appendChild(h);
+    (cat.apps || []).forEach((id) => {
+      const app = APP_CATALOG.find((a) => a.id === id);
+      if (!app) return;
+      const row = document.createElement("div");
+      row.className = "sm-item";
+      row.innerHTML = `<span class="g">${app.glyph}</span><span>${app.label}</span>`;
+      row.addEventListener("click", () => {
+        openApp(app.id);
+        menu.classList.remove("open");
+      });
+      menu.appendChild(row);
     });
-    menu.appendChild(row);
+  });
+  menu.querySelector('[data-go="applications"]')?.addEventListener("click", () => {
+    openApp("applications");
+    menu.classList.remove("open");
   });
 }
 

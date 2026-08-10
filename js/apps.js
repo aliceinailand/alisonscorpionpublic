@@ -7,8 +7,12 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20260810t212800z";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t212800z";
+} from "./blocklist.js?v=20260810t220500z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t220500z";
+
+/** Alison's public read-only GDrive (messages / downloads for guests). */
+export const GDRIVE_PUBLIC_URL =
+  "https://drive.google.com/drive/folders/1Qx-z9L8QkcKYF_4CMqEPEdoJkvG1chU6?usp=sharing";
 
 /** Resolve Containers product URL for this host layout. */
 export function containersUrl() {
@@ -23,15 +27,22 @@ export function containersUrl() {
 }
 
 export function registerApps(wm) {
-  const open = (id) => APP_OPENERS[id]?.(wm);
-  return { open, catalog: APP_CATALOG };
+  const open = (id, opts) => APP_OPENERS[id]?.(wm, opts);
+  return { open, catalog: APP_CATALOG, categories: APP_CATEGORIES };
 }
 
+/** Apps available in Applications folder + start menu (not all on desktop). */
 export const APP_CATALOG = [
   { id: "terminal", label: "Terminal", glyph: "❯" },
+  { id: "computer", label: "Computer", glyph: "🖥" },
   { id: "files", label: "Files", glyph: "📁" },
   { id: "browser", label: "Browser", glyph: "🌐" },
-  { id: "chat", label: "ASX Chat", glyph: "💬" },
+  { id: "chat", label: "Chat", glyph: "💬" },
+  { id: "trash", label: "Trash", glyph: "🗑" },
+  { id: "network", label: "Network", glyph: "🖧" },
+  { id: "gdrive", label: "GDrive", glyph: "☁" },
+  { id: "applications", label: "Applications", glyph: "📦" },
+  { id: "agent-asx", label: "Agent ASX", glyph: "α" },
   { id: "containers", label: "Containers", glyph: "📦" },
   { id: "honeybee", label: "honeybee", glyph: "🐝" },
   { id: "calculator", label: "Calculator", glyph: "🧮" },
@@ -46,11 +57,57 @@ export const APP_CATALOG = [
   { id: "settings", label: "Settings", glyph: "⚙" },
 ];
 
+/** Category folders inside Applications (desktop stays clean). */
+export const APP_CATEGORIES = [
+  {
+    id: "system",
+    label: "System",
+    glyph: "⚙",
+    apps: ["terminal", "computer", "files", "settings", "about"],
+  },
+  {
+    id: "internet",
+    label: "Internet",
+    glyph: "🌐",
+    apps: ["browser", "network", "gdrive", "chat"],
+  },
+  {
+    id: "office",
+    label: "Office",
+    glyph: "📊",
+    apps: ["notepad", "sticky", "sheet", "mindmap", "pdf"],
+  },
+  {
+    id: "media",
+    label: "Media",
+    glyph: "🎬",
+    apps: ["image", "video"],
+  },
+  {
+    id: "asx",
+    label: "ASX Products",
+    glyph: "🦂",
+    apps: ["containers", "honeybee", "agent-asx"],
+  },
+  {
+    id: "utils",
+    label: "Utilities",
+    glyph: "🔧",
+    apps: ["calculator"],
+  },
+];
+
 const APP_OPENERS = {
   terminal: openTerminal,
+  computer: openComputer,
   files: openFiles,
   browser: openBrowser,
   chat: openChat,
+  trash: openTrash,
+  network: openNetwork,
+  gdrive: openGDrive,
+  applications: openApplications,
+  "agent-asx": openAgentAsx,
   containers: openContainers,
   honeybee: openHoneybee,
   calculator: openCalculator,
@@ -65,21 +122,25 @@ const APP_OPENERS = {
   settings: openSettings,
 };
 
-function accessDenied(wm, path, detail) {
+function accessDenied(wm, path, detail, opts = {}) {
   // Linux-style error (PCManFM / GIO): "Error opening directory …: Permission denied"
   const p = path || "";
-  const isDir = !/\.[a-z0-9]+$/i.test(p.split("/").pop() || "");
+  const isDir =
+    opts.isDir != null
+      ? opts.isDir
+      : !/\.[a-z0-9]+$/i.test(p.split("/").pop() || "");
   const lead = isDir
     ? `Error opening directory "${p}": Permission denied`
     : `Error opening file "${p}": Permission denied`;
+  const icon = opts.warn ? "⚠" : "🔒";
   wm.open({
     id: `eaccess-${Date.now()}`,
     title: "Permission denied",
     w: 460,
     h: 280,
     body: `<div class="modal-error">
-      <div class="big">🔒</div>
-      <div class="msg">Permission denied</div>
+      <div class="big ${opts.warn ? "warn" : ""}">${icon}</div>
+      <div class="msg" style="color:var(--fail)">You do not have permission to view this file.</div>
       <div class="sub" style="margin-top:10px;text-align:left;font-family:var(--mono,monospace);font-size:12px;color:var(--text)">${escapeHtml(
         lead
       )}</div>
@@ -92,23 +153,33 @@ function accessDenied(wm, path, detail) {
 }
 
 /* ── Terminal ─────────────────────────────────────────────── */
-function openTerminal(wm) {
+function openTerminal(wm, opts = {}) {
+  const agentMode = !!opts.agentMode;
+  const winId = opts.id || (agentMode ? "agent-asx" : "terminal");
+  const title = opts.title || (agentMode ? "Agent ASX α — Terminal" : "ASX Terminal");
   const wrap = document.createElement("div");
-  wrap.className = "term";
+  wrap.className = "term" + (agentMode ? " term-agent" : "");
   wrap.innerHTML = `
     <div class="term-out"></div>
     <div class="term-in">
-      <span class="prompt">guest@asx:~$</span>
+      <span class="prompt">${agentMode ? "agent@asx ›" : "guest@asx:~$"}</span>
       <input type="text" spellcheck="false" autocomplete="off" aria-label="Terminal input" />
     </div>`;
   const out = wrap.querySelector(".term-out");
   const input = wrap.querySelector("input");
-  const lines = [
-    "ASX Terminal [guest session]",
-    "(c) Alison Scorpion Desktop — you are using her workstation.",
-    'Type "help" for available commands.',
-    "",
-  ];
+  const lines = agentMode
+    ? [
+        "Agent ASX α — terminal channel [guest session]",
+        "DIM:You are speaking with Alison's agent surface on her workstation.",
+        "DIM:Type freely — deeper agent tools wire up later. try: help, whoami, status",
+        "",
+      ]
+    : [
+        "ASX Terminal [guest session]",
+        "(c) Alison Scorpion Desktop — you are using her workstation.",
+        'Type "help" for available commands.',
+        "",
+      ];
   // P6/P7: batch terminal repaints to one frame (adaptive path — avoid N layouts per cmd)
   let paintScheduled = false;
   const paintNow = () => {
@@ -135,18 +206,36 @@ function openTerminal(wm) {
   let cwd = "/home/guest";
   const run = (cmd) => {
     const raw = cmd.trim();
-    lines.push(`guest@asx:${cwd}$ ${raw}`);
+    lines.push(
+      agentMode ? `agent@asx › ${raw}` : `guest@asx:${cwd}$ ${raw}`
+    );
     if (!raw) return paint();
     const [base, ...rest] = raw.split(/\s+/);
     const arg = rest.join(" ");
+    if (agentMode && !["help", "clear", "whoami", "status", "about", "date", "echo"].includes(base)) {
+      // Chat-like: free text becomes a guest line + agent stub reply
+      lines.push(
+        `DIM:ASX · noted (agent channel demo). Wire to API later. You said: "${raw}"`
+      );
+      return paint();
+    }
     switch (base) {
       case "help":
         lines.push(
-          "DIM:help about clear ls cd pwd cat date whoami uname echo open containers honeybee"
+          agentMode
+            ? "DIM:help status whoami about clear date echo — free text is chat until agent tools ship"
+            : "DIM:help about clear ls cd pwd cat date whoami uname echo open containers honeybee"
         );
         break;
+      case "status":
+        lines.push("OK:Agent ASX α online · guest session · verification-first · no seal required for chat");
+        break;
       case "about":
-        lines.push("ASX OS Desktop — verification-first guest environment on Alison Scorpion's workstation.");
+        lines.push(
+          agentMode
+            ? "Agent ASX α — terminal chat surface on Alison Scorpion's desktop."
+            : "ASX OS Desktop — verification-first guest environment on Alison Scorpion's workstation."
+        );
         break;
       case "clear":
         lines.length = 0;
@@ -215,8 +304,8 @@ function openTerminal(wm) {
   };
 
   wm.open({
-    id: "terminal",
-    title: "ASX Terminal",
+    id: winId,
+    title,
     w: 680,
     h: 420,
     body: wrap,
@@ -241,9 +330,315 @@ function openTerminal(wm) {
   });
 }
 
+function openAgentAsx(wm) {
+  openTerminal(wm, {
+    agentMode: true,
+    id: "agent-asx",
+    title: "Agent ASX α — Terminal",
+  });
+}
+
+/* ── Computer (home / places — PCManFM-inspired) ─────────── */
+function openComputer(wm) {
+  const root = document.createElement("div");
+  root.className = "places-view";
+  root.innerHTML = `
+    <div class="places-bar">
+      <span class="places-uri">computer:///</span>
+      <span class="places-hint">Alison's machine · guest view</span>
+    </div>
+    <div class="places-grid"></div>`;
+  const grid = root.querySelector(".places-grid");
+  const items = [
+    {
+      id: "home-alison",
+      glyph: "🏠",
+      label: "Alison",
+      sub: "/home/alisonscorpion",
+      action: () => openFiles(wm, { startPath: "/home/alisonscorpion" }),
+    },
+    {
+      id: "home-guest",
+      glyph: "👤",
+      label: "Guest Home",
+      sub: "/home/guest",
+      action: () => openFiles(wm, { startPath: "/home/guest" }),
+    },
+    {
+      id: "fs-root",
+      glyph: "💿",
+      label: "File System",
+      sub: "/",
+      action: () => openFiles(wm, { startPath: "/" }),
+    },
+    {
+      id: "apps",
+      glyph: "📦",
+      label: "Applications",
+      sub: "categories",
+      action: () => openApplications(wm),
+    },
+    {
+      id: "net",
+      glyph: "🖧",
+      label: "Network",
+      sub: "network:///",
+      action: () => openNetwork(wm),
+    },
+    {
+      id: "trash",
+      glyph: "🗑",
+      label: "Trash",
+      sub: "trash:///",
+      action: () => openTrash(wm),
+    },
+  ];
+  items.forEach((it) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "place-tile";
+    el.innerHTML = `<span class="g">${it.glyph}</span><span class="n">${escapeHtml(
+      it.label
+    )}</span><span class="s">${escapeHtml(it.sub)}</span>`;
+    el.addEventListener("dblclick", it.action);
+    el.addEventListener("click", (e) => {
+      if (matchMedia("(pointer: coarse)").matches) it.action();
+      else {
+        grid.querySelectorAll(".place-tile").forEach((t) => t.classList.remove("sel"));
+        el.classList.add("sel");
+      }
+    });
+    grid.appendChild(el);
+  });
+  wm.open({
+    id: "computer",
+    title: "Computer",
+    w: 640,
+    h: 420,
+    body: root,
+  });
+}
+
+/* ── Applications (category folders) ─────────────────────── */
+function openApplications(wm, opts = {}) {
+  let view = opts.categoryId || null; // null = category list
+  const root = document.createElement("div");
+  root.className = "apps-folder";
+  root.innerHTML = `
+    <div class="apps-folder-bar">
+      <button type="button" class="apps-up" title="Up">⬆</button>
+      <span class="apps-path">Applications</span>
+    </div>
+    <div class="apps-folder-grid"></div>`;
+  const pathEl = root.querySelector(".apps-path");
+  const grid = root.querySelector(".apps-folder-grid");
+  const upBtn = root.querySelector(".apps-up");
+
+  const openAppId = (id) => {
+    if (id === "applications") return;
+    APP_OPENERS[id]?.(wm);
+  };
+
+  const render = () => {
+    grid.innerHTML = "";
+    if (!view) {
+      pathEl.textContent = "Applications";
+      upBtn.disabled = true;
+      APP_CATEGORIES.forEach((cat) => {
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "apps-tile folder";
+        el.innerHTML = `<span class="g">${cat.glyph}</span><span class="n">${escapeHtml(
+          cat.label
+        )}</span><span class="s">${cat.apps.length} items</span>`;
+        const go = () => {
+          view = cat.id;
+          render();
+        };
+        el.addEventListener("dblclick", go);
+        el.addEventListener("click", () => {
+          if (matchMedia("(pointer: coarse)").matches) go();
+        });
+        grid.appendChild(el);
+      });
+      return;
+    }
+    const cat = APP_CATEGORIES.find((c) => c.id === view);
+    pathEl.textContent = `Applications › ${cat ? cat.label : view}`;
+    upBtn.disabled = false;
+    (cat?.apps || []).forEach((id) => {
+      const app = APP_CATALOG.find((a) => a.id === id);
+      if (!app) return;
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "apps-tile";
+      el.innerHTML = `<span class="g">${app.glyph}</span><span class="n">${escapeHtml(
+        app.label
+      )}</span>`;
+      const go = () => openAppId(id);
+      el.addEventListener("dblclick", go);
+      el.addEventListener("click", () => {
+        if (matchMedia("(pointer: coarse)").matches) go();
+      });
+      grid.appendChild(el);
+    });
+  };
+
+  upBtn.addEventListener("click", () => {
+    view = null;
+    render();
+  });
+  render();
+
+  wm.open({
+    id: "applications",
+    title: "Applications",
+    w: 560,
+    h: 440,
+    body: root,
+  });
+}
+
+/* ── Trash (looks active; contents always denied) ─────────── */
+const TRASH_POOL = [
+  "draft-seal-notes.md",
+  "old-screenshot.png",
+  "meeting-scratch.txt",
+  "tmp-verify-log.json",
+  "asx-chat-history.bak",
+  "untitled-sheet.ods",
+  "download-partial.bin",
+  "agent-trace-2026.log",
+  "contract-wip.docx",
+  "browser-cache-chunk",
+];
+
+function sessionTrashFiles() {
+  try {
+    const k = "asx-trash-files";
+    const raw = sessionStorage.getItem(k);
+    if (raw) {
+      const a = JSON.parse(raw);
+      if (Array.isArray(a) && a.length) return a;
+    }
+    const n = 2 + Math.floor(Math.random() * 4);
+    const shuffled = [...TRASH_POOL].sort(() => Math.random() - 0.5).slice(0, n);
+    sessionStorage.setItem(k, JSON.stringify(shuffled));
+    return shuffled;
+  } catch {
+    return TRASH_POOL.slice(0, 3);
+  }
+}
+
+function openTrash(wm) {
+  const files = sessionTrashFiles();
+  const root = document.createElement("div");
+  root.className = "trash-view";
+  root.innerHTML = `
+    <div class="places-bar">
+      <span class="places-uri">trash:///</span>
+      <span class="places-hint">${files.length} item(s) · Alison's trash</span>
+    </div>
+    <div class="trash-list"></div>
+    <p class="trash-foot">Guest cannot empty or restore — ASX only.</p>`;
+  const list = root.querySelector(".trash-list");
+  files.forEach((name) => {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "file-row trash-row";
+    row.innerHTML = `<span>📄</span><span class="n">${escapeHtml(
+      name
+    )}</span><span class="m">deleted</span>`;
+    const deny = () =>
+      accessDenied(
+        wm,
+        `trash:///${name}`,
+        "You do not have permission to view this file.\n\nTrash contents belong to Alison Scorpion (ASX).",
+        { isDir: false, warn: true }
+      );
+    row.addEventListener("dblclick", deny);
+    row.addEventListener("click", () => {
+      if (matchMedia("(pointer: coarse)").matches) deny();
+    });
+    list.appendChild(row);
+  });
+  wm.open({
+    id: "trash",
+    title: `Trash (${files.length} items)`,
+    w: 480,
+    h: 360,
+    body: root,
+  });
+}
+
+/* ── Network ─────────────────────────────────────────────── */
+function openNetwork(wm) {
+  const root = document.createElement("div");
+  root.className = "places-view";
+  root.innerHTML = `
+    <div class="places-bar">
+      <span class="places-uri">network:///</span>
+      <span class="places-hint">Browse network (virtual)</span>
+    </div>
+    <div class="places-grid"></div>`;
+  const grid = root.querySelector(".places-grid");
+  const items = [
+    {
+      glyph: "☁",
+      label: "GDrive",
+      sub: "Alison public folder",
+      go: () => openGDrive(wm),
+    },
+    {
+      glyph: "🌐",
+      label: "Internet",
+      sub: "ASX Browser",
+      go: () => openBrowser(wm),
+    },
+    {
+      glyph: "🖥",
+      label: "asx-desktop",
+      sub: "This workstation",
+      go: () => openComputer(wm),
+    },
+    {
+      glyph: "🔒",
+      label: "Workgroup",
+      sub: "admin only",
+      go: () =>
+        accessDenied(wm, "network:///Workgroup", "Network shares require ASX credentials.", {
+          isDir: true,
+          warn: true,
+        }),
+    },
+  ];
+  items.forEach((it) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "place-tile";
+    el.innerHTML = `<span class="g">${it.glyph}</span><span class="n">${escapeHtml(
+      it.label
+    )}</span><span class="s">${escapeHtml(it.sub)}</span>`;
+    el.addEventListener("dblclick", it.go);
+    el.addEventListener("click", () => {
+      if (matchMedia("(pointer: coarse)").matches) it.go();
+    });
+    grid.appendChild(el);
+  });
+  wm.open({ id: "network", title: "Network", w: 560, h: 380, body: root });
+}
+
+function openGDrive(wm) {
+  openBrowser(wm, {
+    id: "browser-gdrive",
+    title: "Browser — GDrive (Alison public)",
+    initialUrl: GDRIVE_PUBLIC_URL,
+  });
+}
+
 /* ── Files (PCManFM-Qt style) ─────────────────────────────── */
-function openFiles(wm) {
-  let cwd = "/home/guest";
+function openFiles(wm, opts = {}) {
+  let cwd = opts.startPath || "/home/guest";
   const root = document.createElement("div");
   root.className = "files";
   root.innerHTML = `
@@ -511,7 +906,10 @@ function showFrameHint(frame, url) {
   frame.appendChild(bar);
 }
 
-function openBrowser(wm) {
+function openBrowser(wm, opts = {}) {
+  const winId = opts.id || "browser";
+  const winTitle = opts.title || "ASX Browser";
+  const startUrl = opts.initialUrl || ASX_HOME;
   const root = document.createElement("div");
   root.className = "browser";
   root.innerHTML = `
@@ -520,7 +918,7 @@ function openBrowser(wm) {
       <button type="button" data-act="fwd" title="Forward">▶</button>
       <button type="button" data-act="reload" title="Reload">↻</button>
       <button type="button" data-act="home" title="Home">⌂</button>
-      <input type="text" class="url" value="${ASX_HOME}" spellcheck="false" autocomplete="off" />
+      <input type="text" class="url" value="${escapeHtml(startUrl)}" spellcheck="false" autocomplete="off" />
       <button type="button" data-act="go">Go</button>
       <button type="button" data-act="out" title="Open outside ASX frame">Open outside</button>
     </div>
@@ -703,8 +1101,8 @@ function openBrowser(wm) {
   });
 
   wm.open({
-    id: "browser",
-    title: "ASX Browser",
+    id: winId,
+    title: winTitle,
     w: 900,
     h: 620,
     x: 80,
@@ -713,7 +1111,7 @@ function openBrowser(wm) {
     onMount: () => {
       // Prefetch public safety list (same-origin shards) while showing home
       ensureSafetyListsLoaded();
-      navigate(ASX_HOME);
+      navigate(startUrl);
     },
     onClose: () => {
       clearTimeout(loadTimer);
@@ -760,7 +1158,14 @@ function openChat(wm) {
   };
   input.addEventListener("keydown", (e) => e.key === "Enter" && send());
 
-  wm.open({ id: "chat", title: "ASX Chat", w: 480, h: 400, body: root, onMount: () => input.focus() });
+  wm.open({
+    id: "chat",
+    title: "Chat",
+    w: 480,
+    h: 400,
+    body: root,
+    onMount: () => input.focus(),
+  });
 }
 
 /* ── Containers (existing website) ────────────────────────── */

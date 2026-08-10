@@ -337,6 +337,151 @@ body {
   text-shadow: 0 1px 3px #000;
   word-break: break-word;
 }
+.desk-icon .glyph {
+  position: relative;
+}
+.desk-badge {
+  position: absolute;
+  top: -4px;
+  right: 8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.desk-icon-agent .glyph {
+  font-weight: 800;
+  font-family: ui-serif, Georgia, serif;
+  color: #c4b5fd;
+  font-size: 32px;
+}
+.modal-error .big.warn {
+  color: var(--fail);
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+}
+
+/* Computer / Network / Applications tiles */
+.places-view,
+.apps-folder,
+.trash-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: rgba(12, 10, 16, 0.96);
+}
+.places-bar,
+.apps-folder-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.places-uri,
+.apps-path {
+  font-family: ui-monospace, monospace;
+  color: var(--brand);
+}
+.places-hint {
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: auto;
+}
+.places-grid,
+.apps-folder-grid {
+  flex: 1;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  align-content: start;
+}
+.place-tile,
+.apps-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+.place-tile:hover,
+.apps-tile:hover,
+.place-tile.sel {
+  background: rgba(124, 58, 237, 0.16);
+  border-color: var(--border);
+}
+.place-tile .g,
+.apps-tile .g {
+  font-size: 36px;
+  line-height: 1;
+}
+.place-tile .n,
+.apps-tile .n {
+  font-size: 12px;
+  text-align: center;
+}
+.place-tile .s,
+.apps-tile .s {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+.apps-tile.folder .g {
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.35));
+}
+.apps-up {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.apps-up:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.trash-list {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+}
+.trash-foot {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+.term-agent .prompt {
+  color: #c4b5fd;
+}
+.sm-cat {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.sm-sep {
+  height: 1px;
+  margin: 6px 10px;
+  background: var(--border);
+}
 
 /* Windows */
 #windows-root {
