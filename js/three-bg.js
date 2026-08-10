@@ -157,49 +157,10 @@ const BRIGHT_STARS = [
   ["Kaus Australis", 18.4029, -34.3846, 1.85, [1.0, 0.82, 0.55]],
 ];
 
-/** Stick figures for a few iconic figures (Earth-sky pattern recognition). */
-const CONSTELLATION_LINES = [
-  // Orion
-  ["Betelgeuse", "Bellatrix"],
-  ["Bellatrix", "Mintaka"],
-  ["Mintaka", "Alnilam"],
-  ["Alnilam", "Alnitak"],
-  ["Alnitak", "Saiph"],
-  ["Saiph", "Rigel"],
-  ["Rigel", "Mintaka"],
-  ["Betelgeuse", "Alnitak"],
-  // Scorpius (ASX brand)
-  ["Dschubba", "Antares"],
-  ["Antares", "Larawag"],
-  ["Larawag", "Shaula"],
-  ["Shaula", "Sargas"],
-  // Big Dipper / Ursa Major
-  ["Dubhe", "Merak"],
-  ["Merak", "Phecda"],
-  ["Phecda", "Megrez"],
-  ["Megrez", "Dubhe"],
-  ["Megrez", "Alioth"],
-  ["Alioth", "Mizar"],
-  ["Mizar", "Alkaid"],
-  // Cassiopeia W
-  ["Caph", "Schedar"],
-  ["Schedar", "Gamma Cas"],
-  ["Gamma Cas", "Ruchbah"],
-  ["Ruchbah", "Segin"],
-  // Summer Triangle
-  ["Vega", "Deneb"],
-  ["Deneb", "Altair"],
-  ["Altair", "Vega"],
-  // Southern Cross
-  ["Acrux", "Mimosa"],
-  ["Mimosa", "Gacrux"],
-  ["Gacrux", "Acrux"],
-  ["Acrux", "Gacrux"],
-];
-
 /**
- * Build distant starfield: dense dim background + catalog brights + faint lines.
+ * Build distant starfield: dense dim background + catalog brights.
  * Stars sit on a large sphere so they feel infinitely far (no cube-clump).
+ * Constellation stick-figure lines intentionally omitted (stars only).
  */
 function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   const group = new THREE.Group();
@@ -309,15 +270,13 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
     group.add(band);
   }
 
-  // --- Layer D: real bright stars (Earth-view catalog) ---
-  const nameToPos = Object.create(null);
+  // --- Layer D: real bright stars (Earth-view catalog; no stick-figure lines) ---
   const nCat = BRIGHT_STARS.length;
   const catPos = new Float32Array(nCat * 3);
   const catCol = new Float32Array(nCat * 3);
   for (let i = 0; i < nCat; i++) {
-    const [name, ra, dec, mag, rgb] = BRIGHT_STARS[i];
+    const [, ra, dec, mag, rgb] = BRIGHT_STARS[i];
     const p = raDecToXYZ(ra, dec, STAR_R * 0.99);
-    nameToPos[name] = p;
     catPos[i * 3] = p[0];
     catPos[i * 3 + 1] = p[1];
     catPos[i * 3 + 2] = p[2];
@@ -356,38 +315,6 @@ function buildCelestialStarfield(THREE, { reduceMotion, tiny, mobile }) {
   const haloStars = new THREE.Points(haloGeo, starMat(tiny ? 5.5 : 4.5, 0.28));
   haloStars.name = "stars-halo";
   group.add(haloStars);
-
-  // --- Faint constellation guides (subtle; Earth patterns, not diagram-loud) ---
-  if (!reduceMotion && !tiny) {
-    const lineVerts = [];
-    for (const [a, b] of CONSTELLATION_LINES) {
-      const pa = nameToPos[a];
-      const pb = nameToPos[b];
-      if (!pa || !pb) continue;
-      lineVerts.push(pa[0], pa[1], pa[2], pb[0], pb[1], pb[2]);
-    }
-    if (lineVerts.length) {
-      const lineGeo = new THREE.BufferGeometry();
-      lineGeo.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(lineVerts, 3)
-      );
-      disposables.push(lineGeo);
-      const lines = new THREE.LineSegments(
-        lineGeo,
-        new THREE.LineBasicMaterial({
-          color: 0xa78bfa,
-          transparent: true,
-          opacity: 0.12,
-          depthWrite: false,
-          fog: false,
-          blending: THREE.AdditiveBlending,
-        })
-      );
-      lines.name = "constellation-lines";
-      group.add(lines);
-    }
-  }
 
   return { group, disposables, farStars, midStars, catStars };
 }
@@ -875,7 +802,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   sunGroup.add(sunScatter);
   scene.add(sunGroup);
 
-  // --- Celestial sphere: Earth-view stars + faint constellations + purple dust ---
+  // --- Celestial sphere: Earth-view stars + purple dust (no constellation lines) ---
   // Dense background field stays subordinate to Earth/Moon focus.
   const {
     group: stars,
