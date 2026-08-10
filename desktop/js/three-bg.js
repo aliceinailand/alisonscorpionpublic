@@ -6,9 +6,8 @@
  * ball of fire — real sky θ≈0.53°; ASX art ~2° disc + bloom. Moon orbit good.
  * Translucent drifting clouds (NASA + climate priors) — continents stay readable;
  * weather scrolls and fades so cover never freezes into an ice sheet.
- * Celestial sphere: dense far stars + real RA/Dec catalog + faint constellations
- * (Orion, Scorpius, Dipper, Cassiopeia, Summer Triangle, Southern Cross) on a
- * universe-purple void — background only; Earth/Moon stay the focus.
+ * Celestial sphere: dense far stars + real RA/Dec catalog brights (no stick
+ * figure lines) on a universe-purple void — background only; Earth/Moon focus.
  * Drag empty desktop to look; release → auto orbit.
  * Double-click Earth → Google-Earth-like zoom toward that point; wheel zoom;
  * double-click empty space → zoom back out.
