@@ -6,10 +6,10 @@
  * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
  * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t281000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t281000z";
-import { WindowManager } from "./wm.js?v=20260810t281000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t281000z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t290000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t290000z";
+import { WindowManager } from "./wm.js?v=20260810t290000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t290000z";
 import {
   initPresence,
   initSessionTimer,
@@ -20,7 +20,8 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t281000z";
+} from "./shell-chrome.js?v=20260810t290000z";
+import { initTheme } from "./themes.js?v=20260810t290000z";
 
 /**
  * Three.js: public CDNs only — never our origin.
@@ -278,6 +279,8 @@ function wireSeoPanel() {
 }
 
 async function main() {
+  // Thin terminal glass is default; panel-desktop kept as optional theme
+  initTheme();
   applyMobileClass();
   window.addEventListener("resize", applyMobileClass);
   window.addEventListener("orientationchange", () => setTimeout(applyMobileClass, 100));

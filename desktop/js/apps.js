@@ -2059,23 +2059,45 @@ function openAbout(wm) {
 
 /* ── Settings ─────────────────────────────────────────────── */
 function openSettings(wm) {
+  const root = document.createElement("div");
+  root.className = "app-pad";
+  root.innerHTML = `
+      <h2>Settings</h2>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:10px">
+        Default is <strong>thin terminal glass</strong> (Claude + PouyaOS-inspired, Earth shows through).
+        The denser <strong>panel desktop</strong> look is kept as an optional theme.
+      </p>
+      <label style="display:block;margin:8px 0;font-size:12px">Theme
+        <select id="asx-theme-select" style="width:100%;margin-top:4px;background:rgba(10,8,12,0.55);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font:12px var(--font)">
+          <option value="thin-terminal">Thin terminal glass (default)</option>
+          <option value="panel-desktop">Panel desktop (solid purple)</option>
+        </select>
+      </label>
+      <p id="asx-theme-hint" style="font-size:11px;color:var(--muted);margin-top:8px"></p>
+      <p style="font-size:11px;color:var(--muted);margin-top:12px">Guest session · no host system access.</p>
+  `;
   wm.open({
     id: "settings",
     title: "Settings",
     w: 440,
-    h: 320,
-    body: `<div class="app-pad">
-      <h2>Settings</h2>
-      <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Claude designed multiple UI skins. Current default: glass purple terminal. Legacy skins remain available as Containers themes later.</p>
-      <label style="display:block;margin:8px 0;font-size:12px">Theme
-        <select style="width:100%;margin-top:4px;background:#0a0809;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
-          <option selected>Universe purple glass (default)</option>
-          <option disabled>Gold institutional (soon)</option>
-          <option disabled>Classic Containers (in-app)</option>
-        </select>
-      </label>
-      <p style="font-size:11px;color:var(--muted);margin-top:12px">Guest session · no host system access.</p>
-    </div>`,
+    h: 340,
+    body: root,
+    onMount: async () => {
+      const { getTheme, applyTheme, THEMES } = await import("./themes.js?v=20260810t290000z");
+      const sel = root.querySelector("#asx-theme-select");
+      const hint = root.querySelector("#asx-theme-hint");
+      const cur = getTheme();
+      if (sel) sel.value = cur;
+      const setHint = (id) => {
+        const t = THEMES.find((x) => x.id === id);
+        if (hint) hint.textContent = t ? t.hint : "";
+      };
+      setHint(cur);
+      sel?.addEventListener("change", () => {
+        const id = applyTheme(sel.value);
+        setHint(id);
+      });
+    },
   });
 }
 
