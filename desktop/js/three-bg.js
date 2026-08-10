@@ -3,13 +3,14 @@
  *
  * ASX as protector-of-Earth viewpoint: textured Earth + lattice grid (no outer rings).
  * Distant sun (glare-first, not a nearby ball). Moon orbit.
+ * Climate-weighted randomized cloud cover each page load (never a cloudless Earth).
  * Drag empty desktop to look; release → auto orbit.
  * Double-click Earth → Google-Earth-like zoom toward that point; wheel zoom;
  * double-click empty space → zoom back out.
  *
- * Research (2026-08-10): true Google Earth = map tiles / Cesium / geo-three / Maps API.
- * Matching ASX guest desktop = raycast + camera dolly (patlov/earthThreeJS, discourse,
- * three-globe patterns) — not Google's proprietary globe product.
+ * Research (audit-log / public transparency):
+ * - agents/research/threejs/google_earth_threejs_matchup_20260810.md
+ * - agents/research/threejs/cloud_cover_simulation_20260810.md
  */
 
 const TEX = {
@@ -19,6 +20,9 @@ const TEX = {
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg",
   earthSpec:
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg",
+  /** NASA-style cloud alpha structure (optional base; algorithm still region-weights it) */
+  earthClouds:
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
   moon:
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
 };
@@ -97,6 +101,225 @@ function latLngFromPoint(p, radius) {
   const lat = 90 - (Math.acos(Math.min(1, Math.max(-1, p.y / r))) * 180) / Math.PI;
   const lng = ((270 + (Math.atan2(p.x, p.z) * 180) / Math.PI) % 360) - 180;
   return { lat, lng };
+}
+
+/**
+ * Annual-mean-ish cloud fraction priors by region (ISCCP / Wikipedia / climate atlas synthesis).
+ * Global ~0.67; oceans ~0.72; land ~0.55. Sahara / Mideast / Australia drier;
+ * ITCZ, storm tracks, Amazon, monsoon belts wetter. Never used alone — mixed with
+ * seeded noise so each page load is a different weather day.
+ *
+ * Sources logged in cloud_cover_simulation_20260810.md (public research folder).
+ */
+const CLOUD_REGIONS = [
+  // name, latMin, latMax, lngMin, lngMax, prior
+  ["sahara", 12, 32, -18, 38, 0.18],
+  ["middle_east", 12, 36, 35, 62, 0.22],
+  ["australia_interior", -35, -14, 115, 150, 0.3],
+  ["sw_us_desert", 22, 38, -120, -100, 0.28],
+  ["southern_africa_dry", -32, -16, 12, 30, 0.34],
+  ["gobi_central_asia", 35, 50, 70, 110, 0.36],
+  ["amazon", -12, 8, -78, -48, 0.78],
+  ["congo", -6, 6, 10, 32, 0.74],
+  ["se_asia_monsoon", 0, 28, 70, 140, 0.73],
+  ["europe", 36, 72, -15, 42, 0.68],
+  ["east_n_america", 30, 55, -95, -55, 0.66],
+  ["west_n_america_coast", 35, 60, -130, -115, 0.7],
+  ["southern_ocean", -65, -42, -180, 180, 0.82],
+  ["itcz", -10, 10, -180, 180, 0.76],
+  ["antarctica", -90, -70, -180, 180, 0.5],
+  ["arctic", 70, 90, -180, 180, 0.58],
+];
+
+/** Rough land boxes when no named arid/wet region matches (prior ≈ land mean ~0.55). */
+const LAND_BOXES = [
+  [15, 72, -170, -50], // N America
+  [-56, 14, -82, -34], // S America
+  [35, 72, -12, 40], // Europe
+  [-35, 38, -18, 52], // Africa
+  [5, 75, 40, 180], // Asia
+  [-45, -10, 110, 155], // Australia
+];
+
+function inBox(lat, lng, latMin, latMax, lngMin, lngMax) {
+  if (lat < latMin || lat > latMax) return false;
+  if (lngMin <= lngMax) return lng >= lngMin && lng <= lngMax;
+  // wrap (unused for current boxes)
+  return lng >= lngMin || lng <= lngMax;
+}
+
+/**
+ * Climate prior for one equirectangular sample.
+ * @returns {number} cloud fraction prior 0..1
+ */
+function cloudPrior(lat, lng) {
+  // Named regions: first match wins (order = specificity)
+  for (let i = 0; i < CLOUD_REGIONS.length; i++) {
+    const r = CLOUD_REGIONS[i];
+    if (inBox(lat, lng, r[1], r[2], r[3], r[4])) return r[5];
+  }
+  for (let i = 0; i < LAND_BOXES.length; i++) {
+    const b = LAND_BOXES[i];
+    if (inBox(lat, lng, b[0], b[1], b[2], b[3])) return 0.54;
+  }
+  // Open ocean default (higher than land)
+  return 0.71;
+}
+
+function hash2(ix, iy, seed) {
+  let n = Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed, 1274126177);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+function smoothNoise(x, y, seed) {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const n00 = hash2(x0, y0, seed);
+  const n10 = hash2(x0 + 1, y0, seed);
+  const n01 = hash2(x0, y0 + 1, seed);
+  const n11 = hash2(x0 + 1, y0 + 1, seed);
+  const a = n00 + (n10 - n00) * sx;
+  const b = n01 + (n11 - n01) * sx;
+  return a + (b - a) * sy;
+}
+
+function fbm(x, y, seed, octaves) {
+  let amp = 0.5;
+  let freq = 1;
+  let sum = 0;
+  let norm = 0;
+  for (let o = 0; o < octaves; o++) {
+    sum += amp * smoothNoise(x * freq, y * freq, seed + o * 1013);
+    norm += amp;
+    amp *= 0.5;
+    freq *= 2.05;
+  }
+  return sum / (norm || 1);
+}
+
+function smoothstep(edge0, edge1, x) {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Build a randomized but climate-weighted cloud alpha map for one page load.
+ * Global mean is forced into a realistic band (~58–74%); floor so a cloudless
+ * Earth is effectively impossible (real Earth ~67% clouded).
+ *
+ * @param {{ seed: number, width: number, height: number, targetMean?: number, baseImage?: HTMLImageElement|null }} opts
+ * @returns {{ canvas: HTMLCanvasElement, mean: number, seed: number, targetMean: number }}
+ */
+function generateCloudCoverMap(opts) {
+  const seed = (opts.seed >>> 0) || 1;
+  const width = opts.width || 512;
+  const height = opts.height || 256;
+  const targetMean = Math.min(
+    0.74,
+    Math.max(0.58, opts.targetMean != null ? opts.targetMean : 0.66)
+  );
+
+  const c = document.createElement("canvas");
+  c.width = width;
+  c.height = height;
+  const ctx = c.getContext("2d");
+  if (!ctx) {
+    return { canvas: c, mean: 0, seed, targetMean };
+  }
+
+  // Optional NASA cloud structure as shape prior (then region-weight + reseed)
+  let baseData = null;
+  if (opts.baseImage && opts.baseImage.width) {
+    try {
+      ctx.drawImage(opts.baseImage, 0, 0, width, height);
+      baseData = ctx.getImageData(0, 0, width, height).data;
+    } catch {
+      baseData = null;
+    }
+  }
+
+  const img = ctx.createImageData(width, height);
+  const data = img.data;
+  // Weather-day offsets so pattern is not locked to the static NASA map
+  const dayU = ((seed % 997) / 997) * 8;
+  const dayV = (((seed >>> 10) % 991) / 991) * 6;
+  const scale = 4.2 + ((seed % 50) / 50) * 1.6;
+
+  let sum = 0;
+  const alphas = new Float32Array(width * height);
+
+  for (let y = 0; y < height; y++) {
+    const v = y / (height - 1);
+    const lat = 90 - v * 180;
+    for (let x = 0; x < width; x++) {
+      const u = x / width;
+      const lng = u * 360 - 180;
+      const prior = cloudPrior(lat, lng);
+
+      // Multi-scale weather noise (each seed = different synoptic day)
+      const n1 = fbm(u * scale + dayU, v * scale * 0.85 + dayV, seed, 5);
+      const n2 = fbm(u * scale * 2.3 - dayV, v * scale * 2.1 + dayU, seed ^ 0x9e3779b9, 3);
+      let d = n1 * 0.62 + n2 * 0.38;
+
+      // Blend optional base cloud luminance into structure
+      if (baseData) {
+        const bi = (y * width + x) * 4;
+        const lum =
+          (baseData[bi] * 0.299 + baseData[bi + 1] * 0.587 + baseData[bi + 2] * 0.114) /
+          255;
+        const ba = baseData[bi + 3] / 255;
+        const baseCloud = Math.max(lum, ba);
+        d = d * 0.45 + baseCloud * 0.55;
+      }
+
+      // Region prior: arid zones clear more often; ocean/ITCZ rarely clear
+      // soft threshold so edges look natural
+      const thresh = 0.42 - prior * 0.22;
+      let a = smoothstep(thresh, thresh + 0.38 + prior * 0.12, d);
+      a *= 0.4 + prior * 0.75;
+      // Soft polar fade (avoid hard polar cap noise)
+      if (Math.abs(lat) > 78) a *= 0.55 + (90 - Math.abs(lat)) / 30;
+
+      alphas[y * width + x] = a;
+      sum += a;
+    }
+  }
+
+  let mean = sum / (width * height);
+  // Force global coverage into realistic band — real Earth is almost never clear
+  const scaleMean = mean > 1e-6 ? targetMean / mean : 1;
+  sum = 0;
+  for (let i = 0; i < alphas.length; i++) {
+    let a = Math.min(1, alphas[i] * scaleMean);
+    // Slight hard floor so tiny patches remain even after arid bias
+    if (a > 0.02 && a < 0.08) a = 0.08;
+    alphas[i] = a;
+    sum += a;
+    const pi = i * 4;
+    // White/soft blue-grey clouds
+    data[pi] = 245;
+    data[pi + 1] = 248;
+    data[pi + 2] = 255;
+    data[pi + 3] = Math.round(a * 255);
+  }
+  mean = sum / alphas.length;
+  ctx.putImageData(img, 0, 0);
+  return { canvas: c, mean, seed, targetMean };
+}
+
+function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 }
 
 /**
@@ -244,7 +467,61 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   );
   earthGroup.add(atmo);
 
-  // ASX protector lattice / graphical grid
+  // Cloud shell — climate-weighted random cover each page load (see generateCloudCoverMap)
+  const cloudSeed =
+    (Math.floor(Math.random() * 0xffffffff) ^
+      (Date.now() & 0xffffffff) ^
+      ((performance.now() * 1000) | 0)) >>>
+    0;
+  // Target global mean: real Earth ~67%; allow clear-ish days but never near zero
+  const cloudTargetMean = 0.58 + Math.random() * 0.16; // 58–74%
+  const cloudMapW = tiny ? 256 : mobile ? 512 : 1024;
+  const cloudMapH = Math.max(128, cloudMapW >> 1);
+  let cloudCoverMeta = {
+    seed: cloudSeed,
+    targetMean: cloudTargetMean,
+    mean: 0,
+    mode: "pending",
+  };
+
+  const cloudMat = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+    side: THREE.FrontSide,
+  });
+  const clouds = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      EARTH_R * 1.018,
+      tiny ? 24 : mobile ? 40 : 56,
+      tiny ? 16 : mobile ? 28 : 40
+    ),
+    cloudMat
+  );
+  clouds.renderOrder = 2;
+  earthGroup.add(clouds);
+
+  // Thin high-cirrus shell (second octave / different rotation) for depth
+  const cirrusMat = new THREE.MeshBasicMaterial({
+    color: 0xe8f0ff,
+    transparent: true,
+    opacity: 0.35,
+    depthWrite: false,
+    side: THREE.FrontSide,
+  });
+  const cirrus = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      EARTH_R * 1.028,
+      tiny ? 16 : 32,
+      tiny ? 12 : 24
+    ),
+    cirrusMat
+  );
+  cirrus.renderOrder = 3;
+  earthGroup.add(cirrus);
+
+  // ASX protector lattice / graphical grid (outside clouds)
   const grid = new THREE.Mesh(
     new THREE.IcosahedronGeometry(EARTH_R * 1.1, 1),
     new THREE.MeshBasicMaterial({
@@ -271,7 +548,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   moonOrbit.add(moon);
   earthGroup.add(moonOrbit);
 
-  // Textures
+  // Textures + climate-weighted cloud map (async; procedural works even if CDN clouds fail)
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   Promise.all([
@@ -279,7 +556,8 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     loadTexture(loader, TEX.earthNormal),
     loadTexture(loader, TEX.earthSpec),
     loadTexture(loader, TEX.moon),
-  ]).then(([day, normal, spec, moonTex]) => {
+    loadImage(TEX.earthClouds),
+  ]).then(([day, normal, spec, moonTex, cloudBaseImg]) => {
     if (disposed) return;
     if (day) {
       if (day.encoding !== undefined) day.encoding = THREE.sRGBEncoding;
@@ -298,6 +576,75 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       moonMat.color.set(0xffffff);
       moonMat.needsUpdate = true;
     }
+
+    const cover = generateCloudCoverMap({
+      seed: cloudSeed,
+      width: cloudMapW,
+      height: cloudMapH,
+      targetMean: cloudTargetMean,
+      baseImage: cloudBaseImg,
+    });
+    cloudCoverMeta = {
+      seed: cover.seed,
+      targetMean: cover.targetMean,
+      mean: cover.mean,
+      mode: cloudBaseImg ? "nasa-structure+climate-prior" : "procedural+climate-prior",
+      mapPx: cloudMapW + "x" + cloudMapH,
+    };
+
+    const cloudTex = new THREE.CanvasTexture(cover.canvas);
+    cloudTex.wrapS = THREE.RepeatWrapping;
+    cloudTex.wrapT = THREE.ClampToEdgeWrapping;
+    // Random longitude phase = different face of weather pattern
+    cloudTex.offset.x = (cloudSeed % 1000) / 1000;
+    if (cloudTex.encoding !== undefined) cloudTex.encoding = THREE.sRGBEncoding;
+    cloudTex.needsUpdate = true;
+    cloudMat.map = cloudTex;
+    cloudMat.alphaMap = cloudTex;
+    cloudMat.needsUpdate = true;
+
+    // Cirrus: second generation with XOR seed, lower opacity
+    const cirrusCover = generateCloudCoverMap({
+      seed: (cloudSeed ^ 0xa5a5a5a5) >>> 0,
+      width: Math.max(128, cloudMapW >> 1),
+      height: Math.max(64, cloudMapH >> 1),
+      targetMean: Math.min(0.55, cloudTargetMean * 0.55),
+      baseImage: null,
+    });
+    const cirrusTex = new THREE.CanvasTexture(cirrusCover.canvas);
+    cirrusTex.wrapS = THREE.RepeatWrapping;
+    cirrusTex.offset.x = ((cloudSeed >>> 8) % 1000) / 1000;
+    cirrusTex.needsUpdate = true;
+    cirrusMat.map = cirrusTex;
+    cirrusMat.alphaMap = cirrusTex;
+    cirrusMat.needsUpdate = true;
+
+    // Public transparency: audit attributes + console (source is shared)
+    try {
+      canvas.dataset.asxCloudSeed = String(cloudCoverMeta.seed);
+      canvas.dataset.asxCloudCover = cover.mean.toFixed(3);
+      canvas.dataset.asxCloudTarget = cover.targetMean.toFixed(3);
+      canvas.dataset.asxCloudMode = cloudCoverMeta.mode;
+    } catch {
+      /* ignore */
+    }
+    console.info(
+      "[ASX] Earth cloud cover · mean≈" +
+        (cover.mean * 100).toFixed(1) +
+        "% · target " +
+        (cover.targetMean * 100).toFixed(0) +
+        "% · seed 0x" +
+        cover.seed.toString(16) +
+        " · " +
+        cloudCoverMeta.mode +
+        " (research: cloud_cover_simulation_20260810.md)"
+    );
+    showZoomHint(
+      "Cloud cover · ~" +
+        (cover.mean * 100).toFixed(0) +
+        "% · climate-weighted · seed 0x" +
+        cover.seed.toString(16)
+    );
   });
 
   // --- Satellite camera ---
@@ -390,6 +737,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     t0 = now;
 
     earth.rotation.y += dt * 0.06;
+    // Clouds drift slightly faster than ground (synoptic weather illusion)
+    clouds.rotation.y += dt * 0.078;
+    cirrus.rotation.y += dt * 0.09;
+    cirrus.rotation.x += dt * 0.004;
     grid.rotation.y -= dt * 0.025;
     grid.rotation.x += dt * 0.008;
     moonOrbit.rotation.y += dt * 0.18;
@@ -619,6 +970,12 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     try {
       renderer.dispose();
       earth.geometry.dispose();
+      clouds.geometry.dispose();
+      cirrus.geometry.dispose();
+      if (cloudMat.map) cloudMat.map.dispose();
+      if (cirrusMat.map) cirrusMat.map.dispose();
+      cloudMat.dispose();
+      cirrusMat.dispose();
       grid.geometry.dispose();
       moon.geometry.dispose();
       starGeo.dispose();
@@ -641,6 +998,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   return {
     mode: "three-earth",
     dispose: disposeAll,
+    /** Climate-weighted cloud cover meta for this page load (audit / transparency). */
+    getCloudCover() {
+      return { ...cloudCoverMeta };
+    },
     bindOrbitTarget(el) {
       if (typeof unbindOrbit === "function") unbindOrbit();
       unbindOrbit = bindOrbitTarget(el);
