@@ -1,0 +1,35 @@
+{
+  "input_count": 2,
+  "kept_count": 2,
+  "skipped_count": 0,
+  "rows": [
+    {
+      "index": 1,
+      "path": "/home/alice/alisonscorpion/website/desktop-os/readme.md",
+      "basename": "readme.md",
+      "extension": "md",
+      "status": "KEEP",
+      "reason": "",
+      "duplicate_of": "",
+      "path_key": "/home/alice/alisonscorpion/website/desktop-os/readme.md",
+      "byte_sha256": "e3b313a0095e02367352f9e0240c4f6e703bef9f8867c3511cef95c07fee33dd",
+      "content_kind": "normalized-text-sha256",
+      "content_sha256": "bbbd709f7432532712bbf2d329430476a058aef2734ccce7b3069ff8bcad5122",
+      "content_words": 126
+    },
+    {
+      "index": 2,
+      "path": "/home/alice/alisonscorpion/website/desktop-os/threejs.md",
+      "basename": "threejs.md",
+      "extension": "md",
+      "status": "KEEP",
+      "reason": "",
+      "duplicate_of": "",
+      "path_key": "/home/alice/alisonscorpion/website/desktop-os/threejs.md",
+      "byte_sha256": "3615d35898181d9eb01bd85d34b49d0d1995c6063e828e8d3e9cb15249d76c7b",
+      "content_kind": "normalized-text-sha256",
+      "content_sha256": "cc1b23753382e068d6dc2ea11d2231e2aa82859711449652be2602604de280c4",
+      "content_words": 191
+    }
+  ]
+}

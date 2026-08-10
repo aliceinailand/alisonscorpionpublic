@@ -2,7 +2,7 @@
 
 Guest desktop experience for **alisonscorpion.com** — thin universe-purple glass windows, Three.js background, product app = **Containers** (`../staging/`).
 
-**Three.js documentation:** [THREEJS.md](./THREEJS.md) · full website map: [../docs/THREEJS_WEBSITE.md](../docs/THREEJS_WEBSITE.md)
+**Three.js documentation:** [threejs.md](./threejs.md) · full website map: [../docs/THREEJS_WEBSITE.md](../docs/THREEJS_WEBSITE.md)
 
 ## Local preview
 

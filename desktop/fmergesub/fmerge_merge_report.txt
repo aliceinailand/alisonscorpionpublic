@@ -1,0 +1,47 @@
+FMERGE COMPLETE
+===============
+
+Output: /home/alice/alisonscorpion/website/desktop-os/fmergesub/fmerge_merged.pdf
+
+MERGE SUMMARY
+-------------
+Total files merged              : 2
+Total duplicate pages not merged: 0
+Exact duplicate input files seen: 0
+Merge failures                  : 0
+Unsupported files               : 0
+
+EXTENSIONS MERGED
+-----------------
+md        : 2
+ext.total : 2
+
+SIZE
+----
+Total file size merged          : 2.51 KB
+Output before duplicate gate    : 4.50 KB
+Output after duplicate gate     : 4.55 KB
+
+PAGES
+-----
+Before duplicate gate           : 2
+After duplicate gate            : 2
+
+DUPLICATE POLICY
+----------------
+Prevention enabled              : YES
+Fuzzy/near matches excluded     : 0
+Likeness/fingerprints           : candidate discovery only
+Admission rejection             : exact verification only
+
+TIMING
+------
+Started                         : 2026-08-10T00:56:10-0600
+Completed                       : 2026-08-10T00:56:10-0600
+Elapsed seconds                 : 0.034
+
+REPORTS
+-------
+Merge report                    : /home/alice/alisonscorpion/website/desktop-os/fmergesub/fmerge_merge_report.txt
+Summary JSON                    : /home/alice/alisonscorpion/website/desktop-os/fmergesub/fmerge_summary.json
+Duplicate pages                 : /home/alice/alisonscorpion/website/desktop-os/fmergesub/fmerge_duplicate_pages.tsv
