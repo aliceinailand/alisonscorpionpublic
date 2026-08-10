@@ -6,10 +6,10 @@
  * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
  * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t270000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t270000z";
-import { WindowManager } from "./wm.js?v=20260810t270000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t270000z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t280000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t280000z";
+import { WindowManager } from "./wm.js?v=20260810t280000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t280000z";
 import {
   initPresence,
   initSessionTimer,
@@ -20,8 +20,7 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t270000z";
-import { runGlassGate } from "./glass-gate.js?v=20260810t270000z";
+} from "./shell-chrome.js?v=20260810t280000z";
 
 /**
  * Three.js: public CDNs only — never our origin.
@@ -294,8 +293,7 @@ async function main() {
       /* ignore */
     }
   }
-  // Zero-inspired glass captcha (draw circle) → then boot splash → desktop
-  await runGlassGate();
+  // Boot splash → desktop (no pre-desktop captcha / hand gate)
   await bootSplash();
 
   // Desktop shell first; Three.js after paint (SEO + LCP)

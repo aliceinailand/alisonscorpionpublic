@@ -47,16 +47,9 @@ Coordinates are **approximate** (education/art accuracy, not a planetarium). Goo
 | Mobile | ~4500 | Lower DPR already |
 | Tiny / reduce-motion | Fewer; no band / no lines | |
 
-## Hand / glass gate (not removed)
+## Hand / glass gate
 
-Glass gate **purple satin glove** is still in `js/glass-gate.js`. It runs **once per browser tab session** (`sessionStorage` key `asx-glass-gate-ok`). After skip/pass, later loads jump straight to desktop — that is intentional, not a deletion.
-
-Retest glove:
-
-```js
-sessionStorage.removeItem('asx-glass-gate-ok');
-location.reload();
-```
+**Removed (2026-08-10):** pre-desktop hand/finger captcha was ditched by operator request. Boot is splash → desktop only.
 
 ## Sources (general)
 
