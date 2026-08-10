@@ -19,27 +19,49 @@
   --data: #22d3ee;
   --taskbar-h: 44px;
   --title-h: 32px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
   --font: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
   --sans: Inter, system-ui, sans-serif;
+  --touch-min: 44px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Mobile: fill dynamic viewport when supported */
+  height: 100dvh;
+  max-height: 100dvh;
+}
 body {
   font-family: var(--font);
   color: var(--text);
   background: var(--void);
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 #three-bg {
-  position: fixed; inset: 0; z-index: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
   pointer-events: none;
 }
 
 #desktop-layer {
   position: fixed;
-  inset: 0 0 var(--taskbar-h) 0;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: calc(var(--taskbar-h) + var(--safe-bottom));
   z-index: 1;
 }
 
@@ -167,24 +189,29 @@ body {
 @media (max-width: 720px) {
   .seo-main {
     top: auto;
-    bottom: calc(var(--taskbar-h) + 12px);
-    right: 12px;
-    left: 12px;
+    bottom: calc(var(--taskbar-h) + var(--safe-bottom) + 12px);
+    right: max(12px, var(--safe-right));
+    left: max(12px, var(--safe-left));
     width: auto;
-    max-height: 40vh;
+    max-height: min(36vh, 280px);
+    font-size: 12px;
+    padding: 12px 14px;
   }
+  .seo-main h1 { font-size: 14px; }
 }
 
 /* Desktop icons */
 .desk-icon {
   position: absolute;
   width: 88px;
+  min-height: var(--touch-min);
   padding: 10px 6px;
   text-align: center;
   cursor: pointer;
   border: 1px solid transparent;
   border-radius: 8px;
   transition: background 0.15s, border-color 0.15s;
+  touch-action: manipulation;
 }
 .desk-icon:hover, .desk-icon.selected {
   background: rgba(124, 58, 237, 0.18);
@@ -205,11 +232,21 @@ body {
 }
 
 /* Windows */
-#windows-root { position: fixed; inset: 0 0 var(--taskbar-h) 0; z-index: 10; pointer-events: none; }
+#windows-root {
+  position: fixed;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: calc(var(--taskbar-h) + var(--safe-bottom));
+  z-index: 10;
+  pointer-events: none;
+}
 .asx-window {
   position: absolute;
   min-width: 280px;
   min-height: 180px;
+  max-width: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--panel);
@@ -220,6 +257,17 @@ body {
   box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(124,58,237,0.12);
   pointer-events: auto;
   overflow: hidden;
+}
+.resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  background: rgba(167, 139, 250, 0.25);
+  touch-action: none;
+  z-index: 2;
 }
 .asx-window.active {
   border-color: rgba(167, 139, 250, 0.55);
@@ -234,6 +282,7 @@ body {
 
 .titlebar {
   height: var(--title-h);
+  min-height: var(--title-h);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -242,6 +291,7 @@ body {
   border-bottom: 1px solid var(--border);
   cursor: grab;
   flex-shrink: 0;
+  touch-action: none;
 }
 .titlebar:active { cursor: grabbing; }
 .titlebar .title {
@@ -253,10 +303,27 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.titlebar .btns { display: flex; gap: 6px; }
+.titlebar .btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 .titlebar .btn {
-  width: 14px; height: 14px; border-radius: 50%;
-  border: none; cursor: pointer; opacity: 0.85;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  opacity: 0.85;
+  /* Expand hit target without growing chrome too much */
+  position: relative;
+}
+.titlebar .btn::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
 }
 .titlebar .btn:hover { opacity: 1; }
 .btn-min { background: #c8a35a; }
@@ -276,26 +343,42 @@ body {
 /* Taskbar */
 #taskbar {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: var(--taskbar-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--taskbar-h) + var(--safe-bottom));
+  padding: 0 10px var(--safe-bottom);
   z-index: 100;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 10px;
   background: rgba(10, 8, 9, 0.92);
   backdrop-filter: blur(16px);
   border-top: 1px solid var(--border);
 }
+#taskbar-windows {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: min(55vw, 480px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#taskbar-windows::-webkit-scrollbar { display: none; }
 .tb-start {
   background: linear-gradient(135deg, var(--brand-deep), #6d28d9);
   color: var(--gold-white);
   border: 1px solid rgba(245,237,216,0.25);
   border-radius: 8px;
   padding: 6px 12px;
+  min-height: var(--touch-min);
   font: 700 11px var(--font);
   letter-spacing: 0.06em;
   cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
 }
 .tb-item {
   background: transparent;
@@ -303,8 +386,15 @@ body {
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 6px 10px;
+  min-height: 36px;
   font: 500 11px var(--font);
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  touch-action: manipulation;
 }
 .tb-item:hover { color: var(--text); border-color: var(--border); }
 .tb-item.active {
@@ -320,11 +410,12 @@ body {
 #start-menu {
   display: none;
   position: fixed;
-  left: 10px;
-  bottom: calc(var(--taskbar-h) + 8px);
-  width: 280px;
-  max-height: 60vh;
+  left: max(10px, var(--safe-left));
+  bottom: calc(var(--taskbar-h) + var(--safe-bottom) + 8px);
+  width: min(280px, calc(100vw - 20px));
+  max-height: min(60vh, 70dvh);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 120;
   background: var(--panel);
   backdrop-filter: blur(16px);
@@ -345,11 +436,13 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
-  padding: 8px 10px;
+  padding: 10px;
+  min-height: var(--touch-min);
   border-radius: 8px;
   cursor: pointer;
   color: var(--text);
   font-size: 12px;
+  touch-action: manipulation;
 }
 .sm-item:hover { background: rgba(124,58,237,0.2); }
 .sm-item .g { width: 22px; text-align: center; }
@@ -589,3 +682,142 @@ body {
 .boot-splash.gone { opacity: 0; pointer-events: none; }
 .boot-splash .logo { color: var(--brand); font-size: 18px; letter-spacing: 0.2em; }
 .boot-splash .sub { color: var(--muted); font-size: 11px; }
+
+/* ========== Mobile / narrow (Three.js + shell) ========== */
+@media (max-width: 768px) {
+  :root {
+    --taskbar-h: 52px;
+    --title-h: 40px;
+  }
+
+  #desktop-layer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 6px 4px;
+    align-content: start;
+    justify-items: center;
+    padding: 10px 8px 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .desk-icon {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100%;
+    max-width: 88px;
+    padding: 8px 4px;
+  }
+  .desk-icon .glyph { font-size: 26px; }
+  .desk-icon .label { font-size: 9px; }
+
+  .asx-window {
+    min-width: 0;
+    min-height: 0;
+    border-radius: 0;
+  }
+  .asx-window.maximized {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  /* Hide resize on phones — full-bleed windows */
+  .asx-window .resize-handle { display: none; }
+
+  .titlebar {
+    padding: 0 8px 0 12px;
+  }
+  .titlebar .btn {
+    width: 12px;
+    height: 12px;
+  }
+  .titlebar .btn::after {
+    inset: -14px;
+  }
+
+  #taskbar-windows {
+    max-width: min(42vw, 200px);
+  }
+  .tb-clock { font-size: 10px; }
+  .tb-status { display: none; }
+
+  #start-menu {
+    left: var(--safe-left);
+    right: var(--safe-right);
+    width: auto;
+    max-height: min(55dvh, 420px);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .files {
+    grid-template-columns: 1fr;
+  }
+  .files-side {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 30%;
+    overflow: auto;
+  }
+
+  .browser-chat { height: 100px; }
+  .calc-grid button {
+    min-height: var(--touch-min);
+    padding: 14px;
+  }
+
+  /* Soften glass blur cost on mobile GPUs */
+  .asx-window,
+  #taskbar,
+  #start-menu,
+  .seo-main {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  #desktop-layer {
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  }
+  .tb-start { padding: 6px 8px; font-size: 10px; }
+}
+
+/* Landscape phone: more horizontal icon room, shorter chrome */
+@media (max-width: 900px) and (orientation: landscape) {
+  :root {
+    --taskbar-h: 40px;
+    --title-h: 32px;
+  }
+  #desktop-layer {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    padding: 6px;
+  }
+  .seo-main {
+    max-height: 28vh;
+  }
+}
+
+/* Coarse pointer (tablets) — larger targets even if width > 768 */
+@media (pointer: coarse) {
+  .tb-start,
+  .tb-item,
+  .sm-item,
+  .desk-icon {
+    min-height: var(--touch-min);
+  }
+  .titlebar .btn::after {
+    inset: -14px;
+  }
+}
+
+/* Prefer reduced motion: no transitions on chrome */
+@media (prefers-reduced-motion: reduce) {
+  .desk-icon,
+  .boot-splash {
+    transition: none;
+  }
+}

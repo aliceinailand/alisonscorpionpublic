@@ -1,7 +1,31 @@
 /**
  * ASX Desktop window manager — thin glass terminal windows.
  * Pattern: Claude extract_01 WindowManager + CSS glass purple.
+ * Mobile: pointer events, default maximize, viewport clamp (2026-08-10).
  */
+
+function isMobileLayout() {
+  return (
+    (typeof matchMedia === "function" && matchMedia("(max-width: 768px)").matches) ||
+    (typeof matchMedia === "function" &&
+      matchMedia("(pointer: coarse)").matches &&
+      window.innerWidth <= 900)
+  );
+}
+
+function taskbarOffset() {
+  const tb = document.getElementById("taskbar");
+  return tb ? tb.offsetHeight : 44;
+}
+
+function desktopBounds() {
+  const tb = taskbarOffset();
+  return {
+    w: Math.max(280, window.innerWidth),
+    h: Math.max(180, window.innerHeight - tb),
+  };
+}
+
 export class WindowManager {
   constructor({ rootId = "windows-root", taskbarId = "taskbar-windows" } = {}) {
     this.root = document.getElementById(rootId);
@@ -11,26 +35,68 @@ export class WindowManager {
     this._drag = null;
     this._resize = null;
     this._bindGlobal();
+    window.addEventListener("resize", () => this._clampAll());
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => this._clampAll(), 100);
+    });
   }
 
   _bindGlobal() {
-    document.addEventListener("mousemove", (e) => {
+    const onMove = (e) => {
+      const cx = e.clientX;
+      const cy = e.clientY;
       if (this._drag) {
         const { el, ox, oy } = this._drag;
         if (el.classList.contains("maximized")) return;
-        el.style.left = Math.max(0, e.clientX - ox) + "px";
-        el.style.top = Math.max(0, e.clientY - oy) + "px";
+        const b = desktopBounds();
+        const left = Math.min(Math.max(0, cx - ox), Math.max(0, b.w - 48));
+        const top = Math.min(Math.max(0, cy - oy), Math.max(0, b.h - 32));
+        el.style.left = left + "px";
+        el.style.top = top + "px";
       }
       if (this._resize) {
         const { el, sx, sy, sw, sh } = this._resize;
-        el.style.width = Math.max(280, sw + (e.clientX - sx)) + "px";
-        el.style.height = Math.max(180, sh + (e.clientY - sy)) + "px";
+        const b = desktopBounds();
+        const minW = isMobileLayout() ? Math.min(280, b.w) : 280;
+        const minH = isMobileLayout() ? Math.min(180, b.h) : 180;
+        el.style.width = Math.min(b.w, Math.max(minW, sw + (cx - sx))) + "px";
+        el.style.height = Math.min(b.h, Math.max(minH, sh + (cy - sy))) + "px";
       }
-    });
-    document.addEventListener("mouseup", () => {
+    };
+    const onUp = () => {
       this._drag = null;
       this._resize = null;
-    });
+    };
+    // Pointer events: mouse + touch + pen (mobile-friendly)
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+  }
+
+  _clampAll() {
+    const b = desktopBounds();
+    for (const w of this.windows.values()) {
+      if (w.el.classList.contains("maximized") || w.el.classList.contains("minimized")) {
+        continue;
+      }
+      const rect = w.el.getBoundingClientRect();
+      let width = Math.min(rect.width, b.w);
+      let height = Math.min(rect.height, b.h);
+      let left = Math.min(Math.max(0, rect.left), Math.max(0, b.w - 48));
+      let top = Math.min(Math.max(0, rect.top), Math.max(0, b.h - 32));
+      if (isMobileLayout()) {
+        // Keep near full usable area on phones after rotate
+        width = b.w;
+        height = b.h;
+        left = 0;
+        top = 0;
+        w.el.classList.add("maximized");
+      }
+      w.el.style.width = width + "px";
+      w.el.style.height = height + "px";
+      w.el.style.left = left + "px";
+      w.el.style.top = top + "px";
+    }
   }
 
   /**
@@ -57,10 +123,26 @@ export class WindowManager {
     const el = document.createElement("div");
     el.className = "asx-window active";
     el.dataset.winId = id;
-    const w = opts.w ?? 640;
-    const h = opts.h ?? 420;
-    const x = opts.x ?? 60 + (this.windows.size % 6) * 28;
-    const y = opts.y ?? 40 + (this.windows.size % 6) * 24;
+    const b = desktopBounds();
+    const mobile = isMobileLayout();
+    let w = opts.w ?? 640;
+    let h = opts.h ?? 420;
+    let x = opts.x ?? 60 + (this.windows.size % 6) * 28;
+    let y = opts.y ?? 40 + (this.windows.size % 6) * 24;
+
+    if (mobile) {
+      w = b.w;
+      h = b.h;
+      x = 0;
+      y = 0;
+      el.classList.add("maximized");
+    } else {
+      w = Math.min(w, b.w - 16);
+      h = Math.min(h, b.h - 16);
+      x = Math.min(x, Math.max(0, b.w - w));
+      y = Math.min(y, Math.max(0, b.h - h));
+    }
+
     el.style.width = w + "px";
     el.style.height = h + "px";
     el.style.left = x + "px";
@@ -84,8 +166,7 @@ export class WindowManager {
 
     const handle = document.createElement("div");
     handle.className = "resize-handle";
-    handle.style.cssText =
-      "position:absolute;right:0;bottom:0;width:14px;height:14px;cursor:nwse-resize;background:rgba(167,139,250,0.25);";
+    handle.setAttribute("aria-hidden", "true");
 
     el.appendChild(titlebar);
     el.appendChild(body);
@@ -102,9 +183,16 @@ export class WindowManager {
     };
     this.windows.set(id, rec);
 
-    titlebar.addEventListener("mousedown", (e) => {
+    titlebar.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".btn")) return;
+      if (e.button != null && e.button !== 0) return;
       this.focus(id);
+      if (el.classList.contains("maximized")) return;
+      try {
+        titlebar.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
       this._drag = {
         el,
         ox: e.clientX - el.offsetLeft,
@@ -112,13 +200,19 @@ export class WindowManager {
       };
     });
     titlebar.addEventListener("dblclick", () => this.toggleMax(id));
-    el.addEventListener("mousedown", () => this.focus(id));
+    el.addEventListener("pointerdown", () => this.focus(id));
     titlebar.querySelector(".btn-close").addEventListener("click", () => this.close(id));
     titlebar.querySelector(".btn-min").addEventListener("click", () => this.minimize(id));
     titlebar.querySelector(".btn-max").addEventListener("click", () => this.toggleMax(id));
-    handle.addEventListener("mousedown", (e) => {
+    handle.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
+      if (el.classList.contains("maximized")) return;
       this.focus(id);
+      try {
+        handle.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
       this._resize = {
         el,
         sx: e.clientX,
@@ -135,7 +229,6 @@ export class WindowManager {
   }
 
   focus(id) {
-    // P1: skip full scan if already focused
     const w = this.windows.get(id);
     if (!w) return;
     if (w.el.classList.contains("active") && !w.el.classList.contains("minimized")) {
@@ -177,6 +270,10 @@ export class WindowManager {
     const w = this.windows.get(id);
     if (!w) return;
     if (w.el.classList.contains("maximized")) {
+      if (isMobileLayout()) {
+        // On phones, stay maximized — restore to tiny float is poor UX
+        return;
+      }
       w.el.classList.remove("maximized");
       if (w.prevGeom) {
         Object.assign(w.el.style, w.prevGeom);

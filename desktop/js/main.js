@@ -1,6 +1,7 @@
 /**
  * ASX Desktop OS — boot, icons, taskbar, start menu.
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
+ * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
 import { initThreeBg } from "./three-bg.js";
 import { WindowManager } from "./wm.js";
@@ -27,6 +28,19 @@ const DESKTOP_ICONS = [
   { id: "about", label: "About", glyph: "ℹ", x: 202, y: 294 },
   { id: "settings", label: "Settings", glyph: "⚙", x: 202, y: 386 },
 ];
+
+function isMobileUi() {
+  return (
+    (typeof matchMedia === "function" && matchMedia("(max-width: 768px)").matches) ||
+    (typeof matchMedia === "function" &&
+      matchMedia("(pointer: coarse)").matches &&
+      window.innerWidth <= 900)
+  );
+}
+
+function applyMobileClass() {
+  document.body.classList.toggle("asx-mobile", isMobileUi());
+}
 
 function loadThreeJs() {
   if (typeof THREE !== "undefined") return Promise.resolve();
@@ -71,18 +85,40 @@ function bootSplash() {
 }
 
 function placeIcons(layer, openApp) {
+  const mobile = isMobileUi();
   DESKTOP_ICONS.forEach((data) => {
     const el = document.createElement("div");
     el.className = "desk-icon";
     el.style.left = data.x + "px";
     el.style.top = data.y + "px";
     el.dataset.app = data.id;
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", `Open ${data.label}`);
     el.innerHTML = `<div class="glyph">${data.glyph}</div><div class="label">${data.label}</div>`;
-    el.addEventListener("click", () => {
+
+    const select = () => {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
       el.classList.add("selected");
+    };
+
+    // Mobile / coarse pointer: single tap opens (dblclick is unreliable on touch)
+    if (mobile) {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        select();
+        openApp(data.id);
+      });
+    } else {
+      el.addEventListener("click", () => select());
+      el.addEventListener("dblclick", () => openApp(data.id));
+    }
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openApp(data.id);
+      }
     });
-    el.addEventListener("dblclick", () => openApp(data.id));
     layer.appendChild(el);
   });
 }
@@ -137,7 +173,21 @@ function wireSeoPanel() {
 }
 
 async function main() {
+  applyMobileClass();
+  window.addEventListener("resize", applyMobileClass);
+  window.addEventListener("orientationchange", () => setTimeout(applyMobileClass, 100));
+
   wireSeoPanel();
+  // On mobile, default SEO panel minimized so icons are usable
+  if (isMobileUi()) {
+    try {
+      if (localStorage.getItem("asx-seo-panel-min") == null) {
+        localStorage.setItem("asx-seo-panel-min", "1");
+      }
+    } catch {
+      /* ignore */
+    }
+  }
   await bootSplash();
 
   // Desktop shell first; Three.js after paint (SEO + LCP)
@@ -170,17 +220,22 @@ async function main() {
   });
 
   clock();
-  setTimeout(() => open("terminal"), 400);
+  // Auto-open terminal on desktop only — on mobile it steals the whole screen
+  if (!isMobileUi()) {
+    setTimeout(() => open("terminal"), 400);
+  }
 
   const startThree = () => {
     loadThreeJs()
       .then(() => initThreeBg("three-bg"))
       .catch((err) => console.warn("ASX Three.js background skipped", err));
   };
+  // Mobile: defer 3D slightly longer so shell paints first
+  const threeTimeout = isMobileUi() ? 2800 : 2000;
   if (typeof requestIdleCallback === "function") {
-    requestIdleCallback(startThree, { timeout: 2000 });
+    requestIdleCallback(startThree, { timeout: threeTimeout });
   } else {
-    setTimeout(startThree, 0);
+    setTimeout(startThree, isMobileUi() ? 400 : 0);
   }
 }
 
