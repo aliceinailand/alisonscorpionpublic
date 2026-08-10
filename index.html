@@ -133,7 +133,17 @@
   <div id="start-menu" role="menu" aria-label="Start menu"></div>
 
   <footer id="taskbar">
-    <button type="button" class="tb-start" id="tb-start">◆ ASX</button>
+    <button type="button" class="tb-start" id="tb-start" aria-label="ASX start menu" title="ASX">
+      <img
+        class="tb-start-icon"
+        src="/website/staging/brand/scorpion-universe-purple.png"
+        alt=""
+        width="32"
+        height="32"
+        decoding="async"
+      />
+      <span class="tb-start-label">ASX</span>
+    </button>
     <div id="taskbar-windows"></div>
     <div class="tb-spacer"></div>
     <span class="tb-status" title="Guest session">guest@asx</span>

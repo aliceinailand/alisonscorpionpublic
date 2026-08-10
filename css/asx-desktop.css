@@ -468,17 +468,33 @@ body {
 }
 #taskbar-windows::-webkit-scrollbar { display: none; }
 .tb-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: linear-gradient(135deg, var(--brand-deep), #6d28d9);
   color: var(--gold-white);
   border: 1px solid rgba(245,237,216,0.25);
-  border-radius: 8px;
-  padding: 6px 12px;
+  border-radius: 10px;
+  padding: 4px 12px 4px 6px;
   min-height: var(--touch-min);
   font: 700 11px var(--font);
   letter-spacing: 0.06em;
   cursor: pointer;
   flex-shrink: 0;
   touch-action: manipulation;
+}
+.tb-start-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+  flex-shrink: 0;
+  background: rgba(10, 8, 9, 0.35);
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.35);
+}
+.tb-start-label {
+  line-height: 1;
 }
 .tb-item {
   background: transparent;
@@ -902,7 +918,15 @@ body {
   #desktop-layer {
     grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   }
-  .tb-start { padding: 6px 8px; font-size: 10px; }
+  .tb-start {
+    padding: 4px 8px 4px 4px;
+    font-size: 10px;
+    gap: 6px;
+  }
+  .tb-start-icon {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 /* Landscape phone: more horizontal icon room, shorter chrome */
