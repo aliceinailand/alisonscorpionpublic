@@ -10,11 +10,15 @@ Renders a full-viewport **ASX satellite view** of Earth under the desktop chrome
 
 - Realistic Earth (textured) + atmosphere
 - **Moon** on orbit
-- **Sun** in the distance + lens **glare** when in view (~few seconds)
-- **Vortex rings** + **icosahedron grid** around Earth (ASX protector frame — kept)
-- Camera = satellite; auto orbital drift
-- **Drag empty desktop** to look around; release → auto rotation resumes
+- **Distant sun** (glare-first, tiny disc) when looking near the solar direction
+- **Icosahedron grid** around Earth (ASX protector lattice — kept; outer rings removed)
+- Camera = satellite; auto orbital drift when zoomed out
+- **Drag empty desktop** to look; release → auto rotation
+- **Double-click Earth** → Google-Earth-like approach to that lat/lng
+- **Scroll** zoom; **double-click empty** → pull back to satellite altitude
 - Starfield; resize-safe; context-lost → ambient fallback
+
+Research: `agents/research/threejs/google_earth_threejs_matchup_20260810.md`
 
 ## Integration
 

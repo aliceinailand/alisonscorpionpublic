@@ -72,22 +72,47 @@ body {
   min-height: 100svh;
 }
 
-/* Sun glare when ASX satellite looks toward the sun (few seconds) */
+/* Distant-sun glare (tight bloom when looking near the solar disc) */
 #sun-glare {
   position: fixed;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.45s ease-out;
+  transition: opacity 0.55s ease-out;
   mix-blend-mode: screen;
   background: radial-gradient(
     circle at var(--gx, 50%) var(--gy, 45%),
-    rgba(255, 252, 235, 0.92) 0%,
-    rgba(255, 210, 140, 0.45) 18%,
-    rgba(167, 139, 250, 0.12) 42%,
-    transparent 62%
+    rgba(255, 255, 250, 0.95) 0%,
+    rgba(255, 236, 200, 0.55) 6%,
+    rgba(255, 200, 120, 0.2) 14%,
+    transparent 28%
   );
+}
+
+/* Brief lat/lng / zoom HUD (Google-Earth-like feedback, not a full Maps stack) */
+#earth-zoom-hint {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--taskbar-h) + var(--safe-bottom) + 16px);
+  transform: translateX(-50%) translateY(8px);
+  z-index: 50;
+  max-width: min(92vw, 520px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(10, 8, 9, 0.82);
+  color: var(--gold-white);
+  font: 500 11px var(--font);
+  letter-spacing: 0.02em;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+#earth-zoom-hint.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 #desktop-layer {
   z-index: 2;
@@ -123,7 +148,9 @@ body {
   left: var(--safe-left);
   right: var(--safe-right);
   bottom: calc(var(--taskbar-h) + var(--safe-bottom));
-  z-index: 1;
+  z-index: 2;
+  /* Empty desktop receives orbit drag; icons stay clickable */
+  touch-action: none;
 }
 
 /* SEO / progressive-enhancement panel (DOM text outside canvas) */
