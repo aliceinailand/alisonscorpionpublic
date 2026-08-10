@@ -1,48 +1,56 @@
-# ASX desktop — resource delivery policy
+# ASX desktop — resource delivery policy (hard rule)
 
 **Date locked:** 2026-08-10  
-**Principle:** Major public CDNs deliver heavy vendor assets. **Our site only initiates the request** (and ships the shell). Their edges do the work.
+**Rule:** **Never serve vendor weight from our origin if a major public CDN already has it.**
+
+## Goal
+
+- **Our site** = thin shell (HTML/CSS/app JS) + brand + policy.  
+- **Their sites** (cdnjs, jsDelivr, unpkg, threejs.org) = multi‑MB libraries and textures.  
+- Guests hit **well-funded, already-warm CDNs**. We do **not** add download volume or storage for files that are already public elsewhere.  
+- Even on GitHub Pages, the site is large enough — **offload every byte we can**.
 
 ## Order of preference
 
-1. **Major free CDNs** (first)  
-   - **cdnjs** (Cloudflare) — Three.js, etc.  
-   - **jsDelivr** — npm/GitHub packages, Three textures  
-   - Others only if widely used and CORS-safe (e.g. threejs.org as texture fallback)
+1. **cdnjs** (Cloudflare-backed free CDN)  
+2. **jsDelivr**  
+3. **unpkg** / **threejs.org** / other well-known public hosts  
+4. **Never** our `/assets/cdn/` for hot path — **do not store vendor mirrors on our servers**
 
-2. **Our origin** (`alisonscorpion.com` / GH Pages) — **fallback only** for vendor files, or required first-party
+Our origin is **not** a third CDN for Three/D3/textures. Multi-hop is **CDN → CDN → CDN**, not CDN → us.
 
-3. Never hot-path large vendor blobs only from our origin when a major CDN already hosts them
+## What we still host (required first-party)
 
-## What stays on our website (must)
+| Asset | Reason |
+|-------|--------|
+| Shell `index.html`, `css/*`, `js/*` (apps, WM) | Product code; ES modules |
+| Brand, favicon, OG images | Identity / SEO |
+| `/safety/hosts/*` | **Our** policy lists; load only when Browser opens |
 
-| Resource | Why first-party |
-|----------|-----------------|
-| `index.html`, `css/*`, `js/*` (shell) | App code, ES modules, policy, window manager |
-| `/safety/hosts/*` | Policy data we control; load **only** when Browser opens |
-| Brand / favicon / OG images | Identity, SEO, start icon |
-| `/assets/cdn/*` mirrors | **Cold fallback** if CDN fails — not the hot path |
+## What we never host again
 
-## What goes to major CDNs (hot path)
+| Asset | Source |
+|-------|--------|
+| three.min.js | cdnjs → jsDelivr → unpkg |
+| Earth/moon/cloud textures | jsDelivr → threejs.org → raw.githubusercontent |
+| d3 | jsDelivr → cdnjs → unpkg |
 
-| Resource | Primary | Fallback |
-|----------|---------|----------|
-| three.min.js r128 | cdnjs | `/assets/cdn/three-r128/` |
-| Earth/moon textures + clouds | jsDelivr | `/assets/cdn/three-r128/planets/` |
-| d3 | jsDelivr | `/assets/cdn/d3/` |
+## Operator checklist (new library)
 
-## Why this is faster / cheaper for us
+1. Search **cdnjs** and **jsDelivr** for a pinned version.  
+2. Prefer SRI when the primary is cdnjs.  
+3. Add 1–2 public CDN fallbacks.  
+4. **Do not** commit the minified library into this repo.  
+5. Document the pin in the importing module header.
 
-- GH Pages / CF only serve small shell + rare fallbacks  
-- Visitor bandwidth for multi‑MB textures hits **their** CDN  
-- Browser/OS already warms cdnjs/jsDelivr for many users  
-- We still keep mirrors so the desktop does not hard-fail if a CDN blips  
+## Why not mirror “just in case”?
 
-## What we cannot do
+- Inflates our deploy and GH bandwidth for no hot-path gain.  
+- Major CDNs already long-cache and absorb hits.  
+- Failures are rare; multi-CDN chains cover that without storing copies here.
 
-- Set Cloudflare Cache Rules on `jsdelivr.com` / `cdnjs.cloudflare.com` (not our zone)  
-- They already long-cache; we do not need to re-host to “make them cache”
+## Related
 
-## Operator rule
-
-When adding a library or texture: **search cdnjs / jsDelivr first**, pin version + SRI when available, add local mirror under `/assets/cdn/` only as backup. Document the pin in this folder or `assets/cdn/README.md`.
+- `js/main.js` — Three load chain  
+- `js/three-bg.js` — texture URLs  
+- `js/ambient-d3-bg.js` — D3 load chain  

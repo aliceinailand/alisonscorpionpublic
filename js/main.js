@@ -6,10 +6,10 @@
  * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
  * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t235500z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t235500z";
-import { WindowManager } from "./wm.js?v=20260810t235500z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t235500z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t240000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t240000z";
+import { WindowManager } from "./wm.js?v=20260810t240000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t240000z";
 import {
   initPresence,
   initSessionTimer,
@@ -20,13 +20,18 @@ import {
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t235500z";
+} from "./shell-chrome.js?v=20260810t240000z";
 
-/** Policy: cdnjs first (their Cloudflare edge); our /assets/cdn only if CDN fails */
-const THREE_CDN =
-  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-const THREE_LOCAL = "/assets/cdn/three-r128/three.min.js";
-/** Hermes H3-08 / T-05: pin integrity for r128 three.min.js (cdnjs / local mirror same bytes) */
+/**
+ * Three.js: major CDNs only — never serve from our origin.
+ * 1) cdnjs (Cloudflare)  2) jsDelivr  3) unpkg
+ */
+const THREE_SOURCES = [
+  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+  "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
+  "https://unpkg.com/three@0.128.0/build/three.min.js",
+];
+/** Hermes H3-08 / T-05: SRI for cdnjs r128 three.min.js only (first URL) */
 const THREE_CDN_SRI =
   "sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu";
 
@@ -95,14 +100,20 @@ function loadThreeJs() {
       if (useSri) {
         s.integrity = THREE_CDN_SRI;
         s.crossOrigin = "anonymous";
+      } else {
+        s.crossOrigin = "anonymous";
       }
       s.referrerPolicy = "no-referrer";
       s.onload = () => resolve();
       s.onerror = () => reject(new Error("Three.js load failed: " + src));
       document.head.appendChild(s);
     });
-  // cdnjs first (free Cloudflare CDN) → our site mirror only if CDN fails
-  return inject(THREE_CDN, true).catch(() => inject(THREE_LOCAL, true));
+  // Walk major CDNs only — never fall back to our origin for vendor JS
+  let chain = Promise.reject(new Error("start"));
+  THREE_SOURCES.forEach((src, i) => {
+    chain = chain.catch(() => inject(src, i === 0));
+  });
+  return chain;
 }
 
 function bootSplash() {

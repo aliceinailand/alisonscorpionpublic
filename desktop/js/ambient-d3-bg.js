@@ -57,11 +57,16 @@ function loadD3() {
       s.onerror = () => resolve(null);
       document.head.appendChild(s);
     });
-  // Free jsDelivr first → our site mirror only if CDN fails
+  // Public CDNs only — never load D3 from our origin
   return trySrc("https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js").then(
     (d3) => {
       if (d3) return d3;
-      return trySrc("/assets/cdn/d3/d3.min.js");
+      return trySrc(
+        "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"
+      ).then((d3b) => {
+        if (d3b) return d3b;
+        return trySrc("https://unpkg.com/d3@7.9.0/dist/d3.min.js");
+      });
     }
   );
 }

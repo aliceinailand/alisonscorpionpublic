@@ -18,8 +18,9 @@
  */
 
 /**
- * Free public CDNs first (jsDelivr / threejs.org); our /assets/cdn/* is fallback only.
- * (We cannot Cache-Rule jsdelivr.com — not our zone — but they already long-cache.)
+ * Textures: public CDNs only — never host multi-MB vendor files on our origin.
+ * 1) jsDelivr  2) threejs.org  3) raw.githubusercontent (short cache; last public hop)
+ * See docs/RESOURCE_CDN_POLICY.md
  */
 const TEX = {
   earth:
@@ -33,17 +34,19 @@ const TEX = {
   earthCloudsFallbacks: [
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png",
     "https://threejs.org/examples/textures/planets/earth_clouds_1024.png",
-    "/assets/cdn/three-r128/planets/earth_clouds_1024.png",
     "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/earth_clouds_1024.png",
   ],
   moon:
     "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg",
-  // Same-origin mirror if free CDN fails
-  local: {
-    earth: "/assets/cdn/three-r128/planets/earth_atmos_2048.jpg",
-    earthNormal: "/assets/cdn/three-r128/planets/earth_normal_2048.jpg",
-    earthSpec: "/assets/cdn/three-r128/planets/earth_specular_2048.jpg",
-    moon: "/assets/cdn/three-r128/planets/moon_1024.jpg",
+  // Secondary public CDN hop (not our origin)
+  alt: {
+    earth:
+      "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+    earthNormal:
+      "https://threejs.org/examples/textures/planets/earth_normal_2048.jpg",
+    earthSpec:
+      "https://threejs.org/examples/textures/planets/earth_specular_2048.jpg",
+    moon: "https://threejs.org/examples/textures/planets/moon_1024.jpg",
   },
 };
 
@@ -666,10 +669,10 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   Promise.all([
-    loadTexture(loader, TEX.earth, TEX.local.earth),
-    loadTexture(loader, TEX.earthNormal, TEX.local.earthNormal),
-    loadTexture(loader, TEX.earthSpec, TEX.local.earthSpec),
-    loadTexture(loader, TEX.moon, TEX.local.moon),
+    loadTexture(loader, TEX.earth, TEX.alt.earth),
+    loadTexture(loader, TEX.earthNormal, TEX.alt.earthNormal),
+    loadTexture(loader, TEX.earthSpec, TEX.alt.earthSpec),
+    loadTexture(loader, TEX.moon, TEX.alt.moon),
     loadEarthCloudsBase(),
   ]).then(([day, normal, spec, moonTex, cloudBase]) => {
     if (disposed) return;
