@@ -33,8 +33,21 @@ python3 tools/refresh_safety_hosts.py   # if present
 ### Caching
 
 - Browser: `fetch(..., { cache: "force-cache" })`
-- Edge: see root `_headers` (Cloudflare Pages style) for `/safety/*` → `max-age=86400`
-- If apex is Cloudflare in front of GitHub Pages, add a **Cache Rule** for `alisonscorpion.com/safety/*` (Cache Everything / eligible for cache, Edge TTL ≥ 1 day)
+- Origin headers: repo root `_headers` for `/safety/*` → `max-age=86400` (CF Pages / compatible hosts)
+- **Edge Cache Rule (intended):** zone `alisonscorpion.com`  
+  `starts_with(http.request.uri.path, "/safety/")` → cache on, edge/browser TTL 1 day  
+
+**Apply via API (operator):**
+
+```bash
+export CLOUDFLARE_API_TOKEN=…   # Zone → Cache Rules → Edit
+export CF_ZONE_ID=fdfc2f6f3598393dc37bd9a4bed467b6
+python3 tools/apply_cf_safety_cache_rule.py
+```
+
+Or GitHub Actions: workflow `cf-safety-cache-rule` (uses secret `CLOUDFLARE_API_TOKEN`).
+
+**2026-08-10 note:** workflow ran; CF API returned `10000 Authentication error` for that secret — token missing, expired, or lacks *Cache Rules Edit*. Fix token in GitHub repo secrets, re-run workflow.
 
 ### Why not always hot-link raw GitHub?
 
