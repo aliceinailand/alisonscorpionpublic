@@ -31,6 +31,15 @@ Illusion of a Linux desktop **in the browser** — not a real OS kernel.
 | VFS + terminal | In-memory `fs.js` + command parser |
 | Mobile | Pointer events, `overscroll-behavior: none`, tap-to-open |
 
+### Window modes (product, not a bug)
+
+| Mode | When | Behavior |
+|------|------|----------|
+| **Phone / small pane** | Narrow guest area (phone or side-by-side strip) | Single-focus: large fitted windows; stacking is OK |
+| **Desktop multi** | Wide enough live bounds | Cascade + smaller footprint so **multiple windows** stay usable |
+
+`desktop = ability to work in multiple screens` (multi-window cascade).
+
 See `agents/research/threejs/leoai_linux_os_threejs_review_20260810.md`.
 
 ## Security notes

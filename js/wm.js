@@ -1,20 +1,57 @@
 /**
  * ASX Desktop window manager — thin glass terminal windows.
  * Geometry is live-measured from #windows-root (no hardcoded screen sizes).
- * Side-by-side browser panes and phones both get smaller floating windows.
+ *
+ * Two modes (not a bug — product split):
+ * - Phone / small pane: single-focus; large fitted windows OK (stack)
+ * - Desktop: multi-window — cascade + smaller footprint so several work at once
  */
 
-/** Coarse pointer or narrow pane — for UX only, not geometry hardcodes */
-function isMobileLayout() {
+/** Live work area — measured, never assumed from a design resolution. */
+function desktopBounds() {
+  const tb = taskbarOffset();
+  const root = document.getElementById("windows-root");
+  if (root) {
+    const r = root.getBoundingClientRect();
+    if (r.width > 40 && r.height > 40) {
+      return { w: Math.floor(r.width), h: Math.floor(r.height) };
+    }
+  }
+  const vw = window.visualViewport?.width || window.innerWidth || 0;
+  const vh = window.visualViewport?.height || window.innerHeight || 0;
+  return {
+    w: Math.max(120, Math.floor(vw || document.documentElement.clientWidth || 320)),
+    h: Math.max(100, Math.floor((vh || document.documentElement.clientHeight || 480) - tb)),
+  };
+}
+
+/**
+ * Phone-like / crowded single-focus pane.
+ * (Side-by-side browser strip or true mobile — not a defect.)
+ */
+function isPhoneLayout() {
   const b = desktopBounds();
-  const narrowPane = b.w > 0 && b.w / Math.max(window.innerWidth, 1) < 0.55;
+  const shareOfBrowser = b.w / Math.max(window.innerWidth, 1);
+  const aspect = b.w / Math.max(b.h, 1);
   return (
-    narrowPane ||
+    shareOfBrowser < 0.55 ||
+    aspect < 0.9 ||
     (typeof matchMedia === "function" && matchMedia("(max-width: 768px)").matches) ||
     (typeof matchMedia === "function" &&
       matchMedia("(pointer: coarse)").matches &&
-      b.w <= 900)
+      shareOfBrowser < 0.85)
   );
+}
+
+/** Alias used elsewhere */
+function isMobileLayout() {
+  return isPhoneLayout();
+}
+
+/** True multi-window desktop: enough room to see two windows at once */
+function isDesktopMultiLayout() {
+  const b = desktopBounds();
+  return !isPhoneLayout() && b.w >= 640 && b.h >= 420;
 }
 
 function taskbarOffset() {
