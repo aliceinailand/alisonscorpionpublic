@@ -2,8 +2,8 @@
  * ASX Desktop applications — tools inspired by LibreOffice suite + Linux utilities,
  * implemented as web apps (not full LO). Containers = existing staging product.
  */
-import { isBlockedUrl, normalizeNavUrl } from "./blocklist.js";
-import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js";
+import { isBlockedUrl, normalizeNavUrl } from "./blocklist.js?v=20260810t211500z";
+import { listDir, openNode, readFile, parentPath, joinPath } from "./fs.js?v=20260810t211500z";
 
 /** Resolve Containers product URL for this host layout. */
 export function containersUrl() {
