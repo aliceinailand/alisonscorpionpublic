@@ -3,10 +3,10 @@
  * SEO: Three.js loaded dynamically after first paint (not blocking HTML content).
  * Mobile: tap-to-open, asx-mobile class, layout hints (2026-08-10).
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t191200z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t191200z";
-import { WindowManager } from "./wm.js?v=20260810t191200z";
-import { registerApps, APP_CATALOG } from "./apps.js?v=20260810t191200z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t192500z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t192500z";
+import { WindowManager } from "./wm.js?v=20260810t192500z";
+import { registerApps, APP_CATALOG } from "./apps.js?v=20260810t192500z";
 
 const THREE_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";

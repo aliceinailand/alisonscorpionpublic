@@ -35,8 +35,13 @@ Sources consulted for priors (not live API pulls):
    - `lat/lng` from UV  
    - **`cloudPrior(lat,lng)`** from ordered region boxes (Sahara 0.18 … Southern Ocean 0.82; default ocean 0.71, land 0.54)  
    - Multi-octave **value-noise FBM** with seed-based day offset  
-   - Optional blend with NASA **earth_clouds_1024.png** structure if CDN loads  
-   - Soft threshold shaped by prior → alpha  
+   - **NASA `earth_clouds_1024.png` structure blend (default when loadable):**  
+     - Load via `loadEarthCloudsBase()` — jsDelivr primary, threejs.org + raw.githubusercontent fallbacks  
+     - Sample with **seeded longitude phase** so each visit is a different weather face  
+     - Main shell: **nasaWeight = 0.72** (structure-dominant)  
+     - Cirrus shell: **nasaWeight = 0.45**, phase +0.37  
+     - Soft threshold relaxed when NASA present so filaments stay visible  
+     - If all CDN loads fail → pure procedural (mode `procedural+climate-prior`)  
 4. **Rescale** all alphas so measured mean ≈ target mean (forces realism even if noise ran dry).  
 5. **Two shells:** main clouds @ `R×1.018`, thin cirrus @ `R×1.028` with XOR seed.  
 6. **Drift:** clouds rotate slightly faster than ground for weather illusion.
@@ -48,7 +53,8 @@ Sources consulted for priors (not live API pulls):
 | `canvas.dataset.asxCloudSeed` | Hex-ish seed for this weather day |
 | `canvas.dataset.asxCloudCover` | Realized mean alpha |
 | `canvas.dataset.asxCloudTarget` | Target mean used for rescale |
-| `canvas.dataset.asxCloudMode` | `nasa-structure+climate-prior` or procedural-only |
+| `canvas.dataset.asxCloudMode` | `earth_clouds_1024+climate-prior` or procedural-only |
+| `canvas.dataset.asxCloudNasa` | `1` if NASA map blended |
 | `console.info("[ASX] Earth cloud cover …")` | Operator / curious user |
 | `handle.getCloudCover()` | Programmatic |
 | This research note | Public source-sharing narrative |
