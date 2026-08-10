@@ -1798,3 +1798,169 @@ body.asx-locked #start-menu {
 @media (max-width: 700px) {
   .yt-body { grid-template-columns: 1fr; }
 }
+
+/* ── Alison glass gate (pre-desktop captcha) ─────────────── */
+body.asx-gate-active #desktop-layer,
+body.asx-gate-active #windows-root,
+body.asx-gate-active #taskbar,
+body.asx-gate-active #start-menu,
+body.asx-gate-active #seo-main,
+body.asx-gate-active #three-bg,
+body.asx-gate-active #boot-splash {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+#asx-glass-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  overflow: hidden;
+  touch-action: none;
+  cursor: none;
+  user-select: none;
+}
+.gg-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%,
+      rgba(124, 58, 237, 0.55) 0%,
+      rgba(45, 27, 78, 0.75) 42%,
+      rgba(10, 6, 18, 0.98) 100%),
+    radial-gradient(circle at 30% 70%, rgba(167, 139, 250, 0.2), transparent 50%),
+    #0a0612;
+}
+.gg-fog {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%,
+      rgba(230, 220, 255, 0.22) 0%,
+      rgba(80, 50, 120, 0.15) 40%,
+      transparent 70%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-size: cover, 180px 180px;
+  mix-blend-mode: soft-light;
+  transition: opacity 0.35s ease;
+  opacity: 0.72;
+}
+.gg-draw {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.gg-hint {
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  transform: translateX(-50%);
+  z-index: 4;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.65);
+}
+.gg-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  color: #f5edd8;
+}
+.gg-sub {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: rgba(196, 181, 253, 0.9);
+  letter-spacing: 0.04em;
+  max-width: 22rem;
+}
+.gg-hint.gg-done .gg-title {
+  color: #c4b5fd;
+  letter-spacing: 0.18em;
+}
+.gg-hand {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  pointer-events: none;
+  will-change: transform;
+  /* tip of index near (0,0) of transform origin — SVG offset */
+  margin-left: -158px;
+  margin-top: -8px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+  transition: opacity 0.5s ease;
+}
+.gg-hand-out {
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.6s ease;
+}
+.gg-hand-svg {
+  display: block;
+  width: min(42vw, 200px);
+  height: auto;
+}
+.gg-skip {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  background: transparent;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  color: rgba(196, 181, 253, 0.75);
+  font: 11px var(--font, system-ui);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.gg-skip:hover {
+  color: #fff;
+  border-color: rgba(167, 139, 250, 0.7);
+}
+.gg-shatter {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  overflow: hidden;
+}
+.gg-shard {
+  position: absolute;
+  width: 18px;
+  height: 28px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55),
+    rgba(167, 139, 250, 0.35),
+    rgba(255, 255, 255, 0.08)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  clip-path: polygon(20% 0%, 100% 15%, 80% 100%, 0% 70%);
+  opacity: 0;
+}
+#asx-glass-gate.gg-explode .gg-bg,
+#asx-glass-gate.gg-explode .gg-fog,
+#asx-glass-gate.gg-explode .gg-draw,
+#asx-glass-gate.gg-explode .gg-hint {
+  animation: gg-flash 0.9s ease-out forwards;
+}
+#asx-glass-gate.gg-explode .gg-shard {
+  animation: gg-shard-fly 1s ease-out forwards;
+}
+@keyframes gg-flash {
+  0% { opacity: 1; filter: brightness(1); }
+  25% { filter: brightness(2.2); }
+  100% { opacity: 0; filter: brightness(3); transform: scale(1.08); }
+}
+@keyframes gg-shard-fly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4);
+  }
+}
+@media (pointer: coarse) {
+  #asx-glass-gate { cursor: auto; }
+  .gg-hand-svg { width: min(48vw, 160px); }
+}
