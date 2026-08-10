@@ -1,11 +1,74 @@
 /**
  * ASX Desktop window manager — thin glass terminal windows.
  * Geometry is live-measured from #windows-root (no hardcoded screen sizes).
+ * Positions/sizes persist in localStorage (guest session layout memory).
  *
  * Two modes (not a bug — product split):
  * - Phone / small pane: single-focus; large fitted windows OK (stack)
  * - Desktop: multi-window — cascade + smaller footprint so several work at once
  */
+
+const GEOM_STORAGE_KEY = "asx-wm-geom-v1";
+
+function loadGeomStore() {
+  try {
+    const raw = localStorage.getItem(GEOM_STORAGE_KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw);
+    return o && typeof o === "object" ? o : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveGeomStore(store) {
+  try {
+    localStorage.setItem(GEOM_STORAGE_KEY, JSON.stringify(store));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+/** @returns {{ x?: number, y?: number, w?: number, h?: number, max?: boolean } | null} */
+function readSavedGeom(id) {
+  const s = loadGeomStore()[id];
+  if (!s || typeof s !== "object") return null;
+  const out = {};
+  if (Number.isFinite(s.w) && s.w > 40) out.w = Math.floor(s.w);
+  if (Number.isFinite(s.h) && s.h > 40) out.h = Math.floor(s.h);
+  if (Number.isFinite(s.x)) out.x = Math.floor(s.x);
+  if (Number.isFinite(s.y)) out.y = Math.floor(s.y);
+  if (s.max) out.max = true;
+  return out.w || out.h || Number.isFinite(out.x) ? out : null;
+}
+
+function persistGeom(id, el, extras = {}) {
+  if (!id || !el || el.classList.contains("maximized")) {
+    if (id && el?.classList.contains("maximized")) {
+      const store = loadGeomStore();
+      const prev = store[id] || {};
+      store[id] = { ...prev, max: true };
+      saveGeomStore(store);
+    }
+    return;
+  }
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  const x = parseInt(el.style.left, 10);
+  const y = parseInt(el.style.top, 10);
+  if (!(w > 40 && h > 40)) return;
+  const store = loadGeomStore();
+  store[id] = {
+    w,
+    h,
+    x: Number.isFinite(x) ? x : 0,
+    y: Number.isFinite(y) ? y : 0,
+    max: false,
+    ...extras,
+    t: Date.now(),
+  };
+  saveGeomStore(store);
+}
 
 /** Live work area — measured, never assumed from a design resolution. */
 function desktopBounds() {
@@ -162,6 +225,7 @@ export class WindowManager {
         const top = Math.min(Math.max(0, cy - oy), Math.max(0, b.h - 32));
         el.style.left = left + "px";
         el.style.top = top + "px";
+        this._drag.moved = true;
       }
       if (this._resize) {
         const { el, sx, sy, sw, sh } = this._resize;
@@ -170,9 +234,33 @@ export class WindowManager {
         const minH = Math.min(b.h, Math.max(120, Math.floor(b.h * 0.22)));
         el.style.width = Math.min(b.w - 8, Math.max(minW, sw + (cx - sx))) + "px";
         el.style.height = Math.min(b.h - 8, Math.max(minH, sh + (cy - sy))) + "px";
+        this._resize.moved = true;
       }
     };
     const onUp = () => {
+      // Persist layout after drag / resize (guest remembers window placement)
+      if (this._drag?.moved && this._drag.el) {
+        const id = this._drag.el.dataset.winId;
+        if (id) {
+          persistGeom(id, this._drag.el);
+          const w = this.windows.get(id);
+          if (w) {
+            w.prefW = this._drag.el.offsetWidth;
+            w.prefH = this._drag.el.offsetHeight;
+          }
+        }
+      }
+      if (this._resize?.moved && this._resize.el) {
+        const id = this._resize.el.dataset.winId;
+        if (id) {
+          persistGeom(id, this._resize.el);
+          const w = this.windows.get(id);
+          if (w) {
+            w.prefW = this._resize.el.offsetWidth;
+            w.prefH = this._resize.el.offsetHeight;
+          }
+        }
+      }
       this._drag = null;
       this._resize = null;
     };
@@ -262,12 +350,17 @@ export class WindowManager {
     el.dataset.winId = id;
     const mobile = isPhoneLayout();
     const stackIndex = this._openStackIndex();
+    // Restore last position/size from localStorage when present
+    const saved = readSavedGeom(id);
     // Preferred design size (apps pass 640×420 etc.) — shrink to fit + cascade on desktop
-    const prefW = opts.w ?? 640;
-    const prefH = opts.h ?? 420;
-    const prefX = opts.x;
-    const prefY = opts.y;
-    const g = fitWindowGeom(prefW, prefH, prefX, prefY, stackIndex);
+    // Saved geom skips cascade so layout memory is stable across sessions
+    const prefW = saved?.w ?? opts.w ?? 640;
+    const prefH = saved?.h ?? opts.h ?? 420;
+    const prefX = saved && Number.isFinite(saved.x) ? saved.x : opts.x;
+    const prefY = saved && Number.isFinite(saved.y) ? saved.y : opts.y;
+    const stackForFit =
+      saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) ? 0 : stackIndex;
+    const g = fitWindowGeom(prefW, prefH, prefX, prefY, stackForFit);
     // Phone: large single-focus float OK. Desktop: multi-window cascade (not a bug).
     const w = g.w;
     const h = g.h;
@@ -384,6 +477,20 @@ export class WindowManager {
     this._addTaskbar(id, opts.title);
     this.focus(id);
     this._notifyWindowsOpen();
+    // Restore maximized state from last session
+    if (saved?.max && !mobile) {
+      rec.prevGeom = {
+        left: x + "px",
+        top: y + "px",
+        width: w + "px",
+        height: h + "px",
+      };
+      el.classList.add("maximized");
+      this._syncMaxButton(id);
+    } else {
+      // Remember fitted open geometry so next visit starts here
+      persistGeom(id, el);
+    }
     // Auto-collapse SEO when window is large relative to *this* pane (side-by-side or phone)
     const paneCrowded = g.w / g.bounds.w > 0.45 || g.bounds.w / Math.max(window.innerWidth, 1) < 0.6;
     if (mobile || paneCrowded) {
@@ -415,6 +522,21 @@ export class WindowManager {
   close(id) {
     const w = this.windows.get(id);
     if (!w) return;
+    // Save last geometry before destroy (incl. maximized flag)
+    if (w.el.classList.contains("maximized") && w.prevGeom) {
+      const store = loadGeomStore();
+      store[id] = {
+        w: parseInt(w.prevGeom.width, 10) || w.prefW || 640,
+        h: parseInt(w.prevGeom.height, 10) || w.prefH || 420,
+        x: parseInt(w.prevGeom.left, 10) || 0,
+        y: parseInt(w.prevGeom.top, 10) || 0,
+        max: true,
+        t: Date.now(),
+      };
+      saveGeomStore(store);
+    } else {
+      persistGeom(id, w.el);
+    }
     if (typeof w.onClose === "function") w.onClose();
     w.el.remove();
     this.windows.delete(id);
@@ -463,6 +585,7 @@ export class WindowManager {
         w.el.style.width = g.w + "px";
         w.el.style.height = g.h + "px";
       }
+      persistGeom(id, w.el);
     } else {
       w.prevGeom = {
         left: w.el.style.left,
@@ -471,6 +594,17 @@ export class WindowManager {
         height: w.el.style.height,
       };
       w.el.classList.add("maximized");
+      const store = loadGeomStore();
+      store[id] = {
+        ...(store[id] || {}),
+        w: parseInt(w.prevGeom.width, 10) || w.prefW || 640,
+        h: parseInt(w.prevGeom.height, 10) || w.prefH || 420,
+        x: parseInt(w.prevGeom.left, 10) || 0,
+        y: parseInt(w.prevGeom.top, 10) || 0,
+        max: true,
+        t: Date.now(),
+      };
+      saveGeomStore(store);
     }
     this._syncMaxButton(id);
   }

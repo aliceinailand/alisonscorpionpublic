@@ -61,18 +61,27 @@ const APP_OPENERS = {
 };
 
 function accessDenied(wm, path, detail) {
+  // Linux-style error (PCManFM / GIO): "Error opening directory …: Permission denied"
+  const p = path || "";
+  const isDir = !/\.[a-z0-9]+$/i.test(p.split("/").pop() || "");
+  const lead = isDir
+    ? `Error opening directory "${p}": Permission denied`
+    : `Error opening file "${p}": Permission denied`;
   wm.open({
     id: `eaccess-${Date.now()}`,
     title: "Permission denied",
-    w: 420,
-    h: 260,
+    w: 460,
+    h: 280,
     body: `<div class="modal-error">
       <div class="big">🔒</div>
-      <div class="msg">ACCESS DENIED</div>
-      <div class="sub">${escapeHtml(path || "")}</div>
-      <p class="sub" style="margin-top:12px">${escapeHtml(
-        detail || "Only the administrator (Alison Scorpion) may open this path."
-      )}</p>
+      <div class="msg">Permission denied</div>
+      <div class="sub" style="margin-top:10px;text-align:left;font-family:var(--mono,monospace);font-size:12px;color:var(--text)">${escapeHtml(
+        lead
+      )}</div>
+      <p class="sub" style="margin-top:14px;text-align:left">${escapeHtml(
+        detail ||
+          "You do not have the permissions necessary to view the contents of this location.\n\nOnly the administrator (Alison Scorpion / ASX) may open this path. You are a guest on her desktop."
+      ).replace(/\n/g, "<br/>")}</p>
     </div>`,
   });
 }
@@ -233,23 +242,55 @@ function openFiles(wm) {
   const root = document.createElement("div");
   root.className = "files";
   root.innerHTML = `
-    <div class="files-side">
-      <div class="path"></div>
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px">PCManFM-Qt · guest</div>
-      <div class="file-row" data-jump="/"><span>🖥</span><span class="n">Computer</span></div>
-      <div class="file-row" data-jump="/home/guest"><span>🏠</span><span class="n">Home (guest)</span></div>
-      <div class="file-row" data-jump="/home/alisonscorpion"><span>🦂</span><span class="n">/home/alisonscorpion</span></div>
-      <div class="file-row" data-jump="/usr/share"><span>ℹ</span><span class="n">About</span></div>
+    <div class="files-menubar" role="menubar" aria-label="File manager menus">
+      <button type="button" data-menu="file">File</button>
+      <button type="button" data-menu="edit">Edit</button>
+      <button type="button" data-menu="view">View</button>
+      <button type="button" data-menu="go">Go</button>
+      <button type="button" data-menu="bookmarks">Bookmarks</button>
+      <button type="button" data-menu="tools">Tools</button>
+      <button type="button" data-menu="help">Help</button>
     </div>
-    <div class="files-main"></div>`;
+    <div class="files-body">
+      <div class="files-side">
+        <div class="path"></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">PCManFM-Qt · guest</div>
+        <div class="file-row" data-jump="/"><span>🖥</span><span class="n">Computer</span></div>
+        <div class="file-row" data-jump="/home/guest"><span>🏠</span><span class="n">Home (guest)</span></div>
+        <div class="file-row" data-jump="/home/alisonscorpion"><span>🦂</span><span class="n">/home/alisonscorpion</span></div>
+        <div class="file-row" data-jump="/usr/share"><span>ℹ</span><span class="n">About</span></div>
+      </div>
+      <div class="files-main"></div>
+    </div>`;
   const pathEl = root.querySelector(".path");
   const main = root.querySelector(".files-main");
+
+  const goTo = (p) => {
+    const o = openNode(p);
+    if (o.error === "EACCES") {
+      accessDenied(wm, p, o.detail);
+      return;
+    }
+    if (o.error && o.error !== "ENOENT") {
+      accessDenied(wm, p, o.message);
+      return;
+    }
+    // Allow listing roots even if empty listing
+    cwd = p;
+    render();
+  };
 
   const render = () => {
     pathEl.textContent = cwd;
     const r = listDir(cwd);
     main.innerHTML = "";
     if (r.error) {
+      if (r.error === "EACCES") {
+        accessDenied(wm, cwd, r.message);
+        cwd = parentPath(cwd);
+        render();
+        return;
+      }
       main.innerHTML = `<div class="modal-error"><div class="msg">${escapeHtml(r.message)}</div></div>`;
       return;
     }
@@ -257,10 +298,12 @@ function openFiles(wm) {
       const up = document.createElement("div");
       up.className = "file-row";
       up.innerHTML = `<span>⬆</span><span class="n">..</span>`;
-      up.addEventListener("dblclick", () => {
+      const upGo = () => {
         cwd = parentPath(cwd);
         render();
-      });
+      };
+      up.addEventListener("dblclick", upGo);
+      up.addEventListener("click", upGo);
       main.appendChild(up);
     }
     for (const e of r.entries) {
@@ -269,7 +312,7 @@ function openFiles(wm) {
       row.innerHTML = `<span>${e.type === "dir" ? "📁" : "📄"}</span><span class="n">${escapeHtml(
         e.name
       )}</span><span class="m">${e.admin ? "admin" : e.type}</span>`;
-      row.addEventListener("dblclick", () => {
+      const openEntry = () => {
         if (e.type === "dir") {
           const o = openNode(e.path);
           if (o.error === "EACCES") {
@@ -302,21 +345,70 @@ function openFiles(wm) {
             )}</pre></div>`,
           });
         }
+      };
+      row.addEventListener("dblclick", openEntry);
+      // Mobile / single click: open (desktop still supports dblclick)
+      row.addEventListener("click", (ev) => {
+        if (ev.detail === 1 && matchMedia("(pointer: coarse)").matches) openEntry();
       });
       main.appendChild(row);
     }
   };
 
   root.querySelectorAll("[data-jump]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const p = el.getAttribute("data-jump");
-      const o = openNode(p);
-      if (o.error === "EACCES") {
-        accessDenied(wm, p, o.detail);
+    el.addEventListener("click", () => goTo(el.getAttribute("data-jump")));
+  });
+
+  // Menubar actions (PCManFM-Qt parity — realistic functions, guest-scoped)
+  root.querySelectorAll("[data-menu]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const m = btn.getAttribute("data-menu");
+      if (m === "go") {
+        const pick = window.prompt(
+          "Go to location (virtual FS):\n/home/guest  ·  /home/alisonscorpion  ·  /",
+          cwd
+        );
+        if (pick) goTo(pick.trim());
         return;
       }
-      cwd = p;
-      render();
+      if (m === "bookmarks") {
+        goTo("/home/guest");
+        return;
+      }
+      if (m === "view") {
+        render();
+        return;
+      }
+      if (m === "file") {
+        wm.open({
+          id: `files-new-${Date.now()}`,
+          title: "New (guest)",
+          w: 380,
+          h: 200,
+          body: `<div class="app-pad"><p>New folder/file is guest-local demo only. Use <strong>Notepad</strong> to write; host disk is never touched.</p></div>`,
+        });
+        return;
+      }
+      if (m === "help") {
+        wm.open({
+          id: "files-help",
+          title: "About PCManFM-Qt (ASX)",
+          w: 440,
+          h: 280,
+          body: `<div class="app-pad">
+            <h2>PCManFM-Qt — guest mirror</h2>
+            <p style="color:var(--muted);font-size:13px;margin-top:8px">Menus: File, Edit, View, Go, Bookmarks, Tools, Help — as on Alison's Linux desktop screenshots.</p>
+            <p style="color:var(--muted);font-size:13px;margin-top:8px">You may list <code>/home/alisonscorpion</code> folder names. Opening them returns <strong>Permission denied</strong> (guest ≠ admin).</p>
+          </div>`,
+        });
+        return;
+      }
+      // Edit / Tools — honest placeholders (Construct tools later)
+      asxToast(
+        m === "edit"
+          ? "Edit: copy/paste in guest text apps only."
+          : "Tools: ASX Construct / ftools — coming as free guest apps."
+      );
     });
   });
 
@@ -328,8 +420,7 @@ function openFiles(wm) {
     body: root,
     onMount: () => {
       const ban = document.createElement("div");
-      ban.style.cssText =
-        "grid-column:1/-1;padding:6px 10px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border)";
+      ban.className = "files-banner";
       ban.textContent =
         "Guest virtual FS only — not the host disk. /home/alisonscorpion/* requires administrator ASX.";
       root.insertBefore(ban, root.firstChild);
@@ -338,7 +429,83 @@ function openFiles(wm) {
   });
 }
 
+function asxToast(msg) {
+  let t = document.getElementById("asx-toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "asx-toast";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(asxToast._tm);
+  asxToast._tm = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
 /* ── Browser + ASX chat sidebar ───────────────────────────── */
+const ASX_HOME = "asx://home";
+
+function browserHomeHtml() {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ASX Browser — Home</title>
+<style>
+  body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#0c0a10;color:#e8e4f0;padding:28px 24px}
+  h1{font-size:1.35rem;color:#c4b5fd;margin:0 0 8px}
+  p{color:#9b93a8;max-width:40rem}
+  a{color:#a78bfa} a:hover{color:#ddd6fe}
+  .card{margin-top:18px;padding:14px 16px;border:1px solid #2a2438;border-radius:10px;background:#13111a}
+  ul{margin:8px 0 0;padding-left:1.2rem;color:#cfc8dc}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#2a1f4a;color:#c4b5fd;margin-bottom:10px}
+</style></head><body>
+<span class="tag">Guest session · Alison's desktop</span>
+<h1>ASX Browser</h1>
+<p>You're on Alison Scorpion's workstation. Browse carefully — adult and high-risk hosts are blocked by policy (client blocklist inspired by public hosts lists such as StevenBlack/hosts &amp; OISD NSFW).</p>
+<div class="card">
+  <strong>Try these</strong>
+  <ul>
+    <li><a href="https://example.com">example.com</a> — usually embeds</li>
+    <li><a href="https://info.cern.ch">info.cern.ch</a> — first website</li>
+    <li><a href="https://en.wikipedia.org/wiki/Main_Page">Wikipedia</a> — may refuse iframe (use Open outside)</li>
+    <li><a href="https://alisonscorpion.com">alisonscorpion.com</a></li>
+  </ul>
+</div>
+<div class="card">
+  <strong>Why some pages look blank</strong>
+  <p style="margin:8px 0 0">Many sites set <code>X-Frame-Options</code> / CSP <code>frame-ancestors</code> so they cannot load inside another site's iframe. That is the site protecting itself — not ASX broken. Use <em>Open outside</em> in the toolbar.</p>
+</div>
+</body></html>`;
+}
+
+function showPolicyBlocked(frame, url, reason) {
+  frame.innerHTML = `<div class="browser-blocked browser-blocked-policy">
+    <div class="blocked-icon" aria-hidden="true">🛡</div>
+    <h2>This page has been blocked</h2>
+    <p class="blocked-lead">Alison Scorpion's OS does not allow this site.</p>
+    <p class="blocked-url">${escapeHtml(url)}</p>
+    <p class="blocked-why">${escapeHtml(
+      reason ||
+        "Category: adult / high-risk content (ASX guest policy)."
+    )}</p>
+    <p class="blocked-foot">Looks like a corporate or school filter page on purpose — soft client blocklist for guests. Not a network firewall. Sources: curated hosts (StevenBlack porn extension, OISD-class NSFW patterns).</p>
+  </div>`;
+}
+
+function showFrameHint(frame, url) {
+  const bar = document.createElement("div");
+  bar.className = "browser-frame-hint";
+  bar.innerHTML = `<span>If this panel is blank, the site blocks embedding (X-Frame-Options). Safe sites can still be opened outside.</span>
+    <button type="button" class="open-out">Open outside</button>`;
+  bar.querySelector(".open-out").addEventListener("click", () => {
+    try {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      /* ignore */
+    }
+  });
+  frame.appendChild(bar);
+}
+
 function openBrowser(wm) {
   const root = document.createElement("div");
   root.className = "browser";
@@ -347,8 +514,10 @@ function openBrowser(wm) {
       <button type="button" data-act="back" title="Back">◀</button>
       <button type="button" data-act="fwd" title="Forward">▶</button>
       <button type="button" data-act="reload" title="Reload">↻</button>
-      <input type="text" class="url" value="https://example.com" spellcheck="false" />
+      <button type="button" data-act="home" title="Home">⌂</button>
+      <input type="text" class="url" value="${ASX_HOME}" spellcheck="false" autocomplete="off" />
       <button type="button" data-act="go">Go</button>
+      <button type="button" data-act="out" title="Open outside ASX frame">Open outside</button>
     </div>
     <div class="browser-frame"></div>
     <div class="browser-chat">
@@ -363,6 +532,8 @@ function openBrowser(wm) {
   const log = root.querySelector(".log");
   const history = [];
   let hi = -1;
+  let homeBlobUrl = null;
+  let loadTimer = 0;
 
   const asxSee = (url, note) => {
     const d = document.createElement("div");
@@ -373,44 +544,111 @@ function openBrowser(wm) {
     log.scrollTop = log.scrollHeight;
   };
 
+  const openOutside = (url) => {
+    if (!url || url.startsWith("asx:")) return;
+    try {
+      window.open(url, "_blank", "noopener,noreferrer");
+      asxSee(url, "opened outside");
+    } catch {
+      asxSee(url, "could not open outside");
+    }
+  };
+
   const navigate = (raw, push = true) => {
-    const url = normalizeNavUrl(raw);
+    clearTimeout(loadTimer);
+    let url = String(raw || "").trim();
+    if (!url || url === ASX_HOME || /^asx:\/\/home/i.test(url)) {
+      url = ASX_HOME;
+    } else {
+      url = normalizeNavUrl(url);
+    }
     urlIn.value = url;
-    if (isBlockedUrl(url)) {
-      frame.innerHTML = `<div class="browser-blocked">
-        <h2 style="color:var(--fail);margin-bottom:8px">Blocked by ASX policy</h2>
-        <p>Alison Scorpion does not allow adult / high-risk sites on her operating system.</p>
-        <p style="margin-top:10px;color:var(--muted)">${escapeHtml(url)}</p>
-        <p style="margin-top:10px;font-size:11px;color:var(--muted)">Policy: client-side soft blocklist (UX). Not a network firewall — hard controls require gateway.</p>
-      </div>`;
-      asxSee(url, "blocked");
+
+    if (url !== ASX_HOME && isBlockedUrl(url)) {
+      showPolicyBlocked(frame, url);
+      asxSee(url, "blocked by policy");
+      if (push) {
+        history.splice(hi + 1);
+        history.push(url);
+        hi = history.length - 1;
+      }
       return;
     }
+    if (/^javascript:/i.test(url) || /^data:/i.test(url) || /^vbscript:/i.test(url)) {
+      showPolicyBlocked(frame, url, "Scheme blocked by ASX Browser policy.");
+      asxSee(url, "scheme blocked");
+      return;
+    }
+
     if (push) {
       history.splice(hi + 1);
       history.push(url);
       hi = history.length - 1;
     }
+
     frame.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "browser-iframe-wrap";
     const iframe = document.createElement("iframe");
-    // OCodex T-03: drop allow-popups-to-escape-sandbox; keep scripts for sites that need them
-    iframe.setAttribute("sandbox", "allow-scripts allow-forms allow-popups");
+    iframe.className = "browser-iframe";
+    // Sandbox: scripts/forms for real pages; no top-navigation escape
+    iframe.setAttribute(
+      "sandbox",
+      "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
+    );
     iframe.setAttribute("referrerpolicy", "no-referrer");
-    iframe.title = "ASX Browser";
-    if (/^javascript:/i.test(url) || /^data:/i.test(url)) {
-      frame.innerHTML = `<div class="browser-blocked"><p>Scheme blocked by ASX Browser policy.</p></div>`;
-      asxSee(url, "scheme blocked");
+    iframe.setAttribute("loading", "eager");
+    iframe.title = "ASX Browser content";
+
+    if (url === ASX_HOME) {
+      if (homeBlobUrl) URL.revokeObjectURL(homeBlobUrl);
+      homeBlobUrl = URL.createObjectURL(
+        new Blob([browserHomeHtml()], { type: "text/html" })
+      );
+      // Home is same-origin blob — needs allow-same-origin for links to work inside
+      iframe.setAttribute(
+        "sandbox",
+        "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      );
+      iframe.src = homeBlobUrl;
+      wrap.appendChild(iframe);
+      frame.appendChild(wrap);
+      // Intercept in-home link clicks via load + try (blob same-origin)
+      iframe.addEventListener("load", () => {
+        try {
+          const doc = iframe.contentDocument;
+          if (!doc) return;
+          doc.addEventListener("click", (ev) => {
+            const a = ev.target.closest?.("a");
+            if (!a || !a.href) return;
+            ev.preventDefault();
+            navigate(a.href);
+          });
+        } catch {
+          /* ignore */
+        }
+      });
+      asxSee(url, "home");
       return;
     }
+
     iframe.src = url;
-    iframe.addEventListener("error", () => {
-      asxSee(url, "load error (X-Frame or network)");
-    });
-    frame.appendChild(iframe);
+    wrap.appendChild(iframe);
+    frame.appendChild(wrap);
+    showFrameHint(frame, url);
     asxSee(url, "navigating");
+
+    // After a moment, surface embed note if still on this URL
+    loadTimer = setTimeout(() => {
+      if (urlIn.value !== url) return;
+      const hint = frame.querySelector(".browser-frame-hint");
+      if (hint) hint.classList.add("pulse");
+    }, 2200);
   };
 
   root.querySelector('[data-act="go"]').addEventListener("click", () => navigate(urlIn.value));
+  root.querySelector('[data-act="home"]').addEventListener("click", () => navigate(ASX_HOME));
+  root.querySelector('[data-act="out"]').addEventListener("click", () => openOutside(urlIn.value));
   urlIn.addEventListener("keydown", (e) => {
     if (e.key === "Enter") navigate(urlIn.value);
   });
@@ -463,7 +701,11 @@ function openBrowser(wm) {
     x: 80,
     y: 30,
     body: root,
-    onMount: () => navigate("https://example.com"),
+    onMount: () => navigate(ASX_HOME),
+    onClose: () => {
+      clearTimeout(loadTimer);
+      if (homeBlobUrl) URL.revokeObjectURL(homeBlobUrl);
+    },
   });
 }
 

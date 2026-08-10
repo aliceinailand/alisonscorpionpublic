@@ -1,9 +1,14 @@
 /**
  * ASX Desktop browser blocklist — adult / high-risk hosts.
  * Optimized: bare-host Set (O(1) + suffix walk) vs full-set scan.
- * Pattern: pyreferctror fail-fast + all_in_one precomputed lookup tables.
  * Hermes H3-02/H3-03: confusable fold + host-scoped keywords (repair LOOP c3).
  * CLASS R0 policy list; soft client UX — not a network firewall.
+ *
+ * Public list inspiration (full files too large for guest JS; curated subset):
+ * - github.com/StevenBlack/hosts (porn / unified hosts extensions)
+ * - OISD NSFW (sjhgvr) / Pi-hole community adult lists
+ * - Hagezi DNS blocklists (malware; NSFW often separate)
+ * Research: agents/research/threejs → desktop browser note + blocklist_sources_20260810.md
  */
 export const BLOCKED_HOSTS = new Set([
   "pornhub.com", "www.pornhub.com",
@@ -13,19 +18,45 @@ export const BLOCKED_HOSTS = new Set([
   "redtube.com", "www.redtube.com",
   "youporn.com", "www.youporn.com",
   "porn.com", "www.porn.com",
+  "pornhd.com", "www.pornhd.com",
+  "pornmd.com", "www.pornmd.com",
   "onlyfans.com", "www.onlyfans.com",
+  "fansly.com", "www.fansly.com",
   "chaturbate.com", "www.chaturbate.com",
   "stripchat.com", "www.stripchat.com",
   "bongacams.com", "www.bongacams.com",
   "livejasmin.com", "www.livejasmin.com",
+  "camsoda.com", "www.camsoda.com",
+  "myfreecams.com", "www.myfreecams.com",
   "spankbang.com", "www.spankbang.com",
   "eporner.com", "www.eporner.com",
   "hqporner.com", "www.hqporner.com",
   "motherless.com", "www.motherless.com",
   "porntrex.com", "www.porntrex.com",
+  "tnaflix.com", "www.tnaflix.com",
+  "tube8.com", "www.tube8.com",
+  "beeg.com", "www.beeg.com",
+  "xmoviesforyou.com", "www.xmoviesforyou.com",
   "rule34.xxx", "www.rule34.xxx",
   "nhentai.net", "www.nhentai.net",
   "hanime.tv", "www.hanime.tv",
+  "sex.com", "www.sex.com",
+  "xnxx.tv", "www.xnxx.tv",
+  "xhamster.desi", "www.xhamster.desi",
+  "pornhub.org", "www.pornhub.org",
+  "pornhub.net", "www.pornhub.net",
+  "youjizz.com", "www.youjizz.com",
+  "drtuber.com", "www.drtuber.com",
+  "sunporno.com", "www.sunporno.com",
+  "nuvid.com", "www.nuvid.com",
+  "perfectgirls.net", "www.perfectgirls.net",
+  "gotporn.com", "www.gotporn.com",
+  "porn300.com", "www.porn300.com",
+  "ixxx.com", "www.ixxx.com",
+  "fapdu.com", "www.fapdu.com",
+  "hentaihaven.xxx", "www.hentaihaven.xxx",
+  "e-hentai.org", "www.e-hentai.org",
+  "exhentai.org", "www.exhentai.org",
 ]);
 
 /** Bare registrable hosts (no www.) — built once */
@@ -45,10 +76,13 @@ export const BLOCKED_HOST_TOKENS = Object.freeze([
   "redtube",
   "youporn",
   "onlyfans",
+  "fansly",
   "chaturbate",
   "stripchat",
   "bongacams",
   "livejasmin",
+  "camsoda",
+  "myfreecams",
   "spankbang",
   "eporner",
   "hqporner",
@@ -57,6 +91,15 @@ export const BLOCKED_HOST_TOKENS = Object.freeze([
   "nhentai",
   "hanime",
   "rule34",
+  "youjizz",
+  "drtuber",
+  "sunporno",
+  "gotporn",
+  "porn300",
+  "hentaihaven",
+  "exhentai",
+  "e-hentai",
+  "tnaflix",
 ]);
 
 const SCHEME_DENY = /^(javascript|data|vbscript|file|blob):/i;
@@ -173,7 +216,15 @@ function hostMatchesBlocked(host, foldedExtra) {
   }
 
   // TLD-style adult
-  if (h.endsWith(".xxx") || folded.endsWith(".xxx")) return true;
+  if (
+    h.endsWith(".xxx") ||
+    folded.endsWith(".xxx") ||
+    h.endsWith(".adult") ||
+    h.endsWith(".sex") ||
+    h.endsWith(".porn")
+  ) {
+    return true;
+  }
 
   return false;
 }

@@ -53,7 +53,7 @@ export const FS = {
   "/home/guest/Videos": { type: "dir", label: "Videos", children: [] },
   "/home/guest/Music": { type: "dir", label: "Music", children: [] },
 
-  // Visible tree — opening any child is admin-only
+  // Visible tree — guest may *see* names (ChatGPT-agent-folder vibe); open → EACCES
   "/home/alisonscorpion": {
     type: "dir",
     label: "alisonscorpion",
@@ -61,22 +61,133 @@ export const FS = {
     children: [
       "Desktop",
       "Documents",
+      "Downloads",
+      "Pictures",
       "Projects",
       "Verification",
       "Legal",
       "HoneyBee",
+      "Containers",
       "Secrets",
+      "Mail",
+      ".config",
+      ".ssh",
       ".asx",
+      ".bashrc",
+      "README-ASX.txt",
     ],
   },
-  "/home/alisonscorpion/Desktop": { type: "dir", label: "Desktop", admin: true, children: [] },
-  "/home/alisonscorpion/Documents": { type: "dir", label: "Documents", admin: true, children: [] },
-  "/home/alisonscorpion/Projects": { type: "dir", label: "Projects", admin: true, children: [] },
-  "/home/alisonscorpion/Verification": { type: "dir", label: "Verification", admin: true, children: [] },
+  "/home/alisonscorpion/Desktop": {
+    type: "dir",
+    label: "Desktop",
+    admin: true,
+    children: ["scorpion-universe-purple.png", "asx-notes.md"],
+  },
+  "/home/alisonscorpion/Documents": {
+    type: "dir",
+    label: "Documents",
+    admin: true,
+    children: ["contracts", "research", "blueprints"],
+  },
+  "/home/alisonscorpion/Documents/contracts": {
+    type: "dir",
+    label: "contracts",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Documents/research": {
+    type: "dir",
+    label: "research",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Documents/blueprints": {
+    type: "dir",
+    label: "blueprints",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Downloads": { type: "dir", label: "Downloads", admin: true, children: [] },
+  "/home/alisonscorpion/Pictures": { type: "dir", label: "Pictures", admin: true, children: [] },
+  "/home/alisonscorpion/Projects": {
+    type: "dir",
+    label: "Projects",
+    admin: true,
+    children: ["desktop-os", "honeybee", "asx-kernel"],
+  },
+  "/home/alisonscorpion/Projects/desktop-os": {
+    type: "dir",
+    label: "desktop-os",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Projects/honeybee": {
+    type: "dir",
+    label: "honeybee",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Projects/asx-kernel": {
+    type: "dir",
+    label: "asx-kernel",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Verification": {
+    type: "dir",
+    label: "Verification",
+    admin: true,
+    children: ["HGF4", "seals"],
+  },
+  "/home/alisonscorpion/Verification/HGF4": {
+    type: "dir",
+    label: "HGF4",
+    admin: true,
+    children: [],
+  },
+  "/home/alisonscorpion/Verification/seals": {
+    type: "dir",
+    label: "seals",
+    admin: true,
+    children: [],
+  },
   "/home/alisonscorpion/Legal": { type: "dir", label: "Legal", admin: true, children: [] },
   "/home/alisonscorpion/HoneyBee": { type: "dir", label: "HoneyBee", admin: true, children: [] },
+  "/home/alisonscorpion/Containers": {
+    type: "dir",
+    label: "Containers",
+    admin: true,
+    children: [],
+  },
   "/home/alisonscorpion/Secrets": { type: "dir", label: "Secrets", admin: true, children: [] },
+  "/home/alisonscorpion/Mail": { type: "dir", label: "Mail", admin: true, children: [] },
+  "/home/alisonscorpion/.config": { type: "dir", label: ".config", admin: true, children: [] },
+  "/home/alisonscorpion/.ssh": { type: "dir", label: ".ssh", admin: true, children: [] },
   "/home/alisonscorpion/.asx": { type: "dir", label: ".asx", admin: true, children: [] },
+  "/home/alisonscorpion/.bashrc": {
+    type: "file",
+    label: ".bashrc",
+    admin: true,
+    content: "",
+  },
+  "/home/alisonscorpion/README-ASX.txt": {
+    type: "file",
+    label: "README-ASX.txt",
+    admin: true,
+    content: "",
+  },
+  "/home/alisonscorpion/Desktop/scorpion-universe-purple.png": {
+    type: "file",
+    label: "scorpion-universe-purple.png",
+    admin: true,
+    content: "",
+  },
+  "/home/alisonscorpion/Desktop/asx-notes.md": {
+    type: "file",
+    label: "asx-notes.md",
+    admin: true,
+    content: "",
+  },
 
   "/etc": { type: "dir", label: "etc", children: ["hostname", "os-release"] },
   "/etc/hostname": { type: "file", label: "hostname", content: "asx-desktop\n" },
@@ -186,11 +297,12 @@ export function openNode(path) {
 
   const listOnlyRoots = new Set(["/home/alisonscorpion"]);
   if (node.admin && !listOnlyRoots.has(pathN)) {
+    const kind = node.type === "dir" ? "directory" : "file";
     return {
       error: "EACCES",
-      message: "ACCESS DENIED",
+      message: `Error opening ${kind} "${pathN}": Permission denied`,
       detail:
-        "Only the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
+        "You do not have the permissions necessary to view the contents of this location.\n\nOnly the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
       path: pathN,
     };
   }
@@ -204,9 +316,9 @@ export function readFile(path) {
   if (node.admin) {
     return {
       error: "EACCES",
-      message: "ACCESS DENIED",
+      message: `Error opening file "${pathN}": Permission denied`,
       detail:
-        "Only the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
+        "You do not have the permissions necessary to view the contents of this location.\n\nOnly the administrator (Alison Scorpion / ASX) may open this path.\nYou are a guest on her desktop.",
       path: pathN,
     };
   }
