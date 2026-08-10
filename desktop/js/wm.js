@@ -340,8 +340,9 @@ export class WindowManager {
     this._addTaskbar(id, opts.title);
     this.focus(id);
     this._notifyWindowsOpen();
-    // Auto-collapse SEO panel when a window opens on narrow viewports
-    if (mobile || g.bounds.w < 720) {
+    // Auto-collapse SEO when window is large relative to *this* pane (side-by-side or phone)
+    const paneCrowded = g.w / g.bounds.w > 0.45 || g.bounds.w / Math.max(window.innerWidth, 1) < 0.6;
+    if (mobile || paneCrowded) {
       const seo = document.getElementById("seo-main");
       if (seo && !seo.classList.contains("seo-minimized")) {
         seo.classList.add("seo-minimized");
