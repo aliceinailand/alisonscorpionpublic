@@ -137,10 +137,10 @@ export class WindowManager {
       if (this._resize) {
         const { el, sx, sy, sw, sh } = this._resize;
         const b = desktopBounds();
-        const minW = isMobileLayout() ? Math.min(280, b.w) : 280;
-        const minH = isMobileLayout() ? Math.min(180, b.h) : 180;
-        el.style.width = Math.min(b.w, Math.max(minW, sw + (cx - sx))) + "px";
-        el.style.height = Math.min(b.h, Math.max(minH, sh + (cy - sy))) + "px";
+        const minW = Math.min(b.w, Math.max(140, Math.floor(b.w * 0.28)));
+        const minH = Math.min(b.h, Math.max(120, Math.floor(b.h * 0.22)));
+        el.style.width = Math.min(b.w - 8, Math.max(minW, sw + (cx - sx))) + "px";
+        el.style.height = Math.min(b.h - 8, Math.max(minH, sh + (cy - sy))) + "px";
       }
     };
     const onUp = () => {
