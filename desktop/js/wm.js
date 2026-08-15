@@ -11,7 +11,7 @@
  */
 
 import { sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t360000z";
-import { showMenu } from "./menus.js?v=20260815t190000z";
+import { showMenu } from "./menus.js?v=20260815t220000z";
 
 const GEOM_STORAGE_KEY = "asx-wm-geom-v1";
 
@@ -45,6 +45,21 @@ function readSavedGeom(id) {
   if (Number.isFinite(s.y)) out.y = Math.floor(s.y);
   if (s.max) out.max = true;
   return out.w || out.h || Number.isFinite(out.x) ? out : null;
+}
+
+/** Move File/Edit/View out of the body onto the titlebar (Lubuntu-style). */
+function hoistTitleMenus(winEl) {
+  const titlebar = winEl?.querySelector?.(".titlebar");
+  if (!titlebar) return;
+  const incoming = winEl.querySelector(".win-body .asx-menubar");
+  titlebar.querySelectorAll(":scope > .asx-menubar").forEach((n) => {
+    if (n !== incoming) n.remove();
+  });
+  if (incoming) {
+    incoming.classList.add("title-menus");
+    const title = titlebar.querySelector(".title");
+    titlebar.insertBefore(incoming, title || null);
+  }
 }
 
 function persistGeom(id, el, extras = {}) {
@@ -372,6 +387,7 @@ export class WindowManager {
         w.el.classList.remove("minimized");
         this.focus(id);
         if (typeof opts.onMount === "function") opts.onMount(w.body, w);
+        hoistTitleMenus(w.el);
         return w;
       }
       this.focus(id);
@@ -431,6 +447,7 @@ export class WindowManager {
     el.appendChild(body);
     el.appendChild(handle);
     this.root.appendChild(el);
+    hoistTitleMenus(el);
 
     const rec = {
       id,
@@ -450,7 +467,7 @@ export class WindowManager {
     };
 
     titlebar.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".btn")) return;
+      if (e.target.closest(".btn, .asx-menubar, .asx-menu")) return;
       if (e.button != null && e.button !== 0) return;
       this.focus(id);
       if (el.classList.contains("maximized")) return;
@@ -551,6 +568,7 @@ export class WindowManager {
       }
     }
     if (typeof opts.onMount === "function") opts.onMount(body, rec);
+    hoistTitleMenus(el);
     return rec;
   }
 

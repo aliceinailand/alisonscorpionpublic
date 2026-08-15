@@ -788,6 +788,7 @@ body.asx-wall-travel #ambient-bg {
   touch-action: manipulation;
   position: relative;
   z-index: 5;
+  overflow: hidden; /* keep min/max/close from covering File/Edit/View */
 }
 .titlebar:active { cursor: grabbing; }
 .titlebar .title {
@@ -812,11 +813,11 @@ body.asx-wall-travel #ambient-bg {
 }
 .titlebar .btn {
   box-sizing: border-box;
-  /* Relative to titlebar height where possible */
-  width: max(28px, calc(var(--title-h) - 8px));
-  height: max(28px, calc(var(--title-h) - 8px));
-  min-width: 28px;
-  min-height: 28px;
+  /* Stay inside the titlebar so hit targets do not cover File/Edit/View */
+  width: calc(var(--title-h) - 6px);
+  height: calc(var(--title-h) - 6px);
+  min-width: 18px;
+  min-height: 18px;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.45);
   cursor: pointer;
@@ -2853,7 +2854,7 @@ body.asx-theme-thin .seo-main {
     min-height: var(--touch-min);
   }
   .titlebar .btn::after {
-    inset: -14px;
+    content: none;
   }
 }
 
@@ -3505,7 +3506,7 @@ body.asx-theme-thin .seo-main {
 /* ── OS menus (File / Edit / View + right-click) — Lubuntu / LXQt copycat ─ */
 .asx-menu {
   position: fixed;
-  z-index: 400;
+  z-index: 200000;
   min-width: 196px;
   max-width: min(320px, 92vw);
   margin: 0;
@@ -3519,6 +3520,7 @@ body.asx-theme-thin .seo-main {
   backdrop-filter: blur(12px);
   font: 12px/1.35 var(--sans, system-ui, sans-serif);
   user-select: none;
+  pointer-events: auto;
 }
 .asx-menu-sub {
   position: absolute;
@@ -3608,6 +3610,34 @@ body.asx-theme-thin .seo-main {
 .files-menubar button:hover {
   background: var(--brand-deep, #7c3aed);
   color: #fff;
+}
+.titlebar .asx-menubar,
+.titlebar .title-menus {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  scrollbar-width: none;
+  pointer-events: auto;
+  z-index: 8;
+  cursor: default;
+}
+.titlebar .asx-menubar::-webkit-scrollbar { display: none; }
+.titlebar .asx-menubar-btn,
+.titlebar .asx-menubar button {
+  height: var(--title-h);
+  padding: 0 8px;
+  font-size: 11px;
+  color: var(--gold-white, #f5edd8);
+  pointer-events: auto;
+}
+.titlebar .title {
+  flex: 0 1 28%;
+  max-width: 36%;
 }
 
 /* Wallpaper layer (custom image) + non-Earth modes */

@@ -93,7 +93,7 @@ import {
   WALLPAPERS,
   ACCENTS,
 } from "./prefs.js?v=20260815t210000z";
-import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t190000z";
+import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t220000z";
 import { applyTheme, THEMES } from "./themes.js?v=20260815t210000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */

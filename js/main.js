@@ -12,7 +12,7 @@
 import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t480000z";
 import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t480000z";
 import { initSpaceBg, syncSpaceBg } from "./space-bg.js?v=20260815t210000z";
-import { WindowManager } from "./wm.js?v=20260810t480000z";
+import { WindowManager } from "./wm.js?v=20260815t220000z";
 import {
   applyCapabilityClasses,
   initOutdatedBrowserBanner,
@@ -20,7 +20,7 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t210000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t220000z";
 import {
   initPresence,
   initSessionTimer,
@@ -54,7 +54,7 @@ import {
   closeMenus,
   pickLocalFiles,
   fileToDataUrl,
-} from "./menus.js?v=20260815t190000z";
+} from "./menus.js?v=20260815t220000z";
 import { ensureDomPurify, sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
 import { initBrowserFs } from "./fs.js?v=20260810t480000z";
 import { initHashRouter, setAppRoute } from "./hash-router.js?v=20260810t480000z";

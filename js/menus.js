@@ -108,13 +108,24 @@ function buildMenu(items) {
       }
     };
 
-    li.addEventListener("click", (e) => {
+    const activate = (e) => {
+      e.preventDefault();
       e.stopPropagation();
+      if (it.disabled) return;
       if (it.submenu) {
         openSub(li, it.submenu);
         return;
       }
       run();
+    };
+    li.addEventListener("pointerup", (e) => {
+      if (e.button != null && e.button !== 0) return;
+      activate(e);
+    });
+    li.addEventListener("click", (e) => {
+      // Already handled on pointerup; stop the leftover click hitting the desktop.
+      e.preventDefault();
+      e.stopPropagation();
     });
     li.addEventListener("pointerenter", () => {
       ul.querySelectorAll(":scope > .asx-menu-item").forEach((n) => n.classList.remove("is-hot"));
@@ -152,9 +163,20 @@ function openSub(parentLi, items) {
   sub.style.top = Math.round(top) + "px";
 }
 
+function eventEl(e) {
+  const t = e?.target;
+  if (!t) return null;
+  return t.nodeType === 1 ? t : t.parentElement;
+}
+
+function isMenuEvent(e) {
+  const el = eventEl(e);
+  return !!el?.closest?.(".asx-menu, .asx-menubar, .asx-menubar-btn");
+}
+
 function armDismiss() {
   onDocPointer = (e) => {
-    if (e.target.closest?.(".asx-menu") || e.target.closest?.(".asx-menubar")) return;
+    if (isMenuEvent(e)) return;
     clearMenus();
   };
   onDocKey = (e) => {
@@ -163,8 +185,12 @@ function armDismiss() {
       clearMenus();
     }
   };
-  document.addEventListener("pointerdown", onDocPointer, true);
-  document.addEventListener("keydown", onDocKey, true);
+  // Next frame: the opening click/right-click must not instantly dismiss.
+  requestAnimationFrame(() => {
+    if (!onDocPointer) return;
+    document.addEventListener("pointerdown", onDocPointer, true);
+    document.addEventListener("keydown", onDocKey, true);
+  });
 }
 
 /**
@@ -177,8 +203,6 @@ export function showMenu({ x, y, items }) {
   openRoot = ul;
   placeMenu(ul, x, y);
   armDismiss();
-  const first = ul.querySelector(".asx-menu-item:not(.is-disabled)");
-  first?.focus();
   return ul;
 }
 
@@ -211,9 +235,18 @@ export function bindMenubar(bar, spec) {
       btn.setAttribute("aria-expanded", "true");
       showMenu({ x: r.left, y: r.bottom + 2, items });
     };
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+    });
+    btn.addEventListener("pointerup", (e) => {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault();
       e.stopPropagation();
       open();
+    });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
     });
     btn.addEventListener("pointerenter", () => {
       if (bar.querySelector("[aria-expanded='true']") && btn.getAttribute("aria-expanded") !== "true") {
