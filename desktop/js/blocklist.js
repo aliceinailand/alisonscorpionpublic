@@ -9,7 +9,7 @@
  *    hosts files are a poor default for every guest visit; use for operator refresh.
  *
  * Soft client UX — not a network firewall.
- * Research: safety/README.md · browser_blocklist_and_iframe_20260810.md
+ * Research: safety/readme.md · browser_blocklist_and_iframe_20260810.md
  */
 export const BLOCKED_HOSTS = new Set([
   "pornhub.com", "www.pornhub.com",
@@ -119,7 +119,14 @@ const CONFUSABLE_MAP = {
   "\u04cf": "l",
   "\u0391": "a",
   "\u0395": "e",
-  "\u039f": "o",
+  "\u039f": "o", // Greek capital omicron
+  "\u03bf": "o", // Greek small omicron (Hermes R2 — toLowerCase of U+039F)
+  "\u03b1": "a", // Greek small alpha
+  "\u03b5": "e", // Greek small epsilon
+  "\u03c1": "p", // Greek small rho
+  "\u03c5": "y", // Greek small upsilon (approx)
+  "\u03c7": "x", // Greek small chi
+  "\u03b9": "i", // Greek small iota
   "\u0420": "p",
   "\u0405": "s",
   "\u0410": "a",
@@ -129,6 +136,11 @@ const CONFUSABLE_MAP = {
   "\uff41": "a",
   "\uff45": "e",
   "\uff50": "p",
+  "\uff52": "r",
+  "\uff48": "h",
+  "\uff55": "u",
+  "\uff42": "b",
+  "\uff4e": "n",
 };
 
 /**

@@ -5,23 +5,45 @@
  *
  * Resource policy: major CDNs deliver vendor assets first; our origin is shell +
  * fallback only (docs/RESOURCE_CDN_POLICY.md). Offload delivery to their edges.
+ *
+ * Multi-AI Convergence: Alice (Matthew Gates), Grok, Claude, Gemini, ChatGPT, and Copilot.
+ * Public repo: https://github.com/aliceinailand/alisonscorpionpublic
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t300000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t300000z";
-import { WindowManager } from "./wm.js?v=20260810t300000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260810t300000z";
+import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t480000z";
+import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t480000z";
+import { WindowManager } from "./wm.js?v=20260810t480000z";
+import {
+  applyCapabilityClasses,
+  initOutdatedBrowserBanner,
+  shouldUseLiteMode,
+  watchCapabilityResize,
+  isMobileUi as isMobileUiCap,
+} from "./browser-capability.js?v=20260811t010000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260811t150000z";
 import {
   initPresence,
   initSessionTimer,
   initTravelingEyes,
+  initNetworkStatus,
   bindShowDesktop,
   restoreLockIfNeeded,
   promptLock,
   showShutdownScreen,
   showRebootScreen,
   showLogoutScreen,
-} from "./shell-chrome.js?v=20260810t300000z";
-import { initTheme } from "./themes.js?v=20260810t300000z";
+} from "./shell-chrome.js?v=20260811t140000z";
+import {
+  ensureGuestSession,
+  paintGuestStatus,
+  resolveWhoami,
+} from "./guest-session.js?v=20260811t140000z";
+import { getSessionUser } from "./accounts.js?v=20260810t250000z";
+import { initTheme } from "./themes.js?v=20260810t480000z";
+import { ensureDomPurify, sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
+import { initBrowserFs } from "./fs.js?v=20260810t480000z";
+import { initHashRouter, setAppRoute } from "./hash-router.js?v=20260810t480000z";
+import { ensureJsLite } from "./dom-lite.js?v=20260810t480000z";
+import { initFastClick } from "./touch-boost.js?v=20260810t480000z";
 
 /**
  * Three.js: public CDNs only — never our origin.
@@ -59,37 +81,36 @@ function trashBadgeCount() {
 
 const TRASH_N = trashBadgeCount();
 
-/** Left column, top → bottom — organized workstation */
+/**
+ * Left column, top → bottom — organized workstation.
+ * Browser + Terminal live under Applications (not on the desktop face).
+ */
 const DESKTOP_ICONS = [
-  { id: "terminal", label: "Terminal", glyph: "❯", x: 18, y: 16 },
-  { id: "computer", label: "Computer", glyph: "🖥", x: 18, y: 108 },
-  { id: "browser", label: "Browser", glyph: "🌐", x: 18, y: 200 },
-  { id: "chat", label: "Chat", glyph: "💬", x: 18, y: 292 },
+  { id: "computer", label: "Computer", glyph: "🖥", x: 18, y: 16 },
+  { id: "chat", label: "Chat", glyph: "💬", x: 18, y: 108 },
   {
     id: "trash",
     label: `Trash (${TRASH_N})`,
     glyph: "🗑",
     x: 18,
-    y: 384,
+    y: 200,
     badge: TRASH_N,
   },
-  { id: "network", label: "Network", glyph: "🖧", x: 18, y: 476 },
-  { id: "gdrive", label: "GDrive", glyph: "☁", x: 18, y: 568 },
+  { id: "network", label: "Network", glyph: "🖧", x: 18, y: 292 },
+  { id: "gdrive", label: "GDrive", glyph: "☁", x: 18, y: 384 },
   { id: "applications", label: "Applications", glyph: "📦", x: 110, y: 16 },
-  { id: "agent-asx", label: "Agent ASX", glyph: "α", x: 110, y: 108, agent: true },
+  { id: "agent-asx", label: "Agent", glyph: "α", x: 110, y: 108, agent: true },
+  { id: "github", label: "GitHub", glyph: "⌥", x: 110, y: 200 },
+  { id: "games", label: "Games", glyph: "🎮", x: 110, y: 292 },
+  { id: "camera", label: "Camera", glyph: "📷", x: 110, y: 384 },
 ];
 
 function isMobileUi() {
-  return (
-    (typeof matchMedia === "function" && matchMedia("(max-width: 768px)").matches) ||
-    (typeof matchMedia === "function" &&
-      matchMedia("(pointer: coarse)").matches &&
-      window.innerWidth <= 900)
-  );
+  return isMobileUiCap();
 }
 
 function applyMobileClass() {
-  document.body.classList.toggle("asx-mobile", isMobileUi());
+  applyCapabilityClasses();
 }
 
 function loadThreeJs() {
@@ -161,9 +182,13 @@ function placeIcons(layer, openApp) {
     el.setAttribute("aria-label", `Open ${data.label}`);
     const badge =
       data.badge != null
-        ? `<span class="desk-badge" aria-hidden="true">${data.badge}</span>`
+        ? `<span class="desk-badge" aria-hidden="true">${escapeHtml(String(data.badge))}</span>`
         : "";
-    el.innerHTML = `<div class="glyph">${data.glyph}${badge}</div><div class="label">${data.label}</div>`;
+    el.innerHTML = sanitizeHtml(
+      `<div class="glyph">${escapeHtml(data.glyph)}${badge}</div><div class="label">${escapeHtml(
+        data.label
+      )}</div>`
+    );
 
     const select = () => {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
@@ -206,7 +231,9 @@ function buildStartMenu(menu, openApp) {
       if (!app) return;
       const row = document.createElement("div");
       row.className = "sm-item";
-      row.innerHTML = `<span class="g">${app.glyph}</span><span>${app.label}</span>`;
+      row.innerHTML = sanitizeHtml(
+        `<span class="g">${escapeHtml(app.glyph)}</span><span>${escapeHtml(app.label)}</span>`
+      );
       row.addEventListener("click", () => {
         openApp(app.id);
         menu.classList.remove("open");
@@ -299,12 +326,74 @@ async function main() {
   // Boot splash → desktop (no pre-desktop captcha / hand gate)
   await bootSplash();
 
+  // DOMPurify layer warm before any window HTML (cdnjs → jsDelivr; soft-fail OK)
+  await ensureDomPurify();
+  // BrowserFS guest VFS (IndexedDB) — soft-fail → static skeleton only
+  await initBrowserFs();
+  // JSLite (not jQuery) — optional $ API for free apps; core shell stays vanilla
+  ensureJsLite().catch(() => {});
+  // FastClick on touch / coarse-pointer only (speeds taps; desktop mouse skipped)
+  initFastClick().catch(() => {});
+
   // Desktop shell first; Three.js after paint (SEO + LCP)
   const wm = new WindowManager({
     rootId: "windows-root",
     taskbarId: "taskbar-windows",
   });
-  const { open } = registerApps(wm);
+  const { open: openRaw } = registerApps(wm);
+  /** Open app + sync Hasher deep-link (#app/…) for history / shareable URLs */
+  const open = (id, opts = {}) => {
+    openRaw(id, opts);
+    try {
+      setAppRoute(id, opts);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  /**
+   * Free apps are guest-usable now. Construct may later call this surface to
+   * open tools and give the illusion of using them (see docs/free_apps_and_construct.md).
+   */
+  try {
+    window.ASX = window.ASX || {};
+    window.ASX.desktop = {
+      version: "2026-08-11",
+      control: {
+        open: (appId, opts) => open(appId, opts || {}),
+        focus: (appId) => {
+          open(appId);
+        },
+        close: (appId) => {
+          try {
+            wm.close?.(String(appId || ""));
+          } catch {
+            /* ignore */
+          }
+        },
+        isOpen: (appId) => {
+          try {
+            return !!wm.windows?.has?.(String(appId || ""));
+          } catch {
+            return false;
+          }
+        },
+        listApps: () => ({
+          catalog: APP_CATALOG.map((a) => ({ id: a.id, label: a.label, glyph: a.glyph })),
+          categories: APP_CATEGORIES.map((c) => ({
+            id: c.id,
+            label: c.label,
+            apps: [...(c.apps || [])],
+          })),
+        }),
+      },
+    };
+  } catch {
+    /* ignore */
+  }
+
+  // Hasher (js-signals) hash router — #app/files, #app/browser, …
+  await initHashRouter({ open, catalog: APP_CATALOG });
 
   const layer = document.getElementById("desktop-layer");
   placeIcons(layer, open);
@@ -329,9 +418,22 @@ async function main() {
   });
 
   clock();
+  // Guest identity: asxguest-#### (auto session; no login wall)
+  const guest = ensureGuestSession();
+  paintGuestStatus(
+    document.querySelector(".tb-status"),
+    resolveWhoami(getSessionUser())
+  );
+  try {
+    window.ASX = window.ASX || {};
+    window.ASX.guest = guest;
+  } catch {
+    /* ignore */
+  }
   // Taskbar widgets (no safety/hosts fetch here)
   initPresence(document.getElementById("tb-visitors"));
   initSessionTimer(document.getElementById("tb-session"));
+  initNetworkStatus(document.getElementById("tb-net"));
   initTravelingEyes(document.getElementById("tb-eyes"));
   bindShowDesktop(document.getElementById("tb-show-desktop"), wm);
   restoreLockIfNeeded();
@@ -339,49 +441,73 @@ async function main() {
 
   /**
    * Background dual-path:
-   * - Smallest width / save-data / ?bg=ambient → D3/SVG ambient (no WebGL)
+   * - Lite / phone / tiny width / save-data / no WebGL / ?bg=ambient → D3/SVG (no Three)
    * - Else Three.js with context-lost → ambient fallback
    * - ?bg=three forces Three attempt
+   * - Resize to smallest (≤420) re-enters ambient via watchCapabilityResize
+   * - outdated-browser-rework (CDNJS) may show upgrade banner on old UAs
    */
-  const startBg = async () => {
-    const useAmbient = shouldUseAmbientBg();
-    if (useAmbient) {
-      try {
-        await initAmbientD3Bg("three-bg");
-        console.info("ASX bg: ambient (D3/SVG) — small-screen / save-data path");
-        return;
-      } catch (err) {
-        console.warn("ASX ambient bg failed", err);
-      }
+  let bgMode = null; // "ambient" | "three"
+  let threeHandle = null;
+
+  const startAmbient = async (reason) => {
+    try {
+      await initAmbientD3Bg("three-bg");
+      bgMode = "ambient";
+      threeHandle = null;
+      console.info("ASX bg: ambient (D3/SVG) —", reason);
+    } catch (err) {
+      console.warn("ASX ambient bg failed", err);
     }
+  };
+
+  const startThree = async () => {
     try {
       await loadThreeJs();
       const handle = initThreeBg("three-bg", {
         onContextLost: () => {
-          initAmbientD3Bg("three-bg").catch((e) =>
-            console.warn("ASX ambient after context lost failed", e)
-          );
+          startAmbient("webgl-context-lost");
         },
       });
       if (!handle) {
-        await initAmbientD3Bg("three-bg");
-        console.info("ASX bg: ambient fallback (Three unavailable)");
-      } else {
-        // Drag empty desktop (not icons) to orbit Earth; release resumes satellite spin
-        if (layer && typeof handle.bindOrbitTarget === "function") {
-          handle.bindOrbitTarget(layer);
-        }
-        console.info("ASX bg: three.js Earth satellite view");
+        await startAmbient("three-unavailable");
+        return;
       }
+      threeHandle = handle;
+      bgMode = "three";
+      if (layer && typeof handle.bindOrbitTarget === "function") {
+        handle.bindOrbitTarget(layer);
+      }
+      console.info("ASX bg: three.js Earth satellite view");
     } catch (err) {
       console.warn("ASX Three.js background skipped", err);
-      try {
-        await initAmbientD3Bg("three-bg");
-      } catch (e2) {
-        console.warn("ASX ambient fallback failed", e2);
-      }
+      await startAmbient("three-load-error");
     }
   };
+
+  const startBg = async () => {
+    applyCapabilityClasses();
+    const useAmbient = shouldUseAmbientBg() || shouldUseLiteMode();
+    if (useAmbient) {
+      await startAmbient("lite/small-screen/save-data/no-webgl");
+      return;
+    }
+    await startThree();
+  };
+
+  // Old-browser upgrade notice (CDN soft-fail)
+  initOutdatedBrowserBanner().catch(() => {});
+
+  // Responsive: enter lite/ambient when viewport shrinks to smallest (once per transition)
+  let wasLite = shouldUseLiteMode();
+  watchCapabilityResize((state) => {
+    applyCapabilityClasses();
+    if (state.lite && !wasLite && bgMode === "three") {
+      startAmbient("resize-to-lite");
+    }
+    wasLite = state.lite;
+  });
+
   // Mobile: defer bg so shell paints first
   const bgTimeout = isMobileUi() ? 1800 : 1200;
   if (typeof requestIdleCallback === "function") {

@@ -11,19 +11,19 @@ const FAQ = [
   },
   {
     re: /who (are|is) you|what is asx|who is alison/i,
-    a: "I'm Chat on Alison Scorpion's desktop — a free, low-router path (query → logic → answer). For actions like opening apps, use Agent ASX α. Advanced multi-step reasoning needs an account.",
+    a: "I'm Chat on Alison Scorpion's desktop — a free, low-router path (query → logic → answer). For actions like opening apps, use Agent α. Advanced multi-step reasoning needs an account.",
   },
   {
     re: /\b(help|commands)\b/i,
-    a: "Ask simple facts, definitions, or about this desktop. Examples: “first president”, “what is containers”, “what time is it”. For “open settings” or “go to github.com”, use Agent ASX.",
+    a: "Ask simple facts, definitions, or about this desktop. Examples: “first president”, “what is containers”, “what time is it”. For “open settings” or “go to github.com”, use Agent.",
   },
   {
     re: /what (is|are) containers/i,
-    a: "Containers is Alison's product surface on this desktop — open the Containers app from Applications → ASX Products.",
+    a: "Containers is Alison's product surface on this desktop — open the Containers app from Applications → ASX.",
   },
   {
     re: /honey\s*bee|honeybee/i,
-    a: "Honey Bee Engine is the business/government/contracts lane. Open the honeybee app from the desktop Applications folder.",
+    a: "ASX is loading the Honey Bee Engine — she operates AI Frank and AI Bee on your behalf. You still talk to Alison Scorpion. Open the honeybee app to see how they communicate.",
   },
   {
     re: /what time|current time|date today/i,
@@ -59,10 +59,10 @@ export function routeFreeChat(raw) {
         type: "upgrade",
         text:
           "This query requires advanced processing (or desktop actions). " +
-          "Please sign up for an account for deeper reasoning — or use Agent ASX α for “open / navigate” style commands on this free demo.",
+          "Please sign up for an account for deeper reasoning — or use Agent α for “open / navigate” style commands on this free demo.",
         links: [
           { label: "Open Network → Users → Add (sign up)", action: "signup" },
-          { label: "Open Agent ASX α", action: "agent" },
+          { label: "Open Agent", action: "agent" },
         ],
       };
     }
@@ -114,10 +114,10 @@ export function routeFreeChat(raw) {
     text:
       `Free Chat (low router) doesn't have a canned answer for that yet. ` +
       `Try a simple fact question, or sign up for advanced processing. ` +
-      `For desktop actions (“open settings”), use Agent ASX α.`,
+      `For desktop actions (“open settings”), use Agent α.`,
     links: [
       { label: "Sign up", action: "signup" },
-      { label: "Agent ASX", action: "agent" },
+      { label: "Agent", action: "agent" },
     ],
   };
 }

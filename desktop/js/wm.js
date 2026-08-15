@@ -6,7 +6,11 @@
  * Two modes (not a bug — product split):
  * - Phone / small pane: single-focus; large fitted windows OK (stack)
  * - Desktop: multi-window — cascade + smaller footprint so several work at once
+ *
+ * HTML string bodies are run through DOMPurify (js/sanitize.js) before insert.
  */
+
+import { sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t360000z";
 
 const GEOM_STORAGE_KEY = "asx-wm-geom-v1";
 
@@ -339,8 +343,37 @@ export class WindowManager {
   open(opts) {
     const id = opts.id;
     if (this.windows.has(id)) {
-      this.focus(id);
       const w = this.windows.get(id);
+      // Same-window place navigation: swap body/title instead of stacking windows
+      if (opts.replace) {
+        w.body.replaceChildren();
+        if (typeof opts.body === "string") w.body.innerHTML = sanitizeHtml(opts.body);
+        else if (opts.body instanceof HTMLElement) w.body.appendChild(opts.body);
+        if (opts.title) {
+          w.title = opts.title;
+          const tEl = w.el.querySelector(".title");
+          if (tEl) tEl.textContent = "▪ " + opts.title;
+          const tbBtn = this.taskbar?.querySelector(
+            `[data-tb="${CSS.escape(id)}"] .tb-item`
+          );
+          if (tbBtn) {
+            tbBtn.textContent = opts.title;
+            tbBtn.title = opts.title;
+          }
+          const tbClose = this.taskbar?.querySelector(
+            `[data-tb="${CSS.escape(id)}"] .tb-close`
+          );
+          if (tbClose) {
+            tbClose.setAttribute("aria-label", `Close ${opts.title}`);
+          }
+        }
+        if (typeof opts.onClose === "function") w.onClose = opts.onClose;
+        w.el.classList.remove("minimized");
+        this.focus(id);
+        if (typeof opts.onMount === "function") opts.onMount(w.body, w);
+        return w;
+      }
+      this.focus(id);
       w.el.classList.remove("minimized");
       return w;
     }
@@ -376,17 +409,17 @@ export class WindowManager {
     // Controls first (left) so extreme-narrow never clips them off the right edge
     const titlebar = document.createElement("div");
     titlebar.className = "titlebar";
-    titlebar.innerHTML = `
+    titlebar.innerHTML = sanitizeHtml(`
       <div class="btns" role="toolbar" aria-label="Window controls">
         <button type="button" class="btn btn-close" title="Close" aria-label="Close window">×</button>
         <button type="button" class="btn btn-min" title="Minimize" aria-label="Minimize">−</button>
         <button type="button" class="btn btn-max" title="Maximize / restore" aria-label="Maximize or restore">□</button>
       </div>
-      <span class="title">▪ ${escapeHtml(opts.title)}</span>`;
+      <span class="title">▪ ${escapeHtml(opts.title)}</span>`);
 
     const body = document.createElement("div");
     body.className = "win-body";
-    if (typeof opts.body === "string") body.innerHTML = opts.body;
+    if (typeof opts.body === "string") body.innerHTML = sanitizeHtml(opts.body);
     else if (opts.body instanceof HTMLElement) body.appendChild(opts.body);
 
     const handle = document.createElement("div");
@@ -664,12 +697,4 @@ export class WindowManager {
       wrap.querySelector(".tb-item")?.classList.toggle("active", active);
     });
   }
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

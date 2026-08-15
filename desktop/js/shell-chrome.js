@@ -1,6 +1,10 @@
 /**
+ * Multi-AI Convergence: Alice (Matthew Gates), Grok, Claude, Gemini, ChatGPT, Copilot.
  * ASX desktop chrome: taskbar widgets, show-desktop, power actions, lock.
  * Session-only / local illusion where noted — not a real multi-user presence server.
+ *
+ * Network: Offline.js (cdnjs) + taskbar online/offline icon.
+ * https://cdnjs.com/libraries/offline-js
  */
 
 const PRESENCE_KEY = "asx-presence-tabs";
@@ -350,9 +354,10 @@ export function showLogoutScreen() {
     <div class="logout-card">
       <div class="lock-avatar">🦂</div>
       <h1>Sign in</h1>
-      <p class="power-sub">Guest session ended. Account login ships with registration.</p>
-      <p class="power-sub">Continue as guest on Alison's desktop:</p>
-      <button type="button" class="login-guest">Enter as guest</button>
+      <p class="power-sub">Session ended. Sign in (when available) or continue exploring.</p>
+      <p class="power-sub">Log in as guest — same as first landing (auto guest on the public site):</p>
+      <button type="button" class="login-guest">Log in as guest</button>
+      <p class="power-sub guest-id-hint" style="margin-top:12px;opacity:.75;font-size:12px">You will receive an <code>asxguest-####</code> id on this browser.</p>
     </div>`;
   document.body.appendChild(el);
   document.body.classList.add("asx-powered-off");
@@ -403,4 +408,157 @@ export function restoreLockIfNeeded() {
   } catch {
     /* ignore */
   }
+}
+
+/* ── Offline.js network status (taskbar) ──────────────────── */
+const OFFLINE_JS_VERSION = "0.7.19";
+const OFFLINE_JS_SOURCES = [
+  `https://cdnjs.cloudflare.com/ajax/libs/offline-js/${OFFLINE_JS_VERSION}/offline.min.js`,
+  `https://cdn.jsdelivr.net/npm/offline-js@${OFFLINE_JS_VERSION}/offline.min.js`,
+];
+
+/** @type {Promise<typeof window.Offline|null>|null} */
+let offlineJsPromise = null;
+
+function loadOfflineJs() {
+  if (offlineJsPromise) return offlineJsPromise;
+  if (typeof window.Offline !== "undefined") {
+    offlineJsPromise = Promise.resolve(window.Offline);
+    return offlineJsPromise;
+  }
+  offlineJsPromise = (async () => {
+    for (const src of OFFLINE_JS_SOURCES) {
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.crossOrigin = "anonymous";
+          s.referrerPolicy = "no-referrer";
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("load failed: " + src));
+          document.head.appendChild(s);
+        });
+        if (typeof window.Offline !== "undefined") return window.Offline;
+      } catch {
+        /* next CDN */
+      }
+    }
+    return null;
+  })();
+  return offlineJsPromise;
+}
+
+/** Same-origin probe URL for Offline.js XHR check. */
+function offlineCheckUrl() {
+  try {
+    // robots.txt ships with desktop-os; bust cache each check
+    return new URL("robots.txt", location.href).href + "?_=" + Date.now();
+  } catch {
+    return "/favicon.ico?_=" + Date.now();
+  }
+}
+
+/**
+ * Taskbar online / offline indicator.
+ * Uses Offline.js when available; falls back to navigator.onLine.
+ * @param {HTMLElement|null} el  #tb-net button
+ */
+export function initNetworkStatus(el) {
+  if (!el) return () => {};
+
+  // Icon markup (SVG wifi-style — online vs offline)
+  el.innerHTML = `
+    <span class="tb-net-glyph" aria-hidden="true">
+      <svg class="tb-net-svg tb-net-online-svg" viewBox="0 0 24 24" width="16" height="16" focusable="false">
+        <path fill="currentColor" d="M12 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-4.24-4.24a.75.75 0 0 1 0-1.06 5.5 5.5 0 0 1 7.78 0 .75.75 0 1 1-1.06 1.06 4 4 0 0 0-5.66 0 .75.75 0 0 1-1.06 0zm-2.83-2.83a.75.75 0 0 1 0-1.06 9.5 9.5 0 0 1 13.44 0 .75.75 0 1 1-1.06 1.06 8 8 0 0 0-11.32 0 .75.75 0 0 1-1.06 0zM3.1 8.6a.75.75 0 0 1 0-1.06A14 14 0 0 1 12 4c3.5 0 6.7 1.28 9.1 3.4a.75.75 0 1 1-1 1.12A12.5 12.5 0 0 0 12 5.5c-3.12 0-5.97 1.14-8.15 3.04a.75.75 0 0 1-.75.06z"/>
+      </svg>
+      <svg class="tb-net-svg tb-net-offline-svg" viewBox="0 0 24 24" width="16" height="16" focusable="false">
+        <path fill="currentColor" d="M3.28 2.22a.75.75 0 1 0-1.06 1.06l2.2 2.2A14 14 0 0 0 2.9 7.54a.75.75 0 1 0 1.06 1.06c.7-.7 1.48-1.3 2.32-1.8l1.5 1.5a9.5 9.5 0 0 0-2.85 1.93.75.75 0 1 0 1.06 1.06 8 8 0 0 1 2.3-1.58l1.7 1.7a5.5 5.5 0 0 0-2.23 1.33.75.75 0 1 0 1.06 1.06 4 4 0 0 1 1.68-.97l6.96 6.96a.75.75 0 1 0 1.06-1.06L3.28 2.22zM12 15.5c.28 0 .55.04.8.12l1.48 1.48A1.5 1.5 0 1 1 12 15.5zm7.24-4.24a.75.75 0 0 0-1.06-1.06 5.48 5.48 0 0 0-2.2.95l1.1 1.1c.74-.3 1.5-.7 2.16-.99zm2.66-2.9a.75.75 0 0 0-1.06-1.06 9.4 9.4 0 0 0-3.4 1.72l1.08 1.08c1.15-.55 2.3-1.1 3.38-1.74zM21.1 5.48A.75.75 0 0 0 20 4.42 14 14 0 0 0 12 2.5c-1.48 0-2.9.23-4.22.66l1.2 1.2c.97-.23 1.98-.36 3.02-.36 3.12 0 5.97 1.14 8.15 3.04.28.24.7.2.95-.06z"/>
+      </svg>
+    </span>
+    <span class="tb-net-label">…</span>`;
+
+  const label = el.querySelector(".tb-net-label");
+  let lastOnline = navigator.onLine !== false;
+
+  const apply = (online, source = "") => {
+    lastOnline = !!online;
+    el.classList.toggle("is-online", lastOnline);
+    el.classList.toggle("is-offline", !lastOnline);
+    el.setAttribute("aria-pressed", lastOnline ? "false" : "true");
+    el.setAttribute(
+      "aria-label",
+      lastOnline ? "Internet online" : "Internet offline"
+    );
+    const detail = source ? ` (${source})` : "";
+    el.title = lastOnline
+      ? `Online — network reachable${detail}. Click to recheck.`
+      : `Offline — no network${detail}. Click to recheck.`;
+    if (label) label.textContent = lastOnline ? "Online" : "Offline";
+    document.body.classList.toggle("asx-net-offline", !lastOnline);
+  };
+
+  apply(navigator.onLine !== false, "navigator");
+
+  const onBrowserOnline = () => apply(true, "browser");
+  const onBrowserOffline = () => apply(false, "browser");
+  window.addEventListener("online", onBrowserOnline);
+  window.addEventListener("offline", onBrowserOffline);
+
+  /** @type {typeof window.Offline|null} */
+  let OfflineLib = null;
+
+  const recheck = () => {
+    if (OfflineLib && typeof OfflineLib.check === "function") {
+      try {
+        OfflineLib.check();
+        return;
+      } catch {
+        /* fall through */
+      }
+    }
+    apply(navigator.onLine !== false, "navigator");
+  };
+
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    recheck();
+  });
+
+  // Load Offline.js (async) for stronger checks than navigator.onLine alone
+  loadOfflineJs().then((Offline) => {
+    if (!Offline) return;
+    OfflineLib = Offline;
+    try {
+      Offline.options = {
+        ...(Offline.options || {}),
+        checkOnLoad: true,
+        interceptRequests: true,
+        requests: true,
+        // We use the taskbar icon — suppress reconnect game noise
+        game: false,
+        checks: {
+          xhr: {
+            url: offlineCheckUrl,
+            timeout: 5000,
+            type: "HEAD",
+          },
+        },
+      };
+      Offline.on("up", () => apply(true, "offline-js"));
+      Offline.on("down", () => apply(false, "offline-js"));
+      if (typeof Offline.check === "function") Offline.check();
+      // state may already be set
+      if (Offline.state === "up") apply(true, "offline-js");
+      else if (Offline.state === "down") apply(false, "offline-js");
+    } catch (err) {
+      console.warn("[asx-net] Offline.js configure failed", err);
+    }
+  });
+
+  return () => {
+    window.removeEventListener("online", onBrowserOnline);
+    window.removeEventListener("offline", onBrowserOffline);
+  };
 }

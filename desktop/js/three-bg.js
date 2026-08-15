@@ -1446,6 +1446,21 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
 
 export function shouldUseAmbientBg() {
   if (typeof window === "undefined") return true;
+  // Shared lite / phone / no-WebGL / save-data probe (browser-capability.js).
+  // Dynamic import avoided here to keep sync API; inline mirror of shouldUseLiteMode.
+  try {
+    const bg = new URLSearchParams(location.search).get("bg");
+    if (bg === "three" || bg === "earth") return false;
+    if (bg === "ambient" || bg === "lite") return true;
+    if (
+      new URLSearchParams(location.search).get("lite") === "1" ||
+      new URLSearchParams(location.search).get("lite") === "true"
+    ) {
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
   const w =
     window.visualViewport?.width ||
     window.innerWidth ||
@@ -1453,12 +1468,34 @@ export function shouldUseAmbientBg() {
     0;
   if (w > 0 && w <= 420) return true;
   try {
-    const bg = new URLSearchParams(location.search).get("bg");
-    if (bg === "ambient") return true;
-    if (bg === "three" || bg === "earth") return false;
+    if (navigator.connection?.saveData) return true;
+    const et = navigator.connection?.effectiveType;
+    if (et === "slow-2g" || et === "2g") return true;
   } catch {
     /* ignore */
   }
-  if (navigator.connection?.saveData) return true;
+  try {
+    if (
+      matchMedia("(pointer: coarse)").matches &&
+      w > 0 &&
+      w <= 768
+    ) {
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const c = document.createElement("canvas");
+    const gl =
+      c.getContext("webgl") ||
+      c.getContext("experimental-webgl") ||
+      c.getContext("webgl2");
+    if (!gl) return true;
+  } catch {
+    return true;
+  }
+  // body class set by browser-capability (resize / boot)
+  if (document.body?.classList?.contains("asx-lite")) return true;
   return false;
 }
