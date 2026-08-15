@@ -49,7 +49,9 @@ import {
   mountMemory,
   mountMines,
   mountPhysics,
-} from "./games.js?v=20260811t150000z";
+  mountInvaders,
+  mountPacman,
+} from "./games.js?v=20260815t210000z";
 import {
   loadScriptChain,
   MATTER_SOURCES,
@@ -90,9 +92,9 @@ import {
   resetPrefs,
   WALLPAPERS,
   ACCENTS,
-} from "./prefs.js?v=20260815t190000z";
+} from "./prefs.js?v=20260815t210000z";
 import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t190000z";
-import { applyTheme, THEMES } from "./themes.js?v=20260815t190000z";
+import { applyTheme, THEMES } from "./themes.js?v=20260815t210000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =
@@ -231,6 +233,8 @@ export const APP_CATALOG = [
   { id: "github", label: "GitHub", glyph: "⌥" },
   { id: "todo", label: "Todo", glyph: "☑" },
   { id: "games", label: "Games", glyph: "🎮" },
+  { id: "invaders", label: "Space Invaders", glyph: "👾" },
+  { id: "pacman", label: "Pac-Man", glyph: "ᗧ" },
   { id: "tic-tac-toe", label: "Tic Tac Toe", glyph: "✕" },
   { id: "pong", label: "Ping Pong", glyph: "🏓" },
   { id: "blocks", label: "Blocks", glyph: "▦" },
@@ -290,7 +294,19 @@ export const APP_CATEGORIES = [
     id: "games",
     label: "Games",
     glyph: "🎮",
-    apps: ["tic-tac-toe", "pong", "blocks", "snake", "breakout", "memory", "mines", "physics"],
+    apps: [
+      "games",
+      "invaders",
+      "pacman",
+      "pong",
+      "tic-tac-toe",
+      "blocks",
+      "snake",
+      "breakout",
+      "memory",
+      "mines",
+      "physics",
+    ],
   },
 ];
 
@@ -326,6 +342,8 @@ const APP_OPENERS = {
   github: openGithub,
   todo: openTodo,
   games: openGamesFolder,
+  invaders: openInvaders,
+  pacman: openPacman,
   "tic-tac-toe": openTicTacToe,
   pong: openPong,
   blocks: openBlocks,
@@ -1043,6 +1061,7 @@ function attachExplorerMenus(chrome, wm, getHandlers) {
       { label: "File System", action: () => openFiles(wm, { startPath: "/" }) },
       { sep: true },
       { label: "Applications", action: () => openApplications(wm) },
+      { label: "Games", action: () => openGamesFolder(wm) },
       { label: "Trash", action: () => openTrash(wm) },
       { label: "Network", action: () => openNetwork(wm) },
       { label: "GDrive", action: () => openGDrive(wm) },
@@ -1176,6 +1195,12 @@ function openComputer(wm) {
       label: "Applications",
       sub: schemeUri("applications"),
       action: () => openApplications(wm),
+    },
+    {
+      glyph: "🎮",
+      label: "Games",
+      sub: schemeUri("games"),
+      action: () => openGamesFolder(wm),
     },
     {
       glyph: "🖧",
@@ -5885,64 +5910,47 @@ function openTodo(wm) {
 }
 
 /* ── Games folder ─────────────────────────────────────────
- * Open-source / first-party only. Creative Commons shelf for
- * licensed free games (children welcome — hang-out free tier).
+ * Real desktop folder of HTML5/JS first-party games.
+ * Double-click a title (same explorer chrome as Computer / Files).
  */
-function openGamesFolder(wm) {
-  const root = document.createElement("div");
-  root.className = "app-pad games-folder";
-  root.innerHTML = `
-    <h2>Games</h2>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:10px;line-height:1.45">
-      Alison plays too — not only work. <strong>Open-source / Creative Commons only</strong>
-      (no proprietary ROMs). Kids are welcome to hang out free; paid Construct is optional later.
-    </p>
-    <h3 class="games-sec">ASX first-party</h3>
-    <div class="games-grid games-grid-first" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
-    <h3 class="games-sec" style="margin-top:16px">Creative Commons</h3>
-    <p style="color:var(--muted);font-size:11px;margin:0 0 8px;line-height:1.4">
-      Licensed free games with <code>cc.txt</code> in each folder.
-      Disk path: <code>/home/guest/Games/Creative Commons/</code>
-    </p>
-    <div class="games-grid games-grid-cc" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>`;
+const GAME_TITLES = [
+  { id: "invaders", label: "Space Invaders", glyph: "👾", sub: "HTML5 · ← → Space" },
+  { id: "pacman", label: "Pac-Man", glyph: "ᗧ", sub: "HTML5 · arrows" },
+  { id: "pong", label: "Ping Pong", glyph: "🏓", sub: "HTML5 · W/S" },
+  { id: "snake", label: "Snake", glyph: "〰", sub: "HTML5 · arrows" },
+  { id: "breakout", label: "Breakout", glyph: "▣", sub: "HTML5 · ← →" },
+  { id: "blocks", label: "Blocks", glyph: "▦", sub: "HTML5 · arrows" },
+  { id: "tic-tac-toe", label: "Tic Tac Toe", glyph: "✕", sub: "HTML5" },
+  { id: "memory", label: "Memory", glyph: "🃏", sub: "HTML5" },
+  { id: "mines", label: "Mines", glyph: "⚑", sub: "HTML5" },
+  { id: "physics", label: "Physics", glyph: "⚛", sub: "HTML5 · Matter.js" },
+];
 
-  const first = [
-    { id: "tic-tac-toe", label: "Tic Tac Toe", glyph: "✕" },
-    { id: "pong", label: "Ping Pong", glyph: "🏓" },
-    { id: "blocks", label: "Blocks", glyph: "▦" },
-    { id: "snake", label: "Snake", glyph: "〰" },
-    { id: "breakout", label: "Breakout", glyph: "▣" },
-    { id: "memory", label: "Memory", glyph: "🃏" },
-    { id: "mines", label: "Mines", glyph: "⚑" },
-    { id: "physics", label: "Physics", glyph: "⚛" },
-  ];
-  const paintBtns = (el, list, openFn) => {
-    list.forEach((g) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "primary";
-      b.style.cssText =
-        "min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px";
-      b.innerHTML = `<span style="font-size:22px">${escapeHtml(g.glyph)}</span><span>${escapeHtml(
-        g.label
-      )}</span>`;
-      b.addEventListener("click", () => openFn(g));
-      el.appendChild(b);
+function openGamesFolder(wm) {
+  const chrome = makeFolderChrome({
+    uri: schemeUri("games"),
+    hint: "HTML5 / JS · first-party",
+    foot: "Playable in this desktop. No ROMs — original ASX canvas/DOM games.",
+    bodyClass: "folder-grid",
+    extraClass: "games-folder",
+    upEnabled: true,
+    onUp: () => openComputer(wm),
+  });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => openGamesFolder(wm),
+    view: "icons",
+  }));
+  GAME_TITLES.forEach((g) => {
+    appendPlaceTile(chrome.body, {
+      glyph: g.glyph,
+      label: g.label,
+      sub: g.sub,
+      selectOnClick: true,
+      action: () => APP_OPENERS[g.id]?.(wm),
     });
-  };
-  paintBtns(root.querySelector(".games-grid-first"), first, (g) => APP_OPENERS[g.id]?.(wm));
-  paintBtns(
-    root.querySelector(".games-grid-cc"),
-    [
-      { id: "cc-folder", label: "Open CC folder", glyph: "📂" },
-      { id: "pacman-cc", label: "Pacman", glyph: "ᗧ" },
-    ],
-    (g) => {
-      if (g.id === "cc-folder") openCreativeCommonsFolder(wm);
-      else if (g.id === "pacman-cc") openPacmanCcShelf(wm);
-    }
-  );
-  wm.open({ id: "games", title: "Games", w: 520, h: 480, body: root });
+  });
+  showExplorer(wm, { title: "Games", w: 640, h: 460, body: chrome.root });
 }
 
 /** Creative Commons shelf — open-source licensed titles only. */
@@ -6026,6 +6034,28 @@ function openPacmanCcShelf(wm) {
     st.textContent = path;
   });
   wm.open({ id: "games-cc-pacman", title: "Pacman · CC", w: 480, h: 440, body: root });
+}
+
+function openInvaders(wm) {
+  openGameWindow(wm, {
+    id: "invaders",
+    title: "Space Invaders",
+    hint: "← →  Space to fire",
+    w: 520,
+    h: 440,
+    mount: mountInvaders,
+  });
+}
+
+function openPacman(wm) {
+  openGameWindow(wm, {
+    id: "pacman",
+    title: "Pac-Man",
+    hint: "Arrows / WASD",
+    w: 400,
+    h: 420,
+    mount: mountPacman,
+  });
 }
 
 function openTicTacToe(wm) {

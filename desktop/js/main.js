@@ -11,6 +11,7 @@
  */
 import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t480000z";
 import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t480000z";
+import { initSpaceBg, syncSpaceBg } from "./space-bg.js?v=20260815t210000z";
 import { WindowManager } from "./wm.js?v=20260810t480000z";
 import {
   applyCapabilityClasses,
@@ -19,7 +20,7 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260811t150000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t210000z";
 import {
   initPresence,
   initSessionTimer,
@@ -38,7 +39,7 @@ import {
   resolveWhoami,
 } from "./guest-session.js?v=20260811t140000z";
 import { getSessionUser } from "./accounts.js?v=20260810t250000z";
-import { initTheme } from "./themes.js?v=20260810t480000z";
+import { initTheme } from "./themes.js?v=20260815t210000z";
 import {
   initPrefs,
   getPrefs,
@@ -47,7 +48,7 @@ import {
   resetPrefs,
   onPrefsChange,
   snapIcon,
-} from "./prefs.js?v=20260815t190000z";
+} from "./prefs.js?v=20260815t210000z";
 import {
   showMenu,
   closeMenus,
@@ -102,21 +103,21 @@ const TRASH_N = trashBadgeCount();
  */
 const DESKTOP_ICONS = [
   { id: "computer", label: "Computer", glyph: "🖥", x: 18, y: 16 },
-  { id: "chat", label: "Chat", glyph: "💬", x: 18, y: 108 },
+  { id: "games", label: "Games", glyph: "🎮", x: 18, y: 108 },
+  { id: "chat", label: "Chat", glyph: "💬", x: 18, y: 200 },
   {
     id: "trash",
     label: `Trash (${TRASH_N})`,
     glyph: "🗑",
     x: 18,
-    y: 200,
+    y: 292,
     badge: TRASH_N,
   },
-  { id: "network", label: "Network", glyph: "🖧", x: 18, y: 292 },
-  { id: "gdrive", label: "GDrive", glyph: "☁", x: 18, y: 384 },
+  { id: "network", label: "Network", glyph: "🖧", x: 18, y: 384 },
   { id: "applications", label: "Applications", glyph: "📦", x: 110, y: 16 },
   { id: "agent-asx", label: "Agent", glyph: "α", x: 110, y: 108, agent: true },
   { id: "github", label: "GitHub", glyph: "⌥", x: 110, y: 200 },
-  { id: "games", label: "Games", glyph: "🎮", x: 110, y: 292 },
+  { id: "gdrive", label: "GDrive", glyph: "☁", x: 110, y: 292 },
   { id: "camera", label: "Camera", glyph: "📷", x: 110, y: 384 },
 ];
 
@@ -460,12 +461,42 @@ function showDesktopMenu(e, openApp, layer) {
       },
       { sep: true },
       {
+        label: "Look & feel",
+        submenu: [
+          {
+            label: "Ultra thin",
+            checked: prefs.theme === "ultra-thin",
+            action: () => setPref("theme", "ultra-thin"),
+          },
+          {
+            label: "Thin terminal",
+            checked: prefs.theme === "thin-terminal",
+            action: () => setPref("theme", "thin-terminal"),
+          },
+          {
+            label: "Medium",
+            checked: prefs.theme === "medium-chrome",
+            action: () => setPref("theme", "medium-chrome"),
+          },
+          {
+            label: "Thick panel",
+            checked: prefs.theme === "thick-panel",
+            action: () => setPref("theme", "thick-panel"),
+          },
+        ],
+      },
+      {
         label: "Change wallpaper",
         submenu: [
           {
             label: "Earth (Three.js)",
             checked: prefs.wallpaper === "earth",
             action: () => setPref("wallpaper", "earth"),
+          },
+          {
+            label: "Travel through space",
+            checked: prefs.wallpaper === "travel",
+            action: () => setPref("wallpaper", "travel"),
           },
           {
             label: "Stars only",
@@ -662,6 +693,8 @@ async function main() {
   // Thin terminal glass is default; guest prefs override (theme, wallpaper, chrome)
   initTheme();
   initPrefs();
+  initSpaceBg();
+  syncSpaceBg(getPrefs().wallpaper);
   applyMobileClass();
   window.addEventListener("resize", applyMobileClass);
   window.addEventListener("orientationchange", () => setTimeout(applyMobileClass, 100));

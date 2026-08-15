@@ -82,15 +82,46 @@ body.asx-theme-thin {
   --border: rgba(167, 139, 250, 0.42);
 }
 
+/* Ultra thin — hairline chrome */
+body.asx-theme-ultra {
+  --panel: rgba(12, 10, 18, 0.22);
+  --panel-body: rgba(6, 5, 10, 0.12);
+  --titlebar-bg: linear-gradient(
+    to right,
+    rgba(124, 58, 237, 0.7) 0%,
+    rgba(124, 58, 237, 0.35) 16%,
+    rgba(18, 14, 28, 0.22) 16%
+  );
+  --title-h: 22px;
+  --taskbar-h: 34px;
+  --win-radius: 2px;
+  --win-blur: 24px;
+  --win-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(124, 58, 237, 0.14);
+  --border: rgba(167, 139, 250, 0.32);
+}
+
+/* Medium — between glass and panel */
+body.asx-theme-medium {
+  --panel: rgba(14, 12, 22, 0.62);
+  --panel-body: rgba(8, 6, 14, 0.48);
+  --titlebar-bg: linear-gradient(180deg, rgba(88, 40, 190, 0.7), rgba(18, 14, 28, 0.62));
+  --title-h: 30px;
+  --taskbar-h: 44px;
+  --win-radius: 6px;
+  --win-blur: 16px;
+  --win-shadow: 0 10px 32px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(124, 58, 237, 0.16);
+  --border: rgba(167, 139, 250, 0.38);
+}
+
 /* Panel desktop — previous denser look (kept as optional theme) */
 body.asx-theme-panel {
   --panel: rgba(19, 17, 26, 0.88);
   --panel-body: rgba(10, 8, 9, 0.72);
   --titlebar-bg: linear-gradient(180deg, rgba(45, 27, 78, 0.72), rgba(19, 17, 26, 0.94));
-  --title-h: 32px;
-  --taskbar-h: 44px;
-  --win-radius: 10px;
-  --win-blur: 14px;
+  --title-h: 36px;
+  --taskbar-h: 50px;
+  --win-radius: 12px;
+  --win-blur: 12px;
   --win-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(124, 58, 237, 0.12);
   --border: rgba(167, 139, 250, 0.35);
 }
@@ -120,6 +151,24 @@ body {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+#space-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: #060310;
+}
+body:not(.asx-wall-travel) #space-bg {
+  display: none;
+}
+body.asx-wall-travel #three-bg,
+body.asx-wall-travel #ambient-bg {
+  opacity: 0;
+  visibility: hidden;
 }
 
 #three-bg,

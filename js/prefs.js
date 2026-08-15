@@ -5,12 +5,13 @@
  * Selecting an option applies in-place. Menus do not spawn a new window
  * just to flip a setting (Lubuntuesque File / Settings menus).
  */
-import { applyTheme, getTheme } from "./themes.js?v=20260815t190000z";
+import { applyTheme, getTheme, normalizeTheme } from "./themes.js?v=20260815t210000z";
 
 export const PREFS_KEY = "asx-desktop-prefs-v1";
 
 export const WALLPAPERS = [
   { id: "earth", label: "Earth (Three.js)", hint: "Satellite Earth + stars" },
+  { id: "travel", label: "Travel through space", hint: "Stars fly toward you" },
   { id: "stars", label: "Stars only", hint: "Night sky, hide the globe" },
   { id: "void", label: "Universe void", hint: "Brand purple night" },
   { id: "nebula", label: "Nebula gradient", hint: "Violet / gold wash" },
@@ -112,7 +113,7 @@ export function getPrefs() {
       return out;
     }
     const o = safeParse(raw);
-    if (o.theme === "panel-desktop" || o.theme === "thin-terminal") out.theme = o.theme;
+    if (o.theme) out.theme = normalizeTheme(o.theme);
     if (WALLPAPERS.some((w) => w.id === o.wallpaper)) out.wallpaper = o.wallpaper;
     if (hexOk(o.wallColor)) out.wallColor = o.wallColor;
     if (typeof o.wallImage === "string" && o.wallImage.startsWith("data:image/")) {
@@ -256,16 +257,30 @@ export function applyPrefs(p) {
   body.style.setProperty("--font-scale", String(clamp(prefs.fontScale, 0.85, 1.3)));
   body.style.setProperty("--win-opacity", String(op));
   body.style.setProperty("--desk-solid", hexOk(prefs.wallColor) ? prefs.wallColor : "#0a0618");
-  if (prefs.theme === "thin-terminal") {
+  if (prefs.theme === "ultra-thin") {
+    body.style.setProperty("--panel", `rgba(12, 10, 18, ${Math.max(0.12, op - 0.08)})`);
+    body.style.setProperty("--panel-body", `rgba(6, 5, 10, ${Math.max(0.08, op - 0.16)})`);
+    body.style.setProperty(
+      "--titlebar-bg",
+      `linear-gradient(to right, rgba(${r},${g},${b},0.7) 0%, rgba(${r},${g},${b},0.4) 18%, rgba(18,14,28,0.28) 18%)`
+    );
+  } else if (prefs.theme === "medium-chrome") {
+    body.style.setProperty("--panel", `rgba(14, 12, 22, ${Math.min(0.78, op + 0.18)})`);
+    body.style.setProperty("--panel-body", `rgba(8, 6, 14, ${Math.min(0.62, op + 0.08)})`);
+    body.style.setProperty(
+      "--titlebar-bg",
+      `linear-gradient(180deg, rgba(${r},${g},${b},0.72), rgba(18,14,28,0.55))`
+    );
+  } else if (prefs.theme === "thick-panel") {
+    body.style.setProperty("--panel", `rgba(19, 17, 26, ${Math.min(0.94, op + 0.4)})`);
+    body.style.setProperty("--panel-body", `rgba(10, 8, 9, ${Math.min(0.85, op + 0.28)})`);
+  } else {
     body.style.setProperty("--panel", `rgba(12, 10, 18, ${op})`);
     body.style.setProperty("--panel-body", `rgba(6, 5, 10, ${Math.max(0.12, op - 0.12)})`);
     body.style.setProperty(
       "--titlebar-bg",
       `linear-gradient(to right, rgba(${r},${g},${b},0.82) 0%, rgba(${r},${g},${b},0.55) 26%, rgba(18,14,28,0.42) 26%)`
     );
-  } else {
-    body.style.setProperty("--panel", `rgba(19, 17, 26, ${Math.min(0.94, op + 0.4)})`);
-    body.style.setProperty("--panel-body", `rgba(10, 8, 9, ${Math.min(0.85, op + 0.28)})`);
   }
 
   const imgLayer = document.getElementById("desk-wallpaper");

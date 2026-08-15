@@ -785,6 +785,545 @@ export async function mountPhysics(stage, onStatus, loadMatter) {
 
 
 /**
+ * Space Invaders — first-party canvas (no Taito assets).
+ * ← → move · Space / click / tap-center fire.
+ */
+export function mountInvaders(stage, onStatus) {
+  const W = 480;
+  const H = 340;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  canvas.className = "asx-game-canvas";
+  canvas.setAttribute("tabindex", "0");
+  stage.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  let keys = {};
+  let live = true;
+  let raf = 0;
+  let px = 220;
+  let cool = 0;
+  let bullets = [];
+  let bombs = [];
+  let score = 0;
+  let wave = 1;
+  let dir = 1;
+  let stepY = 0;
+  let aliens = [];
+  let bunkers = [];
+  let over = false;
+  let tick = 0;
+
+  const COLS = 9;
+  const ROWS = 4;
+
+  const spawnWave = () => {
+    aliens = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        aliens.push({
+          x: 36 + c * 44,
+          y: 28 + r * 28,
+          t: r,
+          alive: true,
+        });
+      }
+    }
+    dir = 1;
+  };
+
+  const resetBunkers = () => {
+    bunkers = [];
+    for (let i = 0; i < 4; i++) {
+      const bx = 50 + i * 110;
+      for (let y = 0; y < 3; y++) {
+        for (let x = 0; x < 5; x++) {
+          if (y === 2 && x > 0 && x < 4) continue;
+          bunkers.push({ x: bx + x * 8, y: 250 + y * 8, hp: 3 });
+        }
+      }
+    }
+  };
+
+  const reset = () => {
+    px = 220;
+    cool = 0;
+    bullets = [];
+    bombs = [];
+    score = 0;
+    wave = 1;
+    over = false;
+    tick = 0;
+    spawnWave();
+    resetBunkers();
+    onStatus?.("← →  Space to fire");
+  };
+
+  const fire = () => {
+    if (over || cool > 0) return;
+    bullets.push({ x: px + 12, y: H - 36 });
+    cool = 16;
+  };
+
+  const onKey = (e) => {
+    keys[e.key] = e.type === "keydown";
+    if (["ArrowLeft", "ArrowRight", " ", "a", "d", "A", "D"].includes(e.key)) {
+      e.preventDefault();
+    }
+    if (e.type === "keydown" && (e.key === " " || e.key === "ArrowUp")) fire();
+  };
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("keyup", onKey);
+  canvas.addEventListener("pointerdown", (e) => {
+    const r = canvas.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * W;
+    if (x < W * 0.33) keys.ArrowLeft = true;
+    else if (x > W * 0.67) keys.ArrowRight = true;
+    else fire();
+  });
+  canvas.addEventListener("pointerup", () => {
+    keys.ArrowLeft = keys.ArrowRight = false;
+  });
+
+  const hitBox = (ax, ay, aw, ah, bx, by, bw, bh) =>
+    ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+
+  const frame = () => {
+    if (!live) return;
+    tick++;
+    if (!over) {
+      if (keys.ArrowLeft || keys.a || keys.A) px = Math.max(8, px - 4);
+      if (keys.ArrowRight || keys.d || keys.D) px = Math.min(W - 32, px + 4);
+      if (cool) cool--;
+
+      bullets = bullets.filter((b) => {
+        b.y -= 7;
+        return b.y > 8;
+      });
+      bombs = bombs.filter((b) => {
+        b.y += 3 + wave * 0.3;
+        return b.y < H;
+      });
+
+      const living = aliens.filter((a) => a.alive);
+      const cadence = Math.max(8, 28 - wave * 2 - Math.floor((COLS * ROWS - living.length) / 3));
+      if (tick % cadence === 0 && living.length) {
+        let edge = false;
+        for (const a of living) {
+          a.x += dir * 8;
+          if (a.x < 10 || a.x > W - 28) edge = true;
+        }
+        if (edge) {
+          dir *= -1;
+          stepY++;
+          for (const a of living) a.y += 12;
+        }
+      }
+      if (living.length && Math.random() < 0.02 + wave * 0.004) {
+        const shooter = living[(Math.random() * living.length) | 0];
+        bombs.push({ x: shooter.x + 8, y: shooter.y + 14 });
+      }
+
+      for (const b of bullets) {
+        for (const a of aliens) {
+          if (!a.alive) continue;
+          if (hitBox(b.x - 1, b.y - 4, 3, 8, a.x, a.y, 20, 14)) {
+            a.alive = false;
+            b.y = -99;
+            score += (4 - a.t) * 10;
+            onStatus?.(`Score ${score}  ·  wave ${wave}`);
+          }
+        }
+      }
+      for (const shot of [...bullets, ...bombs]) {
+        for (const k of bunkers) {
+          if (k.hp <= 0) continue;
+          if (hitBox(shot.x - 1, shot.y - 2, 3, 6, k.x, k.y, 8, 8)) {
+            k.hp--;
+            shot.y = shot === bombs[bombs.indexOf(shot)] ? H + 9 : -99;
+          }
+        }
+      }
+      for (const b of bombs) {
+        if (hitBox(b.x - 2, b.y, 4, 6, px, H - 28, 24, 12)) {
+          over = true;
+          onStatus?.(`Hit — score ${score}. Restart ↻`);
+        }
+      }
+      if (living.some((a) => a.y > H - 48)) {
+        over = true;
+        onStatus?.(`Landed — score ${score}. Restart ↻`);
+      }
+      if (!living.length) {
+        wave++;
+        spawnWave();
+        onStatus?.(`Wave ${wave}  ·  score ${score}`);
+      }
+    }
+
+    ctx.fillStyle = "#070412";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#1a1030";
+    ctx.fillRect(0, H - 10, W, 10);
+
+    for (const a of aliens) {
+      if (!a.alive) continue;
+      ctx.fillStyle = a.t === 0 ? "#f0abfc" : a.t === 1 ? "#c4b5fd" : a.t === 2 ? "#67e8f9" : "#86efac";
+      ctx.fillRect(a.x, a.y + 4, 20, 8);
+      ctx.fillRect(a.x + 3, a.y, 5, 4);
+      ctx.fillRect(a.x + 12, a.y, 5, 4);
+      ctx.fillRect(a.x + 2, a.y + 12, 4, 4);
+      ctx.fillRect(a.x + 14, a.y + 12, 4, 4);
+    }
+    for (const k of bunkers) {
+      if (k.hp <= 0) continue;
+      ctx.fillStyle = `rgba(52, 211, 153, ${0.25 + k.hp * 0.22})`;
+      ctx.fillRect(k.x, k.y, 7, 7);
+    }
+    ctx.fillStyle = "#e8e0ff";
+    for (const b of bullets) ctx.fillRect(b.x, b.y, 2, 8);
+    ctx.fillStyle = "#f87171";
+    for (const b of bombs) ctx.fillRect(b.x, b.y, 2, 6);
+    ctx.fillStyle = "#a78bfa";
+    ctx.fillRect(px, H - 24, 24, 8);
+    ctx.fillRect(px + 9, H - 30, 6, 8);
+    ctx.fillStyle = "#e8e0ff";
+    ctx.font = "12px ui-monospace, monospace";
+    ctx.fillText(String(score), 10, 16);
+    if (over) {
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillRect(0, 120, W, 60);
+      ctx.fillStyle = "#fff";
+      ctx.fillText("GAME OVER", 190, 154);
+    }
+
+    raf = requestAnimationFrame(frame);
+  };
+  reset();
+  frame();
+  canvas.focus();
+  return {
+    reset,
+    destroy: () => {
+      live = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+    },
+  };
+}
+
+/**
+ * Pac-Man style maze — first-party (original layout, no Namco assets).
+ * Arrows / WASD. Eat dots, avoid ghosts; power pellets flip the hunt.
+ */
+export function mountPacman(stage, onStatus) {
+  // 19×17 unique ASX maze — # wall  . pellet  o power  - gate  P start  G ghost
+  const RAW = [
+    "###################",
+    "#........#........#",
+    "#o##.###.#.###.##o#",
+    "#.................#",
+    "#.##.#.#####.#.##.#",
+    "#....#...#...#....#",
+    "####.###.#.###.####",
+    "   #.#.......#.#   ",
+    "####.#.##-##.#.####",
+    "#.....# G G #.....#",
+    "####.#.#####.#.####",
+    "   #.#.......#.#   ",
+    "####.#.#####.#.####",
+    "#........#........#",
+    "#.##.###.#.###.##.#",
+    "#o..#....P....#..o#",
+    "###################",
+  ];
+  const ROWS = RAW.length;
+  const COLS = RAW[0].length;
+  const S = 18;
+  const canvas = document.createElement("canvas");
+  canvas.width = COLS * S;
+  canvas.height = ROWS * S;
+  canvas.className = "asx-game-canvas";
+  canvas.setAttribute("tabindex", "0");
+  stage.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+
+  let wall = [];
+  let pellets = new Set();
+  let power = new Set();
+  let start = { x: 9, y: 15 };
+  let dens = [];
+  let px, py, pdx, pdy, ndx, ndy;
+  let ghosts = [];
+  let mouth = 0;
+  let score = 0;
+  let frightened = 0;
+  let live = true;
+  let over = false;
+  let won = false;
+  let raf = 0;
+  let acc = 0;
+  let last = 0;
+  const key = (x, y) => x + "," + y;
+
+  const rebuild = () => {
+    wall = RAW.map((r) => r.split(""));
+    pellets = new Set();
+    power = new Set();
+    dens = [];
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const c = wall[y][x];
+        if (c === ".") pellets.add(key(x, y));
+        if (c === "o") power.add(key(x, y));
+        if (c === "P") start = { x, y };
+        if (c === "G") dens.push({ x, y });
+      }
+    }
+  };
+
+  const blocked = (x, y, ghost) => {
+    if (y < 0 || y >= ROWS || x < 0 || x >= COLS) return true;
+    const c = wall[y][x];
+    if (c === "#") return true;
+    if (c === "-" && !ghost) return true;
+    return false;
+  };
+
+  const resetActors = () => {
+    px = start.x;
+    py = start.y;
+    pdx = 0;
+    pdy = 0;
+    ndx = 0;
+    ndy = 0;
+    const colors = ["#f87171", "#fb923c", "#67e8f9", "#f0abfc"];
+    ghosts = dens.map((d, i) => ({
+      x: d.x,
+      y: d.y,
+      dx: i % 2 ? 1 : -1,
+      dy: 0,
+      color: colors[i % colors.length],
+      home: { ...d },
+    }));
+    frightened = 0;
+  };
+
+  const reset = () => {
+    rebuild();
+    resetActors();
+    score = 0;
+    over = false;
+    won = false;
+    acc = 0;
+    onStatus?.("Arrows / WASD · eat the dots");
+  };
+
+  const dirs = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+
+  const onKey = (e) => {
+    const map = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, -1],
+      ArrowDown: [0, 1],
+      a: [-1, 0],
+      d: [1, 0],
+      w: [0, -1],
+      s: [0, 1],
+      A: [-1, 0],
+      D: [1, 0],
+      W: [0, -1],
+      S: [0, 1],
+    };
+    if (map[e.key]) {
+      e.preventDefault();
+      ndx = map[e.key][0];
+      ndy = map[e.key][1];
+    }
+  };
+  window.addEventListener("keydown", onKey);
+
+  const stepPlayer = () => {
+    if (!blocked(px + ndx, py + ndy, false) && (ndx || ndy)) {
+      pdx = ndx;
+      pdy = ndy;
+    }
+    if (!blocked(px + pdx, py + pdy, false)) {
+      px += pdx;
+      py += pdy;
+      if (px < 0) px = COLS - 1;
+      if (px >= COLS) px = 0;
+    }
+    const k = key(px, py);
+    if (pellets.delete(k)) {
+      score += 10;
+      onStatus?.(`Score ${score}`);
+    }
+    if (power.delete(k)) {
+      score += 50;
+      frightened = 40;
+      onStatus?.(`Score ${score} · power`);
+    }
+    if (!pellets.size && !power.size) {
+      won = true;
+      onStatus?.(`Clear — ${score}. Restart ↻`);
+    }
+  };
+
+  const stepGhosts = () => {
+    for (const g of ghosts) {
+      const options = dirs.filter(([dx, dy]) => {
+        if (dx === -g.dx && dy === -g.dy && optionsWait(g)) return false;
+        return !blocked(g.x + dx, g.y + dy, true);
+      });
+      const pick = () => {
+        if (!options.length) return [ -g.dx, -g.dy ];
+        if (frightened > 0) return options[(Math.random() * options.length) | 0];
+        let best = options[0];
+        let bestD = Infinity;
+        for (const d of options) {
+          const nx = g.x + d[0] - px;
+          const ny = g.y + d[1] - py;
+          const dist = nx * nx + ny * ny;
+          if (dist < bestD) {
+            bestD = dist;
+            best = d;
+          }
+        }
+        return best;
+      };
+      const [dx, dy] = pick();
+      g.dx = dx;
+      g.dy = dy;
+      g.x += dx;
+      g.y += dy;
+      if (g.x < 0) g.x = COLS - 1;
+      if (g.x >= COLS) g.x = 0;
+      if (g.x === px && g.y === py) {
+        if (frightened > 0) {
+          score += 200;
+          g.x = g.home.x;
+          g.y = g.home.y;
+          onStatus?.(`Score ${score}`);
+        } else {
+          over = true;
+          onStatus?.(`Caught — ${score}. Restart ↻`);
+        }
+      }
+    }
+  };
+
+  function optionsWait() {
+    return true;
+  }
+
+  const draw = () => {
+    ctx.fillStyle = "#050210";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const c = wall[y][x];
+        if (c === "#") {
+          ctx.fillStyle = "#312e81";
+          ctx.fillRect(x * S + 1, y * S + 1, S - 2, S - 2);
+        } else if (c === "-") {
+          ctx.fillStyle = "#a78bfa";
+          ctx.fillRect(x * S + 2, y * S + S / 2 - 1, S - 4, 2);
+        }
+        if (pellets.has(key(x, y))) {
+          ctx.fillStyle = "#fde68a";
+          ctx.beginPath();
+          ctx.arc(x * S + S / 2, y * S + S / 2, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (power.has(key(x, y))) {
+          ctx.fillStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.arc(x * S + S / 2, y * S + S / 2, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    mouth = (mouth + 0.18) % (Math.PI / 2);
+    const ang = Math.atan2(pdy, pdx) || 0;
+    ctx.fillStyle = "#facc15";
+    ctx.beginPath();
+    ctx.moveTo(px * S + S / 2, py * S + S / 2);
+    ctx.arc(
+      px * S + S / 2,
+      py * S + S / 2,
+      S / 2 - 2,
+      ang + mouth,
+      ang + Math.PI * 2 - mouth
+    );
+    ctx.closePath();
+    ctx.fill();
+    for (const g of ghosts) {
+      ctx.fillStyle = frightened > 0 ? "#818cf8" : g.color;
+      ctx.beginPath();
+      ctx.arc(g.x * S + S / 2, g.y * S + S / 2 - 1, S / 2 - 2, Math.PI, 0);
+      ctx.lineTo(g.x * S + S - 3, g.y * S + S - 3);
+      ctx.lineTo(g.x * S + 3, g.y * S + S - 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#111";
+      ctx.fillRect(g.x * S + 5, g.y * S + 6, 3, 3);
+      ctx.fillRect(g.x * S + 10, g.y * S + 6, 3, 3);
+    }
+    if (over || won) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(0, canvas.height / 2 - 18, canvas.width, 36);
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px ui-monospace, monospace";
+      ctx.fillText(won ? "CLEAR" : "CAUGHT", canvas.width / 2 - 28, canvas.height / 2 + 5);
+    }
+  };
+
+  const loop = (t) => {
+    if (!live) return;
+    if (!last) last = t;
+    acc += t - last;
+    last = t;
+    const stepMs = 130;
+    while (acc > stepMs) {
+      acc -= stepMs;
+      if (!over && !won) {
+        stepPlayer();
+        if (tickGhost(acc)) stepGhosts();
+        if (frightened > 0) frightened--;
+      }
+    }
+    draw();
+    raf = requestAnimationFrame(loop);
+  };
+
+  let gPhase = 0;
+  function tickGhost() {
+    gPhase++;
+    return gPhase % 1 === 0;
+  }
+
+  reset();
+  raf = requestAnimationFrame(loop);
+  canvas.focus();
+  return {
+    reset,
+    destroy: () => {
+      live = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKey);
+    },
+  };
+}
+
+/**
  * Open a game window via WindowManager.
  * @param {object} wm
  * @param {{ id: string, title: string, hint: string, mount: Function, w?: number, h?: number }} spec
