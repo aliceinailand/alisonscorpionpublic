@@ -47,21 +47,6 @@ function readSavedGeom(id) {
   return out.w || out.h || Number.isFinite(out.x) ? out : null;
 }
 
-/** Move File/Edit/View out of the body onto the titlebar (Lubuntu-style). */
-function hoistTitleMenus(winEl) {
-  const titlebar = winEl?.querySelector?.(".titlebar");
-  if (!titlebar) return;
-  const incoming = winEl.querySelector(".win-body .asx-menubar");
-  titlebar.querySelectorAll(":scope > .asx-menubar").forEach((n) => {
-    if (n !== incoming) n.remove();
-  });
-  if (incoming) {
-    incoming.classList.add("title-menus");
-    const title = titlebar.querySelector(".title");
-    titlebar.insertBefore(incoming, title || null);
-  }
-}
-
 function persistGeom(id, el, extras = {}) {
   if (!id || !el || el.classList.contains("maximized")) {
     if (id && el?.classList.contains("maximized")) {
@@ -387,7 +372,6 @@ export class WindowManager {
         w.el.classList.remove("minimized");
         this.focus(id);
         if (typeof opts.onMount === "function") opts.onMount(w.body, w);
-        hoistTitleMenus(w.el);
         return w;
       }
       this.focus(id);
@@ -427,7 +411,7 @@ export class WindowManager {
     const titlebar = document.createElement("div");
     titlebar.className = "titlebar";
     titlebar.innerHTML = sanitizeHtml(`
-      <div class="btns" role="toolbar" aria-label="Window controls">
+      <div class="btns win-controls" role="toolbar" aria-label="Window controls">
         <button type="button" class="btn btn-close" title="Close" aria-label="Close window">×</button>
         <button type="button" class="btn btn-min" title="Minimize" aria-label="Minimize">−</button>
         <button type="button" class="btn btn-max" title="Maximize / restore" aria-label="Maximize or restore">□</button>
@@ -447,7 +431,6 @@ export class WindowManager {
     el.appendChild(body);
     el.appendChild(handle);
     this.root.appendChild(el);
-    hoistTitleMenus(el);
 
     const rec = {
       id,
@@ -461,13 +444,8 @@ export class WindowManager {
     };
     this.windows.set(id, rec);
 
-    const stopBtn = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-    };
-
     titlebar.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".btn, .asx-menubar, .asx-menu")) return;
+      if (e.target.closest(".btn, .win-controls, .asx-menubar, .asx-menu")) return;
       if (e.button != null && e.button !== 0) return;
       this.focus(id);
       if (el.classList.contains("maximized")) return;
@@ -506,12 +484,12 @@ export class WindowManager {
     const btnClose = titlebar.querySelector(".btn-close");
     const btnMin = titlebar.querySelector(".btn-min");
     const btnMax = titlebar.querySelector(".btn-max");
-    // pointerup + click for reliable mobile hit (empty hit areas were too small)
+    // One action per tap. preventDefault on pointerdown was killing click;
+    // pointerup+click together made maximize toggle twice (looked broken).
     const bindBtn = (btn, fn) => {
-      btn.addEventListener("pointerdown", stopBtn);
-      btn.addEventListener("pointerup", (e) => {
-        stopBtn(e);
-        fn();
+      if (!btn) return;
+      btn.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
       });
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -568,7 +546,6 @@ export class WindowManager {
       }
     }
     if (typeof opts.onMount === "function") opts.onMount(body, rec);
-    hoistTitleMenus(el);
     return rec;
   }
 

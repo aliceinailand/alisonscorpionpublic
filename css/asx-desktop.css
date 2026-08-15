@@ -788,7 +788,7 @@ body.asx-wall-travel #ambient-bg {
   touch-action: manipulation;
   position: relative;
   z-index: 5;
-  overflow: hidden; /* keep min/max/close from covering File/Edit/View */
+  overflow: visible;
 }
 .titlebar:active { cursor: grabbing; }
 .titlebar .title {
@@ -802,22 +802,26 @@ body.asx-wall-travel #ambient-bg {
   text-overflow: ellipsis;
   pointer-events: none; /* don't steal taps from nearby buttons */
 }
-.titlebar .btns {
+.titlebar .btns,
+.titlebar .win-controls {
   display: flex;
   gap: 6px;
   align-items: center;
   flex: 0 0 auto; /* never shrink / never push off-screen */
   order: -1; /* leftmost — always visible in side-by-side narrow panes */
-  z-index: 6;
+  position: relative;
+  z-index: 50;
   margin-right: 4px;
+  pointer-events: auto;
+  isolation: isolate;
 }
 .titlebar .btn {
   box-sizing: border-box;
-  /* Stay inside the titlebar so hit targets do not cover File/Edit/View */
-  width: calc(var(--title-h) - 6px);
-  height: calc(var(--title-h) - 6px);
-  min-width: 18px;
-  min-height: 18px;
+  width: max(28px, calc(var(--title-h) - 4px));
+  height: max(28px, calc(var(--title-h) - 4px));
+  min-width: 28px;
+  min-height: 28px;
+  pointer-events: auto;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.45);
   cursor: pointer;
@@ -3613,31 +3617,7 @@ body.asx-theme-thin .seo-main {
 }
 .titlebar .asx-menubar,
 .titlebar .title-menus {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex-wrap: nowrap;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  scrollbar-width: none;
-  pointer-events: auto;
-  z-index: 8;
-  cursor: default;
-}
-.titlebar .asx-menubar::-webkit-scrollbar { display: none; }
-.titlebar .asx-menubar-btn,
-.titlebar .asx-menubar button {
-  height: var(--title-h);
-  padding: 0 8px;
-  font-size: 11px;
-  color: var(--gold-white, #f5edd8);
-  pointer-events: auto;
-}
-.titlebar .title {
-  flex: 0 1 28%;
-  max-width: 36%;
+  display: none; /* menus live in the window body — never cover chrome */
 }
 
 /* Wallpaper layer (custom image) + non-Earth modes */
