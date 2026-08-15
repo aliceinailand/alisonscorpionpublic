@@ -20,7 +20,7 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t220000z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t221800z";
 import {
   initPresence,
   initSessionTimer,

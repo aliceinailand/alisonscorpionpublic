@@ -23,6 +23,34 @@ import {
   isBrowserFsReady,
 } from "./fs.js?v=20260810t390000z";
 import { routeFreeChat } from "./chat-router.js?v=20260810t250000z";
+
+const ASX_CHAT_API = "https://api.alisonscorpion.com/v1/asx/chat";
+
+/** Live Python Router / Poe-backed gateway. Falls back to local FAQ on miss. */
+async function askAsxGateway(msg) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 18000);
+  try {
+    const r = await fetch(ASX_CHAT_API, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text: msg,
+        surface: "desktop",
+        client: "desktop-os",
+      }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (data && data.ok && data.reply) return String(data.reply);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+  return null;
+}
 import {
   createAccount,
   softDeleteAccount,
@@ -2562,7 +2590,7 @@ function openChat(wm) {
   const root = document.createElement("div");
   root.className = "term chat-free";
   root.innerHTML = `
-    <div class="chat-banner">Free Chat · low router (query → logic → answer) · no app control</div>
+    <div class="chat-banner">ASX Chat · live Python Router (api.alisonscorpion.com) · Poe bot AlisonScorpion</div>
     <div class="chat-scroll tse-scrollable asx-tse" data-chat-scroll>
       <div class="tse-content term-out chat-stream" data-chat-out style="padding:12px"></div>
     </div>
@@ -2607,8 +2635,8 @@ function openChat(wm) {
     tse?.scrollToBottom(true);
   };
   add(
-    "Chat",
-    "Free path: simple questions only (local router / low LLM layer). Example: “Who was the first president?” For open/navigate actions, use Agent α. Complex reasoning → sign up.",
+    "ASX",
+    "Live gateway is up. Type here to hit POST /v1/asx/chat (same router Poe uses). AMN is not mounted — FACT only with law+record; else HOLD. Agent α still handles open/navigate on this desktop.",
     "ok"
   );
 
@@ -2617,19 +2645,29 @@ function openChat(wm) {
     if (!msg) return;
     add("You", msg);
     input.value = "";
-    const r = routeFreeChat(msg);
-    // Light stream for ASX answer feel
     const d = document.createElement("div");
     d.style.marginBottom = "8px";
     const label = document.createElement("span");
-    label.style.color = r.type === "upgrade" ? "var(--fail)" : "var(--brand)";
-    label.textContent = "Chat ";
+    label.style.color = "var(--brand)";
+    label.textContent = "ASX ";
     const body = document.createElement("span");
     body.className = "dim";
     d.appendChild(label);
     d.appendChild(body);
     out.appendChild(d);
-    await streamTextInto(tse, body, r.text, { cps: 2 });
+    const live = await askAsxGateway(msg);
+    if (live) {
+      await streamTextInto(tse, body, live, { cps: 2 });
+      return;
+    }
+    const r = routeFreeChat(msg);
+    label.style.color = r.type === "upgrade" ? "var(--fail)" : "var(--brand)";
+    await streamTextInto(
+      tse,
+      body,
+      r.text + "\n\n—\nLocal fallback · live API unreachable",
+      { cps: 2 }
+    );
     addLinks(r.links);
   };
   input.addEventListener("keydown", (e) => e.key === "Enter" && send());
