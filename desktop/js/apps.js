@@ -83,6 +83,16 @@ import {
   streamAgentSteps,
   TSE_VERSION,
 } from "./scroll-chrome.js?v=20260810t430000z";
+import {
+  getPrefs,
+  setPrefs,
+  setPref,
+  resetPrefs,
+  WALLPAPERS,
+  ACCENTS,
+} from "./prefs.js?v=20260815t190000z";
+import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t190000z";
+import { applyTheme, THEMES } from "./themes.js?v=20260815t190000z";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =
@@ -985,6 +995,82 @@ function schemeUri(scheme, path = "") {
 /**
  * @param {{ uri?: string, hint?: string, foot?: string, bodyClass?: string, extraClass?: string, onUp?: () => void, upEnabled?: boolean }} opts
  */
+function attachExplorerMenus(chrome, wm, getHandlers) {
+  const bar = document.createElement("div");
+  const handlers = () => (typeof getHandlers === "function" ? getHandlers() : getHandlers) || {};
+  bindMenubar(bar, {
+    File: () => {
+      const h = handlers();
+      return [
+        { label: "New File…", kbd: "Ctrl+N", disabled: !h.canWrite, action: () => h.newFile?.() },
+        { label: "New Folder…", disabled: !h.canWrite, action: () => h.newDir?.() },
+        { sep: true },
+        {
+          label: "Import from this device…",
+          action: () => h.importLocal?.(),
+        },
+        { sep: true },
+        { label: "Close Window", action: () => wm.close?.("explorer") },
+      ];
+    },
+    Edit: () => {
+      const h = handlers();
+      return [
+        { label: "Select All", disabled: !h.selectAll, action: () => h.selectAll?.() },
+        { label: "Refresh", action: () => h.refresh?.() },
+      ];
+    },
+    View: () => {
+      const h = handlers();
+      const view = h.view || getPrefs().filesView;
+      return [
+        {
+          label: "Icons",
+          checked: view === "icons",
+          action: () => h.setView?.("icons"),
+        },
+        {
+          label: "List",
+          checked: view === "list",
+          action: () => h.setView?.("list"),
+        },
+      ];
+    },
+    Go: () => [
+      { label: "Computer", action: () => openComputer(wm) },
+      { label: "Guest Home", action: () => openFiles(wm, { startPath: "/home/guest" }) },
+      { label: "Alison", action: () => openFiles(wm, { startPath: "/home/alisonscorpion" }) },
+      { label: "File System", action: () => openFiles(wm, { startPath: "/" }) },
+      { sep: true },
+      { label: "Applications", action: () => openApplications(wm) },
+      { label: "Trash", action: () => openTrash(wm) },
+      { label: "Network", action: () => openNetwork(wm) },
+      { label: "GDrive", action: () => openGDrive(wm) },
+    ],
+    Bookmarks: () => [
+      { label: "Guest Home", action: () => openFiles(wm, { startPath: "/home/guest" }) },
+      { label: "Applications", action: () => openApplications(wm) },
+      { label: "Computer", action: () => openComputer(wm) },
+    ],
+    Tools: () => [
+      { label: "Open Terminal", action: () => openTerminal(wm) },
+      { label: "Settings", action: () => openSettings(wm) },
+    ],
+    Help: () => [
+      {
+        label: "About this folder",
+        action: () =>
+          window.alert(
+            "ASX Files — guest virtual filesystem.\n/home/guest is writable (BrowserFS).\nAdmin paths are read-only. This is not the host disk."
+          ),
+      },
+      { label: "About ASX", action: () => openAbout(wm) },
+    ],
+  });
+  chrome.root.insertBefore(bar, chrome.root.firstChild);
+  chrome.menubar = bar;
+}
+
 function makeFolderChrome(opts = {}) {
   const root = document.createElement("div");
   root.className = "folder-view" + (opts.extraClass ? ` ${opts.extraClass}` : "");
@@ -1059,6 +1145,11 @@ function openComputer(wm) {
     upEnabled: false,
     bodyClass: "folder-grid",
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => openComputer(wm),
+    view: "icons",
+  }));
   const grid = chrome.body;
   // Trash is desktop-only — not inside Computer
   const items = [
@@ -1116,6 +1207,11 @@ function openApplications(wm, opts = {}) {
       render();
     },
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => render(),
+    view: "icons",
+  }));
   const grid = chrome.body;
 
   const openAppId = (id) => {
@@ -1212,6 +1308,11 @@ function openTrash(wm) {
     upEnabled: true,
     onUp: () => openComputer(wm),
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => openTrash(wm),
+    view: "list",
+  }));
   const list = chrome.body;
 
   trashedUsers.forEach((u) => {
@@ -1279,6 +1380,11 @@ function openNetwork(wm) {
     upEnabled: true,
     onUp: () => openComputer(wm),
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => openNetwork(wm),
+    view: "icons",
+  }));
   const grid = chrome.body;
   const items = [
     {
@@ -1338,6 +1444,11 @@ function openUsers(wm) {
     upEnabled: true,
     onUp: () => openNetwork(wm),
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => openUsers(wm),
+    view: "icons",
+  }));
   const grid = chrome.body;
 
   const tile = (glyph, label, sub, go) => {
@@ -1447,6 +1558,11 @@ function openGDrive(wm, opts = {}) {
       }
     },
   });
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: false,
+    refresh: () => render(),
+    view: "list",
+  }));
   const list = chrome.body;
 
   const publicBtn = document.createElement("button");
@@ -1744,6 +1860,39 @@ function openFiles(wm, opts = {}) {
       render();
     },
   });
+  let viewMode = getPrefs().filesView === "icons" ? "icons" : "list";
+  const applyView = () => {
+    chrome.root.classList.toggle("files-icons", viewMode === "icons");
+    chrome.body.classList.toggle("folder-grid", viewMode === "icons");
+    chrome.body.classList.toggle("folder-list", viewMode !== "icons");
+  };
+  applyView();
+  attachExplorerMenus(chrome, wm, () => ({
+    canWrite: canWrite(cwd),
+    view: viewMode,
+    setView: (v) => {
+      viewMode = v === "icons" ? "icons" : "list";
+      setPref("filesView", viewMode);
+      applyView();
+      render();
+    },
+    newFile: () => actions.querySelector('[data-fa="new-file"]')?.click(),
+    newDir: () => actions.querySelector('[data-fa="new-dir"]')?.click(),
+    refresh: () => render(),
+    importLocal: async () => {
+      if (!canWrite(cwd)) {
+        window.alert("This location is not writable. Use /home/guest/…");
+        return;
+      }
+      const files = await pickLocalFiles({ multiple: true });
+      for (const f of files) {
+        const name = (f.name || "import.bin").replace(/[/\\]/g, "_");
+        const text = await f.text().catch(() => "");
+        await writeFile(joinPath(cwd, name), text);
+      }
+      if (files.length) render();
+    },
+  }));
   // Click URI → Go prompt (continuity with location bar)
   chrome.uri.style.cursor = "pointer";
   chrome.uri.title = "Click to Go to location";
@@ -1899,6 +2048,29 @@ function openFiles(wm, opts = {}) {
       row.addEventListener("dblclick", openEntry);
       row.addEventListener("click", (ev) => {
         if (ev.detail === 1 && matchMedia("(pointer: coarse)").matches) openEntry();
+      });
+      row.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        showMenu({
+          x: ev.clientX,
+          y: ev.clientY,
+          items: [
+            { label: "Open", action: openEntry },
+            { sep: true },
+            {
+              label: "Copy path",
+              action: () => {
+                try {
+                  navigator.clipboard?.writeText(e.path);
+                } catch {
+                  /* */
+                }
+                asxToast(e.path);
+              },
+            },
+          ],
+        });
       });
       main.appendChild(row);
     }
@@ -5287,107 +5459,285 @@ function openAbout(wm) {
   });
 }
 
-/* ── Settings (theme + about you + desktop) ───────────────── */
-function openSettings(wm) {
+/* ── Settings (sidebar control panel — options apply in-place) ─ */
+function openSettings(wm, opts = {}) {
   const root = document.createElement("div");
   root.className = "app-pad settings-app";
+  const nav = [
+    { group: "Workspace", id: "overview", label: "Overview", icon: "◆" },
+    { group: "Appearance", id: "appearance", label: "Theme", icon: "◐" },
+    { id: "wallpaper", label: "Wallpaper", icon: "🖼" },
+    { id: "colors", label: "Colors", icon: "●" },
+    { group: "Desktop", id: "desktop", label: "Icons & layout", icon: "▦" },
+    { id: "taskbar", label: "Taskbar", icon: "▁" },
+    { id: "windows", label: "Windows", icon: "▢" },
+    { group: "Account", id: "about", label: "About you", icon: "👤" },
+    { group: "Advanced", id: "advanced", label: "Advanced", icon: "⚙" },
+  ];
+  const start = opts.section && nav.some((n) => n.id === opts.section) ? opts.section : "overview";
   root.innerHTML = `
-    <div class="settings-tabs" role="tablist" aria-label="Settings sections">
-      <button type="button" class="settings-tab is-active" data-tab="prefs" role="tab" aria-selected="true">Preferences</button>
-      <button type="button" class="settings-tab" data-tab="about" role="tab" aria-selected="false">About you</button>
-      <button type="button" class="settings-tab" data-tab="desktop" role="tab" aria-selected="false">This desktop</button>
-    </div>
-    <div class="settings-panels">
-      <section class="settings-panel is-active" data-panel="prefs">
-        <h2>Preferences</h2>
-        <p class="dim settings-lead">
-          Default is <strong>thin terminal glass</strong> (Claude + PouyaOS-inspired, Earth shows through).
-          The denser <strong>panel desktop</strong> look is kept as an optional theme.
-        </p>
-        <label class="settings-label">Theme
+    <div class="settings-shell">
+      <nav class="settings-nav" aria-label="Settings"></nav>
+      <div class="settings-main" id="settings-main"></div>
+    </div>`;
+  const navEl = root.querySelector(".settings-nav");
+  const main = root.querySelector("#settings-main");
+  let aboutLoaded = false;
+  let current = start;
+
+  const check = (id, label, key) => {
+    const p = getPrefs();
+    return `<label class="settings-check"><input type="checkbox" data-pref="${key}" ${
+      p[key] ? "checked" : ""
+    }/> ${label}</label>`;
+  };
+
+  const paint = async (id) => {
+    current = id;
+    navEl.querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b.dataset.sid === id));
+    const p = getPrefs();
+    if (id === "overview") {
+      main.innerHTML = `
+        <h2>This desktop</h2>
+        <p class="settings-lead">You are using <strong style="color:var(--brand)">Alison Scorpion</strong>'s guest desktop — select any option on the left. Changes apply immediately; they do not open a new window.</p>
+        <ul class="settings-list dim">
+          <li><strong>Owner:</strong> Alison Scorpion (ASX) — administrator</li>
+          <li><strong>You:</strong> guest · free apps, virtual FS, no host disk</li>
+          <li><strong>Customize:</strong> right-click the desktop, taskbar, or an icon</li>
+          <li><strong>File menus:</strong> Computer / Files have File · Edit · View · Go</li>
+          <li><strong>Guest disk:</strong> BrowserFS → IndexedDB (<code>/home/guest</code>)</li>
+          <li><strong>Deep links:</strong> <code>#app/settings</code>, <code>#app/files</code>, …</li>
+        </ul>
+        <p class="dim settings-hint">Right-click empty desktop for wallpaper, icon size, shortcuts. File → Import uses your own OS file picker.</p>`;
+      return;
+    }
+    if (id === "appearance") {
+      main.innerHTML = `
+        <h2>Theme</h2>
+        <p class="dim settings-lead">Thin glass keeps Earth visible. Panel desktop is the denser look from earlier screenshots.</p>
+        <label class="settings-label">Chrome
           <select id="asx-theme-select" class="settings-input">
-            <option value="thin-terminal">Thin terminal glass (default)</option>
-            <option value="panel-desktop">Panel desktop (solid purple)</option>
+            ${(THEMES || [])
+              .map((t) => `<option value="${t.id}" ${p.theme === t.id ? "selected" : ""}>${escapeHtml(t.label)}</option>`)
+              .join("")}
           </select>
         </label>
         <p id="asx-theme-hint" class="dim settings-hint"></p>
+        <label class="settings-label">UI scale
+          <input id="asx-font-scale" class="settings-range" type="range" min="85" max="130" step="5" value="${Math.round(
+            p.fontScale * 100
+          )}" />
+        </label>
+        <p class="dim settings-hint" id="asx-font-hint">${Math.round(p.fontScale * 100)}%</p>`;
+      const sel = main.querySelector("#asx-theme-select");
+      const hint = main.querySelector("#asx-theme-hint");
+      const t0 = (THEMES || []).find((x) => x.id === p.theme);
+      if (hint) hint.textContent = t0 ? t0.hint : "";
+      sel?.addEventListener("change", () => {
+        applyTheme(sel.value);
+        setPref("theme", sel.value);
+        const t = (THEMES || []).find((x) => x.id === sel.value);
+        if (hint) hint.textContent = t ? t.hint : "";
+      });
+      main.querySelector("#asx-font-scale")?.addEventListener("input", (e) => {
+        const v = Number(e.target.value) / 100;
+        setPref("fontScale", v);
+        const h = main.querySelector("#asx-font-hint");
+        if (h) h.textContent = Math.round(v * 100) + "%";
+      });
+      return;
+    }
+    if (id === "wallpaper") {
+      main.innerHTML = `
+        <h2>Wallpaper</h2>
+        <p class="dim settings-lead">Pick a backdrop. “Image from this device” opens <em>your</em> OS file dialog — it does not spawn another ASX window.</p>
+        <div class="settings-row">
+          ${(WALLPAPERS || [])
+            .map(
+              (w) =>
+                `<button type="button" class="sheet-btn ${p.wallpaper === w.id ? "is-on" : ""}" data-wall="${w.id}">${escapeHtml(
+                  w.label
+                )}</button>`
+            )
+            .join("")}
+        </div>
+        <label class="settings-label">Solid color
+          <input id="asx-wall-color" class="settings-input" type="color" value="${escapeHtml(p.wallColor)}" />
+        </label>
+        <div class="settings-actions">
+          <button type="button" class="sheet-btn" id="asx-wall-pick">Choose image from this device…</button>
+        </div>`;
+      main.querySelectorAll("[data-wall]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const wid = btn.getAttribute("data-wall");
+          if (wid === "image") {
+            const files = await pickLocalFiles({ accept: "image/*" });
+            const f = files[0];
+            if (!f) return;
+            try {
+              const url = await fileToDataUrl(f);
+              setPrefs({ wallpaper: "image", wallImage: url });
+            } catch (err) {
+              window.alert(err?.message || "Could not use that image");
+            }
+          } else {
+            setPref("wallpaper", wid);
+          }
+          paint("wallpaper");
+        });
+      });
+      main.querySelector("#asx-wall-color")?.addEventListener("input", (e) => {
+        setPrefs({ wallpaper: "solid", wallColor: e.target.value });
+      });
+      main.querySelector("#asx-wall-pick")?.addEventListener("click", () => {
+        main.querySelector('[data-wall="image"]')?.click();
+      });
+      return;
+    }
+    if (id === "colors") {
+      main.innerHTML = `
+        <h2>Colors</h2>
+        <p class="dim settings-lead">Accent tints the title stripe, borders, and menu highlight. Applies live.</p>
+        <div class="settings-swatches">
+          ${ACCENTS.map(
+            (a) =>
+              `<button type="button" class="settings-swatch ${p.accent.toLowerCase() === a.id.toLowerCase() ? "is-on" : ""}" data-accent="${a.id}" title="${escapeHtml(
+                a.label
+              )}" style="background:${a.id}"></button>`
+          ).join("")}
+        </div>
+        <label class="settings-label">Custom accent
+          <input id="asx-accent" class="settings-input" type="color" value="${escapeHtml(p.accent)}" />
+        </label>`;
+      main.querySelectorAll("[data-accent]").forEach((b) => {
+        b.addEventListener("click", () => setPref("accent", b.getAttribute("data-accent")));
+      });
+      main.querySelector("#asx-accent")?.addEventListener("input", (e) => setPref("accent", e.target.value));
+      return;
+    }
+    if (id === "desktop") {
+      main.innerHTML = `
+        <h2>Icons &amp; layout</h2>
+        <p class="dim settings-lead">Drag icons to place them. Right-click an icon to hide it or add shortcuts from the desktop menu.</p>
+        <label class="settings-label">Icon size
+          <select id="asx-icon-size" class="settings-input">
+            <option value="small" ${p.iconSize === "small" ? "selected" : ""}>Small</option>
+            <option value="medium" ${p.iconSize === "medium" ? "selected" : ""}>Medium</option>
+            <option value="large" ${p.iconSize === "large" ? "selected" : ""}>Large</option>
+          </select>
+        </label>
+        ${check("asx-icon-labels", "Show icon labels", "iconLabels")}
+        ${check("asx-icon-snap", "Snap icons to grid", "iconSnap")}
+        ${check("asx-seo", "Show about panel (SEO)", "seoPanel")}
+        <div class="settings-actions">
+          <button type="button" class="sheet-btn" id="asx-reset-pos">Reset icon positions</button>
+          <button type="button" class="sheet-btn" id="asx-show-hidden">Show hidden icons</button>
+        </div>`;
+      main.querySelector("#asx-icon-size")?.addEventListener("change", (e) => setPref("iconSize", e.target.value));
+      main.querySelectorAll("[data-pref]").forEach((inp) => {
+        inp.addEventListener("change", () => setPref(inp.getAttribute("data-pref"), inp.checked));
+      });
+      main.querySelector("#asx-reset-pos")?.addEventListener("click", () => setPrefs({ iconPos: {} }));
+      main.querySelector("#asx-show-hidden")?.addEventListener("click", () => setPrefs({ hiddenIcons: [] }));
+      return;
+    }
+    if (id === "taskbar") {
+      main.innerHTML = `
+        <h2>Taskbar</h2>
+        <p class="dim settings-lead">Right-click the bar itself for the same options — they apply without opening another window.</p>
+        <label class="settings-label">Position
+          <select id="asx-tb-pos" class="settings-input">
+            <option value="bottom" ${p.taskbarPos === "bottom" ? "selected" : ""}>Bottom</option>
+            <option value="top" ${p.taskbarPos === "top" ? "selected" : ""}>Top</option>
+          </select>
+        </label>
+        ${check("asx-tb-hide", "Auto-hide taskbar", "taskbarAutohide")}
+        ${check("asx-clock12", "12-hour clock", "clock12")}
+        ${check("asx-vis", "Show visitors", "showVisitors")}
+        ${check("asx-ses", "Show session timer", "showSession")}
+        ${check("asx-net", "Show network", "showNetwork")}
+        ${check("asx-eyes", "Show traveling eyes", "showEyes")}`;
+      main.querySelector("#asx-tb-pos")?.addEventListener("change", (e) => setPref("taskbarPos", e.target.value));
+      main.querySelectorAll("[data-pref]").forEach((inp) => {
+        inp.addEventListener("change", () => setPref(inp.getAttribute("data-pref"), inp.checked));
+      });
+      return;
+    }
+    if (id === "windows") {
+      main.innerHTML = `
+        <h2>Windows</h2>
+        <p class="dim settings-lead">Glass opacity lets Earth show through (thin-terminal). Right-click a title bar to minimize, maximize, or close.</p>
+        <label class="settings-label">Window opacity
+          <input id="asx-win-op" class="settings-range" type="range" min="12" max="92" step="2" value="${Math.round(
+            p.windowOpacity * 100
+          )}" />
+        </label>
+        <p class="dim settings-hint" id="asx-op-hint">${Math.round(p.windowOpacity * 100)}%</p>`;
+      main.querySelector("#asx-win-op")?.addEventListener("input", (e) => {
+        const v = Number(e.target.value) / 100;
+        setPref("windowOpacity", v);
+        const h = main.querySelector("#asx-op-hint");
+        if (h) h.textContent = Math.round(v * 100) + "%";
+      });
+      return;
+    }
+    if (id === "about") {
+      main.innerHTML = `<div class="about-panel" id="settings-about-panel"></div>`;
+      if (!aboutLoaded) aboutLoaded = true;
+      await fillAboutPanel(main.querySelector("#settings-about-panel"));
+      return;
+    }
+    if (id === "advanced") {
+      main.innerHTML = `
+        <h2>Advanced</h2>
         <label class="settings-label">GDrive API key (public folder list)
           <input id="asx-gdrive-key" class="settings-input" type="password" autocomplete="off" spellcheck="false"
             placeholder="optional · Drive API only · stored in this browser" />
         </label>
         <p class="dim settings-hint">Live GDrive listing uses Drive API v3 + key (no OAuth for “Anyone with the link” folders).</p>
         <p class="dim settings-hint">Guest session · no host system access.</p>
-      </section>
-      <section class="settings-panel" data-panel="about" hidden>
-        <div class="about-panel" id="settings-about-panel"></div>
-      </section>
-      <section class="settings-panel" data-panel="desktop" hidden>
-        <h2>This desktop</h2>
-        <p class="settings-lead">You are using <strong style="color:var(--brand)">Alison Scorpion</strong>'s free guest desktop — not a copy of her private machine.</p>
-        <ul class="settings-list dim">
-          <li><strong>Owner:</strong> Alison Scorpion (ASX) — administrator</li>
-          <li><strong>You:</strong> guest · hop on free apps anytime (Office, Programming, Media, …)</li>
-          <li><strong>Products:</strong> Containers, honeybee</li>
-          <li><strong>Wallpaper:</strong> Three.js Earth / ambient (cdnjs)</li>
-          <li><strong>Guest disk:</strong> BrowserFS → IndexedDB (<code>/home/guest</code>)</li>
-          <li><strong>Deep links:</strong> <code>#app/quill</code>, <code>#app/monaco</code>, <code>#app/settings</code>, …</li>
-          <li><strong>Later:</strong> Construct may open these tools and appear to use them — guests still use them for real today</li>
-        </ul>
-        <p class="dim settings-hint">Inventory + Construct hooks: <code>docs/free_apps_and_construct.md</code> · control: <code>ASX.desktop.control</code></p>
-      </section>
-    </div>
-  `;
+        <div class="settings-actions">
+          <button type="button" class="sheet-btn" id="asx-reset-prefs">Reset all desktop settings</button>
+        </div>`;
+      const keyIn = main.querySelector("#asx-gdrive-key");
+      if (keyIn) keyIn.value = getGdriveApiKey();
+      keyIn?.addEventListener("change", () => setGdriveApiKey(keyIn.value));
+      keyIn?.addEventListener("blur", () => setGdriveApiKey(keyIn.value));
+      main.querySelector("#asx-reset-prefs")?.addEventListener("click", () => {
+        if (window.confirm("Reset wallpaper, icons, theme, and taskbar to ASX defaults?")) {
+          resetPrefs();
+          paint(current);
+        }
+      });
+    }
+  };
+
+  let lastGroup = "";
+  nav.forEach((item) => {
+    if (item.group && item.group !== lastGroup) {
+      lastGroup = item.group;
+      const g = document.createElement("div");
+      g.className = "settings-nav-group";
+      g.textContent = item.group;
+      navEl.appendChild(g);
+    }
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.sid = item.id;
+    b.innerHTML = `<span>${item.icon}</span><span>${escapeHtml(item.label)}</span>`;
+    if (item.id === start) b.classList.add("is-active");
+    b.addEventListener("click", () => paint(item.id));
+    navEl.appendChild(b);
+  });
+
   wm.open({
     id: "settings",
     title: "Settings",
-    w: 520,
-    h: 560,
+    w: 720,
+    h: 520,
     body: root,
-    onMount: async () => {
-      const { getTheme, applyTheme, THEMES } = await import(
-        "./themes.js?v=20260810t410000z"
-      );
-      const sel = root.querySelector("#asx-theme-select");
-      const hint = root.querySelector("#asx-theme-hint");
-      const keyIn = root.querySelector("#asx-gdrive-key");
-      const cur = getTheme();
-      if (sel) sel.value = cur;
-      if (keyIn) keyIn.value = getGdriveApiKey();
-      const setHint = (id) => {
-        const t = THEMES.find((x) => x.id === id);
-        if (hint) hint.textContent = t ? t.hint : "";
-      };
-      setHint(cur);
-      sel?.addEventListener("change", () => {
-        const id = applyTheme(sel.value);
-        setHint(id);
-      });
-      keyIn?.addEventListener("change", () => setGdriveApiKey(keyIn.value));
-      keyIn?.addEventListener("blur", () => setGdriveApiKey(keyIn.value));
-
-      // Tabs
-      const tabs = root.querySelectorAll(".settings-tab");
-      const panels = root.querySelectorAll(".settings-panel");
-      let aboutLoaded = false;
-      tabs.forEach((tab) => {
-        tab.addEventListener("click", async () => {
-          const id = tab.getAttribute("data-tab");
-          tabs.forEach((t) => {
-            t.classList.toggle("is-active", t === tab);
-            t.setAttribute("aria-selected", t === tab ? "true" : "false");
-          });
-          panels.forEach((p) => {
-            const on = p.getAttribute("data-panel") === id;
-            p.classList.toggle("is-active", on);
-            p.hidden = !on;
-          });
-          if (id === "about" && !aboutLoaded) {
-            aboutLoaded = true;
-            await fillAboutPanel(root.querySelector("#settings-about-panel"));
-          }
-        });
-      });
-    },
+    replace: true,
+    onMount: () => paint(start),
   });
 }
 

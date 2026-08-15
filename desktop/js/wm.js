@@ -11,6 +11,7 @@
  */
 
 import { sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t360000z";
+import { showMenu } from "./menus.js?v=20260815t190000z";
 
 const GEOM_STORAGE_KEY = "asx-wm-geom-v1";
 
@@ -467,6 +468,21 @@ export class WindowManager {
     titlebar.addEventListener("dblclick", (e) => {
       if (e.target.closest(".btn")) return;
       this.toggleMax(id);
+    });
+    titlebar.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const maxed = el.classList.contains("maximized");
+      showMenu({
+        x: e.clientX,
+        y: e.clientY,
+        items: [
+          { label: maxed ? "Restore" : "Maximize", action: () => this.toggleMax(id) },
+          { label: "Minimize", action: () => this.minimize(id) },
+          { sep: true },
+          { label: "Close", kbd: "Alt+F4", action: () => this.close(id) },
+        ],
+      });
     });
     el.addEventListener("pointerdown", () => this.focus(id));
 

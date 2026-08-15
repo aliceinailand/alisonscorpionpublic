@@ -3452,3 +3452,324 @@ body.asx-theme-thin .seo-main {
   font-size: 10px;
   color: var(--gold, #e8d5a3);
 }
+
+/* ── OS menus (File / Edit / View + right-click) — Lubuntu / LXQt copycat ─ */
+.asx-menu {
+  position: fixed;
+  z-index: 400;
+  min-width: 196px;
+  max-width: min(320px, 92vw);
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: rgba(22, 18, 30, 0.97);
+  color: var(--text, #e8e6f0);
+  border: 1px solid var(--border, rgba(167, 139, 250, 0.42));
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  font: 12px/1.35 var(--sans, system-ui, sans-serif);
+  user-select: none;
+}
+.asx-menu-sub {
+  position: absolute;
+  z-index: 401;
+}
+.asx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+.asx-menu-item.is-hot,
+.asx-menu-item:hover:not(.is-disabled) {
+  background: var(--brand-deep, #7c3aed);
+  color: #fff;
+}
+.asx-menu-item.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.asx-menu-check {
+  width: 16px;
+  text-align: center;
+  font-size: 11px;
+  flex: 0 0 16px;
+}
+.asx-menu-ico {
+  width: 14px;
+  text-align: center;
+  flex: 0 0 14px;
+  font-size: 12px;
+}
+.asx-menu-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asx-menu-kbd {
+  margin-left: 16px;
+  color: var(--muted, #8b849c);
+  font-size: 10px;
+}
+.asx-menu-item.is-hot .asx-menu-kbd,
+.asx-menu-item:hover:not(.is-disabled) .asx-menu-kbd {
+  color: rgba(255, 255, 255, 0.75);
+}
+.asx-menu-caret {
+  width: 12px;
+  text-align: right;
+  flex: 0 0 12px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.asx-menu-sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(167, 139, 250, 0.22);
+  list-style: none;
+}
+.asx-menubar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(16, 14, 22, 0.55);
+  grid-column: 1 / -1;
+  flex-shrink: 0;
+}
+.asx-menubar-btn,
+.files-menubar button,
+.asx-menubar button {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font: 12px var(--sans, system-ui, sans-serif);
+  padding: 4px 10px;
+  border-radius: 0;
+  cursor: pointer;
+}
+.asx-menubar-btn:hover,
+.asx-menubar-btn[aria-expanded="true"],
+.files-menubar button:hover {
+  background: var(--brand-deep, #7c3aed);
+  color: #fff;
+}
+
+/* Wallpaper layer (custom image) + non-Earth modes */
+#desk-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+body.asx-wall-void #three-bg,
+body.asx-wall-nebula #three-bg,
+body.asx-wall-solid #three-bg,
+body.asx-wall-image #three-bg,
+body.asx-wall-void #ambient-bg,
+body.asx-wall-nebula #ambient-bg,
+body.asx-wall-solid #ambient-bg,
+body.asx-wall-image #ambient-bg {
+  opacity: 0;
+  visibility: hidden;
+}
+body.asx-wall-stars #three-bg {
+  filter: saturate(0.15) brightness(0.45);
+}
+body.asx-wall-void {
+  background: var(--void, #0a0618);
+}
+body.asx-wall-solid {
+  background: var(--desk-solid, #0a0618);
+}
+body.asx-wall-nebula {
+  background:
+    radial-gradient(1200px 700px at 15% 10%, rgba(124, 58, 237, 0.45), transparent 55%),
+    radial-gradient(900px 600px at 85% 80%, rgba(200, 163, 90, 0.18), transparent 50%),
+    radial-gradient(800px 500px at 60% 30%, rgba(36, 18, 72, 0.7), transparent 60%),
+    #070412;
+}
+
+/* Icon size / labels */
+body.asx-icon-sm .desk-icon { width: 68px; padding: 6px 4px; }
+body.asx-icon-sm .desk-icon .glyph { font-size: 20px; }
+body.asx-icon-sm .desk-icon .label { font-size: 9px; }
+body.asx-icon-lg .desk-icon { width: 108px; padding: 12px 8px; }
+body.asx-icon-lg .desk-icon .glyph { font-size: 36px; }
+body.asx-icon-lg .desk-icon .label { font-size: 11px; }
+body.asx-no-labels .desk-icon .label { display: none; }
+.desk-icon.is-dragging {
+  opacity: 0.85;
+  z-index: 8;
+  cursor: grabbing;
+}
+.desk-icon[hidden] { display: none !important; }
+
+/* Taskbar top + autohide */
+body.asx-tb-top #taskbar {
+  top: 0;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 1px solid var(--border);
+  padding: var(--safe-top) 10px 0;
+  height: calc(var(--taskbar-h) + var(--safe-top));
+}
+body.asx-tb-top #windows-root {
+  top: calc(var(--taskbar-h) + var(--safe-top));
+  bottom: var(--safe-bottom);
+}
+body.asx-tb-top #start-menu {
+  top: calc(var(--taskbar-h) + var(--safe-top) + 8px);
+  bottom: auto;
+}
+body.asx-tb-top #asx-toast {
+  bottom: auto;
+  top: calc(var(--taskbar-h) + 20px);
+}
+body.asx-tb-autohide #taskbar {
+  transform: translateY(calc(100% - 6px));
+  transition: transform 0.2s ease;
+}
+body.asx-tb-top.asx-tb-autohide #taskbar {
+  transform: translateY(calc(-100% + 6px));
+}
+body.asx-tb-autohide #taskbar:hover,
+body.asx-tb-autohide #taskbar:focus-within,
+body.asx-tb-autohide.start-open #taskbar {
+  transform: none;
+}
+
+html {
+  font-size: calc(16px * var(--font-scale, 1));
+}
+
+/* Settings — sidebar control panel (screenshot copycat) */
+.settings-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: rgba(10, 8, 16, 0.25);
+}
+.settings-nav {
+  flex: 0 0 188px;
+  width: 188px;
+  overflow: auto;
+  border-right: 1px solid rgba(167, 139, 250, 0.22);
+  background: rgba(12, 10, 18, 0.72);
+  padding: 8px 6px 16px;
+}
+.settings-nav-group {
+  margin: 10px 8px 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted, #8b849c);
+}
+.settings-nav button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text, #e8e6f0);
+  font: 12px var(--sans, system-ui, sans-serif);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.settings-nav button:hover {
+  background: rgba(167, 139, 250, 0.1);
+}
+.settings-nav button.is-active {
+  background: var(--brand-deep, #7c3aed);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.settings-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px 18px 22px;
+}
+.settings-main h2 {
+  color: var(--brand, #a78bfa);
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 10px 0;
+}
+.settings-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.settings-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  padding: 0;
+}
+.settings-swatch.is-on {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+.settings-range {
+  width: min(240px, 100%);
+}
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin: 8px 0;
+  cursor: pointer;
+}
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.folder-view.files-icons .folder-body.folder-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+.folder-view.files-icons .file-row {
+  flex-direction: column;
+  height: auto;
+  padding: 10px 6px;
+  text-align: center;
+}
+.folder-view.files-icons .file-row .m { display: none; }
+
+@media (max-width: 640px) {
+  .settings-shell { flex-direction: column; }
+  .settings-nav {
+    flex: 0 0 auto;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    max-height: 28vh;
+  }
+  .settings-nav-group { width: 100%; margin-top: 8px; }
+}

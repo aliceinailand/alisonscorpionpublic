@@ -39,6 +39,21 @@ import {
 } from "./guest-session.js?v=20260811t140000z";
 import { getSessionUser } from "./accounts.js?v=20260810t250000z";
 import { initTheme } from "./themes.js?v=20260810t480000z";
+import {
+  initPrefs,
+  getPrefs,
+  setPrefs,
+  setPref,
+  resetPrefs,
+  onPrefsChange,
+  snapIcon,
+} from "./prefs.js?v=20260815t190000z";
+import {
+  showMenu,
+  closeMenus,
+  pickLocalFiles,
+  fileToDataUrl,
+} from "./menus.js?v=20260815t190000z";
 import { ensureDomPurify, sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
 import { initBrowserFs } from "./fs.js?v=20260810t480000z";
 import { initHashRouter, setAppRoute } from "./hash-router.js?v=20260810t480000z";
@@ -169,14 +184,39 @@ function bootSplash() {
   });
 }
 
+function allDesktopIcons() {
+  const prefs = getPrefs();
+  const extras = (prefs.shortcuts || []).map((s, i) => ({
+    id: s.id,
+    app: s.app,
+    label: s.label,
+    glyph: s.glyph,
+    x: 202,
+    y: 16 + i * 92,
+    shortcut: true,
+  }));
+  return [
+    ...DESKTOP_ICONS.map((d) => ({ ...d, app: d.id })),
+    ...extras,
+  ];
+}
+
 function placeIcons(layer, openApp) {
   const mobile = isMobileUi();
-  DESKTOP_ICONS.forEach((data) => {
+  const prefs = getPrefs();
+  layer.querySelectorAll(".desk-icon").forEach((n) => n.remove());
+
+  allDesktopIcons().forEach((data) => {
+    if ((prefs.hiddenIcons || []).includes(data.id)) return;
     const el = document.createElement("div");
     el.className = "desk-icon" + (data.agent ? " desk-icon-agent" : "");
-    el.style.left = data.x + "px";
-    el.style.top = data.y + "px";
-    el.dataset.app = data.id;
+    const saved = prefs.iconPos?.[data.id];
+    const x = saved && Number.isFinite(saved.x) ? saved.x : data.x;
+    const y = saved && Number.isFinite(saved.y) ? saved.y : data.y;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.dataset.app = data.app || data.id;
+    el.dataset.iconId = data.id;
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
     el.setAttribute("aria-label", `Open ${data.label}`);
@@ -195,29 +235,334 @@ function placeIcons(layer, openApp) {
       el.classList.add("selected");
     };
 
+    let dragged = false;
+    const allowDrag = !mobile && !matchMedia("(pointer: coarse)").matches;
+    if (allowDrag) {
+      el.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        select();
+        dragged = false;
+        const sx = e.clientX;
+        const sy = e.clientY;
+        const sl = parseInt(el.style.left, 10) || 0;
+        const st = parseInt(el.style.top, 10) || 0;
+        const onMove = (ev) => {
+          if (!dragged && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+          dragged = true;
+          el.classList.add("is-dragging");
+          el.style.left = sl + ev.clientX - sx + "px";
+          el.style.top = st + ev.clientY - sy + "px";
+        };
+        const onUp = () => {
+          document.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerup", onUp);
+          el.classList.remove("is-dragging");
+          if (!dragged) return;
+          let nx = parseInt(el.style.left, 10) || 0;
+          let ny = parseInt(el.style.top, 10) || 0;
+          if (getPrefs().iconSnap) {
+            const s = snapIcon(nx, ny);
+            nx = s.x;
+            ny = s.y;
+            el.style.left = nx + "px";
+            el.style.top = ny + "px";
+          }
+          const pos = { ...getPrefs().iconPos, [data.id]: { x: nx, y: ny } };
+          setPrefs({ iconPos: pos });
+        };
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+      });
+    }
+
+    const launch = () => {
+      if (dragged) return;
+      openApp(data.app || data.id);
+    };
+
     // Mobile / coarse pointer: single tap opens (dblclick is unreliable on touch)
     if (mobile) {
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         select();
-        openApp(data.id);
+        launch();
       });
     } else {
-      el.addEventListener("click", () => select());
-      el.addEventListener("dblclick", () => openApp(data.id));
+      el.addEventListener("click", (e) => {
+        if (dragged) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        select();
+      });
+      el.addEventListener("dblclick", launch);
     }
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        openApp(data.id);
+        launch();
       }
+    });
+    el.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      select();
+      showIconMenu(e, data, openApp, layer);
     });
     layer.appendChild(el);
   });
 }
 
+function showIconMenu(e, data, openApp, layer) {
+  const prefs = getPrefs();
+  const appId = data.app || data.id;
+  showMenu({
+    x: e.clientX,
+    y: e.clientY,
+    items: [
+      { label: "Open", kbd: "Enter", action: () => openApp(appId) },
+      { label: "Open Settings", action: () => openApp("settings") },
+      { sep: true },
+      {
+        label: "Hide from desktop",
+        action: () => {
+          const hidden = [...new Set([...(prefs.hiddenIcons || []), data.id])];
+          setPrefs({ hiddenIcons: hidden });
+          placeIcons(layer, openApp);
+        },
+      },
+      data.shortcut
+        ? {
+            label: "Remove shortcut",
+            action: () => {
+              setPrefs({
+                shortcuts: (getPrefs().shortcuts || []).filter((s) => s.id !== data.id),
+              });
+              placeIcons(layer, openApp);
+            },
+          }
+        : {
+            label: "Reset position",
+            action: () => {
+              const pos = { ...getPrefs().iconPos };
+              delete pos[data.id];
+              setPrefs({ iconPos: pos });
+              placeIcons(layer, openApp);
+            },
+          },
+      { sep: true },
+      {
+        label: "Properties",
+        action: () => {
+          window.alert(
+            `${data.label}\n\nType: ${data.shortcut ? "shortcut" : "desktop place"}\nOpens: ${appId}\nThis is Alison's guest desktop — not the host disk.`
+          );
+        },
+      },
+    ],
+  });
+}
+
+async function pickWallpaperImage() {
+  const files = await pickLocalFiles({ accept: "image/*" });
+  const f = files[0];
+  if (!f) return;
+  try {
+    const url = await fileToDataUrl(f);
+    setPrefs({ wallpaper: "image", wallImage: url });
+  } catch (err) {
+    window.alert(err?.message || "Could not use that image");
+  }
+}
+
+function showDesktopMenu(e, openApp, layer) {
+  const prefs = getPrefs();
+  const catalog = (window.ASX?.desktop?.control?.listApps?.().catalog) || [];
+  showMenu({
+    x: e.clientX,
+    y: e.clientY,
+    items: [
+      {
+        label: "Create new",
+        submenu: [
+          { label: "Text file…", action: () => openApp("files") },
+          { label: "Folder…", action: () => openApp("files") },
+          { sep: true },
+          {
+            label: "Shortcut to app",
+            submenu: catalog.slice(0, 24).map((a) => ({
+              label: a.label,
+              icon: a.glyph,
+              action: () => {
+                const id = "sc-" + a.id + "-" + Date.now().toString(36);
+                setPrefs({
+                  shortcuts: [
+                    ...(getPrefs().shortcuts || []),
+                    { id, app: a.id, label: a.label, glyph: a.glyph || "◆" },
+                  ],
+                });
+                placeIcons(layer, openApp);
+              },
+            })),
+          },
+        ],
+      },
+      { sep: true },
+      {
+        label: "Icon size",
+        submenu: [
+          {
+            label: "Small",
+            checked: prefs.iconSize === "small",
+            action: () => setPref("iconSize", "small"),
+          },
+          {
+            label: "Medium",
+            checked: prefs.iconSize === "medium",
+            action: () => setPref("iconSize", "medium"),
+          },
+          {
+            label: "Large",
+            checked: prefs.iconSize === "large",
+            action: () => setPref("iconSize", "large"),
+          },
+        ],
+      },
+      {
+        label: "Show icon labels",
+        checked: !!prefs.iconLabels,
+        action: () => setPref("iconLabels", !prefs.iconLabels),
+      },
+      {
+        label: "Snap icons to grid",
+        checked: !!prefs.iconSnap,
+        action: () => setPref("iconSnap", !prefs.iconSnap),
+      },
+      {
+        label: "Arrange icons",
+        submenu: [
+          {
+            label: "Reset positions",
+            action: () => {
+              setPrefs({ iconPos: {} });
+              placeIcons(layer, openApp);
+            },
+          },
+          {
+            label: "Show hidden icons",
+            action: () => {
+              setPrefs({ hiddenIcons: [] });
+              placeIcons(layer, openApp);
+            },
+          },
+        ],
+      },
+      { sep: true },
+      {
+        label: "Change wallpaper",
+        submenu: [
+          {
+            label: "Earth (Three.js)",
+            checked: prefs.wallpaper === "earth",
+            action: () => setPref("wallpaper", "earth"),
+          },
+          {
+            label: "Stars only",
+            checked: prefs.wallpaper === "stars",
+            action: () => setPref("wallpaper", "stars"),
+          },
+          {
+            label: "Universe void",
+            checked: prefs.wallpaper === "void",
+            action: () => setPref("wallpaper", "void"),
+          },
+          {
+            label: "Nebula",
+            checked: prefs.wallpaper === "nebula",
+            action: () => setPref("wallpaper", "nebula"),
+          },
+          { sep: true },
+          { label: "Image from this device…", action: () => pickWallpaperImage() },
+        ],
+      },
+      {
+        label: "Desktop settings",
+        action: () => openApp("settings", { section: "desktop" }),
+      },
+      {
+        label: "Appearance",
+        action: () => openApp("settings", { section: "appearance" }),
+      },
+      { sep: true },
+      { label: "Refresh", action: () => placeIcons(layer, openApp) },
+      { label: "Open Terminal", action: () => openApp("terminal") },
+      { label: "Settings", action: () => openApp("settings") },
+    ],
+  });
+}
+
+function showTaskbarMenu(e, openApp) {
+  const prefs = getPrefs();
+  showMenu({
+    x: e.clientX,
+    y: e.clientY,
+    items: [
+      {
+        label: "Taskbar position",
+        submenu: [
+          {
+            label: "Bottom",
+            checked: prefs.taskbarPos === "bottom",
+            action: () => setPref("taskbarPos", "bottom"),
+          },
+          {
+            label: "Top",
+            checked: prefs.taskbarPos === "top",
+            action: () => setPref("taskbarPos", "top"),
+          },
+        ],
+      },
+      {
+        label: "Auto-hide taskbar",
+        checked: !!prefs.taskbarAutohide,
+        action: () => setPref("taskbarAutohide", !prefs.taskbarAutohide),
+      },
+      {
+        label: "24-hour clock",
+        checked: !prefs.clock12,
+        action: () => setPref("clock12", !prefs.clock12),
+      },
+      { sep: true },
+      {
+        label: "Show visitors",
+        checked: !!prefs.showVisitors,
+        action: () => setPref("showVisitors", !prefs.showVisitors),
+      },
+      {
+        label: "Show session timer",
+        checked: !!prefs.showSession,
+        action: () => setPref("showSession", !prefs.showSession),
+      },
+      {
+        label: "Show network",
+        checked: !!prefs.showNetwork,
+        action: () => setPref("showNetwork", !prefs.showNetwork),
+      },
+      {
+        label: "Show traveling eyes",
+        checked: !!prefs.showEyes,
+        action: () => setPref("showEyes", !prefs.showEyes),
+      },
+      { sep: true },
+      { label: "Settings", action: () => openApp("settings", { section: "taskbar" }) },
+    ],
+  });
+}
+
 function buildStartMenu(menu, openApp) {
   menu.innerHTML = `<h3>◆ Alison's desktop</h3>
+    <div class="sm-item" data-go="settings"><span class="g">⚙</span><span>Settings</span></div>
     <div class="sm-item" data-go="applications"><span class="g">📦</span><span>Applications</span></div>
     <div class="sm-sep"></div>`;
   // Categorized (same as Applications folder)
@@ -237,6 +582,7 @@ function buildStartMenu(menu, openApp) {
       row.addEventListener("click", () => {
         openApp(app.id);
         menu.classList.remove("open");
+        document.body.classList.remove("start-open");
       });
       menu.appendChild(row);
     });
@@ -244,6 +590,12 @@ function buildStartMenu(menu, openApp) {
   menu.querySelector('[data-go="applications"]')?.addEventListener("click", () => {
     openApp("applications");
     menu.classList.remove("open");
+    document.body.classList.remove("start-open");
+  });
+  menu.querySelector('[data-go="settings"]')?.addEventListener("click", () => {
+    openApp("settings");
+    menu.classList.remove("open");
+    document.body.classList.remove("start-open");
   });
 
   // Linux-style power bar (buttons only)
@@ -260,6 +612,7 @@ function buildStartMenu(menu, openApp) {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       menu.classList.remove("open");
+      document.body.classList.remove("start-open");
       const act = btn.getAttribute("data-power");
       if (act === "shutdown") showShutdownScreen();
       else if (act === "reboot") showRebootScreen();
@@ -275,7 +628,7 @@ function clock() {
   if (!el) return;
   const tick = () => {
     const n = new Date();
-    el.textContent = n.toLocaleTimeString(undefined, { hour12: false });
+    el.textContent = n.toLocaleTimeString(undefined, { hour12: !!getPrefs().clock12 });
   };
   tick();
   setInterval(tick, 1000);
@@ -306,8 +659,9 @@ function wireSeoPanel() {
 }
 
 async function main() {
-  // Thin terminal glass is default; panel-desktop kept as optional theme
+  // Thin terminal glass is default; guest prefs override (theme, wallpaper, chrome)
   initTheme();
+  initPrefs();
   applyMobileClass();
   window.addEventListener("resize", applyMobileClass);
   window.addEventListener("orientationchange", () => setTimeout(applyMobileClass, 100));
@@ -386,6 +740,11 @@ async function main() {
             apps: [...(c.apps || [])],
           })),
         }),
+        prefs: {
+          get: getPrefs,
+          set: setPrefs,
+          reset: resetPrefs,
+        },
       },
     };
   } catch {
@@ -397,24 +756,69 @@ async function main() {
 
   const layer = document.getElementById("desktop-layer");
   placeIcons(layer, open);
+  placeIcons._sig = JSON.stringify({
+    h: getPrefs().hiddenIcons,
+    s: getPrefs().shortcuts,
+    i: getPrefs().iconPos,
+  });
+  onPrefsChange((p) => {
+    const sig = JSON.stringify({
+      h: p.hiddenIcons,
+      s: p.shortcuts,
+      i: p.iconPos,
+    });
+    if (placeIcons._sig && placeIcons._sig !== sig) placeIcons(layer, open);
+    placeIcons._sig = sig;
+  });
 
   const menu = document.getElementById("start-menu");
   buildStartMenu(menu, open);
 
   document.getElementById("tb-start")?.addEventListener("click", (e) => {
     e.stopPropagation();
+    closeMenus();
     menu.classList.toggle("open");
+    document.body.classList.toggle("start-open", menu.classList.contains("open"));
+  });
+  document.getElementById("tb-start")?.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: "Settings", action: () => open("settings") },
+        { label: "Applications", action: () => open("applications") },
+        { sep: true },
+        { label: "Lock screen", action: () => promptLock() },
+      ],
+    });
   });
   document.addEventListener("click", (e) => {
     if (!menu.contains(e.target) && e.target.id !== "tb-start") {
       menu.classList.remove("open");
+      document.body.classList.remove("start-open");
     }
   });
 
   layer?.addEventListener("click", (e) => {
     if (e.target === layer) {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
+      closeMenus();
     }
+  });
+  layer?.addEventListener("contextmenu", (e) => {
+    if (e.target !== layer && !e.target.classList.contains("desk-icon")) {
+      if (e.target.closest?.(".desk-icon")) return;
+    }
+    if (e.target !== layer) return;
+    e.preventDefault();
+    showDesktopMenu(e, open, layer);
+  });
+  document.getElementById("taskbar")?.addEventListener("contextmenu", (e) => {
+    if (e.target.closest("#tb-start") || e.target.closest("#taskbar-windows")) return;
+    e.preventDefault();
+    showTaskbarMenu(e, open);
   });
 
   clock();
