@@ -12,7 +12,7 @@
 import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t480000z";
 import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t480000z";
 import { initSpaceBg, syncSpaceBg } from "./space-bg.js?v=20260815t210000z";
-import { WindowManager } from "./wm.js?v=20260815t230000z";
+import { WindowManager } from "./wm.js?v=20260815t231500z";
 import {
   applyCapabilityClasses,
   initOutdatedBrowserBanner,

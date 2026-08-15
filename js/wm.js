@@ -407,16 +407,46 @@ export class WindowManager {
     el.style.top = y + "px";
     el.style.zIndex = String(++this.z);
 
-    // Controls first (left) so extreme-narrow never clips them off the right edge
+    // Real DOM buttons — not innerHTML — so drag can never steal their events.
     const titlebar = document.createElement("div");
     titlebar.className = "titlebar";
-    titlebar.innerHTML = sanitizeHtml(`
-      <div class="btns win-controls" role="toolbar" aria-label="Window controls">
-        <button type="button" class="btn btn-close" title="Close" aria-label="Close window">×</button>
-        <button type="button" class="btn btn-min" title="Minimize" aria-label="Minimize">−</button>
-        <button type="button" class="btn btn-max" title="Maximize / restore" aria-label="Maximize or restore">□</button>
-      </div>
-      <span class="title">▪ ${escapeHtml(opts.title)}</span>`);
+
+    const controls = document.createElement("div");
+    controls.className = "btns win-controls";
+    controls.setAttribute("role", "toolbar");
+    controls.setAttribute("aria-label", "Window controls");
+
+    const btnClose = document.createElement("button");
+    btnClose.type = "button";
+    btnClose.className = "btn btn-close";
+    btnClose.title = "Close";
+    btnClose.setAttribute("aria-label", "Close window");
+    btnClose.textContent = "×";
+
+    const btnMin = document.createElement("button");
+    btnMin.type = "button";
+    btnMin.className = "btn btn-min";
+    btnMin.title = "Minimize";
+    btnMin.setAttribute("aria-label", "Minimize");
+    btnMin.textContent = "−";
+
+    const btnMax = document.createElement("button");
+    btnMax.type = "button";
+    btnMax.className = "btn btn-max";
+    btnMax.title = "Maximize";
+    btnMax.setAttribute("aria-label", "Maximize or restore");
+    btnMax.textContent = "□";
+
+    controls.append(btnClose, btnMin, btnMax);
+
+    const drag = document.createElement("div");
+    drag.className = "title-drag";
+    const titleEl = document.createElement("span");
+    titleEl.className = "title";
+    titleEl.textContent = "▪ " + opts.title;
+    drag.appendChild(titleEl);
+
+    titlebar.append(controls, drag);
 
     const body = document.createElement("div");
     body.className = "win-body";
@@ -444,13 +474,34 @@ export class WindowManager {
     };
     this.windows.set(id, rec);
 
-    titlebar.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".btn, .win-controls, .asx-menubar, .asx-menu")) return;
+    // Fire on press (capture). Click never arrives if the titlebar starts a drag.
+    const pressBtn = (btn, fn) => {
+      btn.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (e.button != null && e.button !== 0) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          this._drag = null;
+          this.focus(id);
+          fn();
+        },
+        true
+      );
+    };
+    pressBtn(btnClose, () => this.close(id));
+    pressBtn(btnMin, () => this.minimize(id));
+    pressBtn(btnMax, () => this.toggleMax(id));
+
+    // Drag only the title strip — never the traffic-light buttons.
+    drag.addEventListener("pointerdown", (e) => {
       if (e.button != null && e.button !== 0) return;
+      if (e.target.closest(".btn, .win-controls")) return;
       this.focus(id);
       if (el.classList.contains("maximized")) return;
       try {
-        titlebar.setPointerCapture(e.pointerId);
+        drag.setPointerCapture(e.pointerId);
       } catch {
         /* ignore */
       }
@@ -460,11 +511,12 @@ export class WindowManager {
         oy: e.clientY - el.offsetTop,
       };
     });
-    titlebar.addEventListener("dblclick", (e) => {
+    drag.addEventListener("dblclick", (e) => {
       if (e.target.closest(".btn")) return;
       this.toggleMax(id);
     });
     titlebar.addEventListener("contextmenu", (e) => {
+      if (e.target.closest(".btn, .win-controls")) return;
       e.preventDefault();
       e.stopPropagation();
       const maxed = el.classList.contains("maximized");
@@ -480,25 +532,6 @@ export class WindowManager {
       });
     });
     el.addEventListener("pointerdown", () => this.focus(id));
-
-    const btnClose = titlebar.querySelector(".btn-close");
-    const btnMin = titlebar.querySelector(".btn-min");
-    const btnMax = titlebar.querySelector(".btn-max");
-    // One action per tap. preventDefault on pointerdown was killing click;
-    // pointerup+click together made maximize toggle twice (looked broken).
-    const bindBtn = (btn, fn) => {
-      if (!btn) return;
-      btn.addEventListener("pointerdown", (e) => {
-        e.stopPropagation();
-      });
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        fn();
-      });
-    };
-    bindBtn(btnClose, () => this.close(id));
-    bindBtn(btnMin, () => this.minimize(id));
-    bindBtn(btnMax, () => this.toggleMax(id));
 
     handle.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
