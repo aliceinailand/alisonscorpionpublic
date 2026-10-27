@@ -32,3 +32,5 @@ A dirty private working tree is not a reason to rebuild the whole site. Commit o
 ## Story site
 
 `trippyalice` is a separate repository. Its `main` branch is GitHub Pages. The custom domain is also fronted by a worker that names `https://trippyalice.pages.dev` as its origin. After a story push, check `https://trippyalice.com/` and `https://trippyalice.pages.dev/`. If only one of them moved, say so.
+
+Checked 2026-10-27: GitHub Pages built `epistemic-humor.html`, and both the custom domain and `pages.dev` were still on the older index. A later story publish has to update the Cloudflare Pages project, not only the GitHub branch.
