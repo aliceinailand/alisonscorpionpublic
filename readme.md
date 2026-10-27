@@ -2,6 +2,8 @@
 
 Guest desktop experience for **alisonscorpion.com** — thin universe-purple glass windows, Three.js background, product app = **Containers** (`../staging/`).
 
+**Agents:** read [publish.md](./publish.md) before changing this repository or the live site. Story pages belong on trippyalice.com, not here.
+
 **Three.js documentation:** [threejs.md](./threejs.md) · full website map: [../docs/THREEJS_WEBSITE.md](../docs/THREEJS_WEBSITE.md)
 
 **Resource delivery:** [docs/RESOURCE_CDN_POLICY.md](./docs/RESOURCE_CDN_POLICY.md) — **major CDNs first** (cdnjs / jsDelivr); our origin is shell + cold fallback only. Offload multi‑MB vendor delivery to their edges.
