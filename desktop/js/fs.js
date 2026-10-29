@@ -18,7 +18,7 @@ import {
   guestMkdir,
   guestUnlink,
   bfsNormalize,
-} from "./browser-fs.js?v=20260810t390000z";
+} from "./browser-fs.js?v=20261027observer2";
 
 export const FS = {
   "/": {

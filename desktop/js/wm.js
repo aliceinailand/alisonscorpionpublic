@@ -374,6 +374,11 @@ export class WindowManager {
         if (typeof opts.onMount === "function") opts.onMount(w.body, w);
         return w;
       }
+      if (opts.title) {
+        w.title = opts.title;
+        const tEl = w.el.querySelector(".title");
+        if (tEl) tEl.textContent = "▪ " + opts.title;
+      }
       this.focus(id);
       w.el.classList.remove("minimized");
       return w;
@@ -695,6 +700,49 @@ export class WindowManager {
     maxBtn.textContent = maxed ? "❐" : "□";
     maxBtn.setAttribute("aria-label", maxed ? "Restore window" : "Maximize window");
     maxBtn.title = maxed ? "Restore" : "Maximize";
+  }
+
+  setWindowIcon(id, src) {
+    if (
+      typeof src !== "string" ||
+      src.length > 400000 ||
+      !/^data:image\/(?:png|jpeg|gif|webp|x-icon|vnd\.microsoft\.icon);base64,[A-Za-z0-9+/=]+$/.test(src)
+    ) {
+      return;
+    }
+    const w = this.windows.get(id);
+    if (!w) return;
+    const title = w.el.querySelector(".title");
+    if (title) {
+      let img = title.querySelector(".site-favicon");
+      if (!img) {
+        const label = title.textContent.replace(/^\s*▪\s*/, "");
+        title.textContent = "";
+        img = document.createElement("img");
+        img.className = "site-favicon";
+        img.alt = "";
+        const text = document.createElement("span");
+        text.className = "title-text";
+        text.textContent = label;
+        title.append(img, text);
+      }
+      img.src = src;
+    }
+    const btn = this.taskbar?.querySelector(`[data-tb="${CSS.escape(id)}"] .tb-item`);
+    if (!btn) return;
+    let mark = btn.querySelector(".site-favicon");
+    if (!mark) {
+      const label = btn.textContent;
+      btn.textContent = "";
+      mark = document.createElement("img");
+      mark.className = "site-favicon";
+      mark.alt = "";
+      const text = document.createElement("span");
+      text.className = "tb-label";
+      text.textContent = label;
+      btn.append(mark, text);
+    }
+    mark.src = src;
   }
 
   _addTaskbar(id, title) {

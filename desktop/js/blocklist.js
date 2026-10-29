@@ -345,6 +345,12 @@ function hostMatchesBlocked(host, foldedExtra) {
  * Does NOT fetch safety/hosts — Browser must call ensureSafetyListsLoaded() first.
  * (Guests who never open Browser never download the ~1 MB shards.)
  */
+/** Wikipedia articles stay available. The exception is the website, not a lookalike. */
+export function educationalSite(host) {
+  const name = String(host || "").toLowerCase().replace(/\.$/, "").replace(/^www\./, "");
+  return name === "wikipedia.org" || name.endsWith(".wikipedia.org");
+}
+
 export function isBlockedUrl(url) {
   const raw = String(url || "").trim();
   if (!raw) return false;
@@ -352,6 +358,7 @@ export function isBlockedUrl(url) {
 
   const uni = hostUnicodeOf(raw);
   const idna = hostOf(raw);
+  if (educationalSite(idna) || educationalSite(uni)) return false;
   if (hostMatchesBlocked(idna, uni) || hostMatchesBlocked(uni, uni)) return true;
 
   // Also evaluate after normalize (defense in depth)
@@ -360,6 +367,7 @@ export function isBlockedUrl(url) {
     if (n !== raw) {
       const uni2 = hostUnicodeOf(n);
       const idna2 = hostOf(n);
+      if (educationalSite(idna2) || educationalSite(uni2)) return false;
       if (hostMatchesBlocked(idna2, uni2) || hostMatchesBlocked(uni2, uni2)) return true;
     }
   } catch {

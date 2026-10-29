@@ -62,7 +62,17 @@ function defaults() {
     showEyes: true,
     showSession: true,
     filesView: "list",
+    bgRun: true,
+    bgSpeed: "normal",
   };
+}
+
+function prefersReducedMotion() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
 }
 
 const listeners = new Set();
@@ -110,6 +120,7 @@ export function getPrefs() {
     const raw = localStorage.getItem(PREFS_KEY);
     if (!raw) {
       out.theme = getTheme();
+      if (prefersReducedMotion()) out.bgRun = false;
       return out;
     }
     const o = safeParse(raw);
@@ -159,6 +170,9 @@ export function getPrefs() {
     if (typeof o.showEyes === "boolean") out.showEyes = o.showEyes;
     if (typeof o.showSession === "boolean") out.showSession = o.showSession;
     if (o.filesView === "icons" || o.filesView === "list") out.filesView = o.filesView;
+    if (o.bgRun === true || o.bgRun === false) out.bgRun = o.bgRun;
+    else if (prefersReducedMotion()) out.bgRun = false;
+    if (o.bgSpeed === "slow" || o.bgSpeed === "normal") out.bgSpeed = o.bgSpeed;
   } catch {
     /* private mode */
   }
@@ -242,6 +256,8 @@ export function applyPrefs(p) {
   body.classList.toggle("asx-no-labels", !prefs.iconLabels);
   body.classList.toggle("asx-tb-top", prefs.taskbarPos === "top");
   body.classList.toggle("asx-tb-autohide", !!prefs.taskbarAutohide);
+  body.classList.toggle("asx-bg-paused", prefs.bgRun === false);
+  body.classList.toggle("asx-bg-slow", prefs.bgSpeed === "slow");
 
   for (const w of WALLPAPERS) {
     body.classList.toggle(`asx-wall-${w.id}`, prefs.wallpaper === w.id);

@@ -10,7 +10,29 @@ let stars = [];
 let raf = 0;
 let running = false;
 let speed = 0.55;
+let userRun = true;
 let reduce = false;
+
+/** Freeze or slow the flying-star wallpaper without hiding it. */
+export function applySpaceMotion(prefs) {
+  userRun = !prefs || prefs.bgRun !== false;
+  speed = prefs && prefs.bgSpeed === "slow" ? 0.16 : 0.55;
+  if (!canvas || canvas.hidden) return;
+  if (userRun) startLoop();
+  else holdLoop();
+}
+
+function holdLoop() {
+  running = false;
+  if (raf) cancelAnimationFrame(raf);
+  raf = 0;
+}
+
+function startLoop() {
+  if (!canvas || canvas.hidden || running || !userRun) return;
+  running = true;
+  raf = requestAnimationFrame(frame);
+}
 
 function spawn(far) {
   return {
@@ -35,7 +57,8 @@ function resize() {
 }
 
 function frame() {
-  if (!running || !ctx) return;
+  if (!ctx) return;
+  const advance = userRun && running;
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
   const cx = w / 2;
@@ -45,7 +68,7 @@ function frame() {
   ctx.fillRect(0, 0, w, h);
 
   for (const s of stars) {
-    s.z -= speed * (reduce ? 0.35 : 1) * 0.018;
+    if (advance) s.z -= speed * 0.018;
     if (s.z <= 0.02) {
       Object.assign(s, spawn(true));
       s.px = 0;
@@ -66,7 +89,7 @@ function frame() {
     s.px = x;
     s.py = y;
   }
-  raf = requestAnimationFrame(frame);
+  if (advance) raf = requestAnimationFrame(frame);
 }
 
 function onResize() {
@@ -98,9 +121,10 @@ export function startSpaceBg(canvasId = "space-bg") {
   if (!stars.length) stars = Array.from({ length: COUNT }, () => spawn(true));
   canvas.hidden = false;
   resize();
-  if (!running) {
-    running = true;
-    raf = requestAnimationFrame(frame);
+  if (userRun) startLoop();
+  else {
+    holdLoop();
+    frame();
   }
   return true;
 }

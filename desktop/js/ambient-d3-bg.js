@@ -8,6 +8,19 @@
  * Research: d3js.org; combine with Three only as dual-path (not both heavy GPUs).
  */
 
+let ambientRun = true;
+let ambientScale = 1;
+let ambientApi = null;
+
+/** Freeze or slow the small-screen ambient background. */
+export function applyAmbientMotion(prefs) {
+  ambientRun = !prefs || prefs.bgRun !== false;
+  ambientScale = prefs && prefs.bgSpeed === "slow" ? 0.28 : 1;
+  if (!ambientApi) return;
+  if (ambientRun) ambientApi.start();
+  else ambientApi.stop();
+}
+
 function viewBoxSize() {
   const w = Math.max(
     320,
@@ -80,10 +93,6 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
   const svg = ensureSvgHost(canvasId);
   document.body.classList.add("asx-bg-ambient");
   document.body.classList.remove("asx-bg-three");
-
-  const reduceMotion =
-    typeof matchMedia === "function" &&
-    matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const { w, h } = viewBoxSize();
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
@@ -176,24 +185,41 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
       .attr("r", Math.min(w, h) * 0.06)
       .attr("fill", "url(#asx-core-glow)");
 
-    if (!reduceMotion) {
-      let t0 = performance.now();
-      const tick = (now) => {
-        const t = (now - t0) * 0.00025;
-        d3.select(gOrbits).attr(
-          "transform",
-          `translate(${w / 2}, ${h * 0.42}) rotate(${t * 12})`
-        );
-        d3.select(gStars)
-          .selectAll("circle")
-          .attr("opacity", (d, i) => {
-            const pulse = 0.5 + 0.5 * Math.sin(t * 3 + i);
-            return d.o * (0.55 + 0.45 * pulse);
-          });
-        timer = requestAnimationFrame(tick);
-      };
+    let t0 = performance.now();
+    let elapsed = 0;
+    let ticking = false;
+    const tick = (now) => {
+      if (!ticking) return;
+      const dt = Math.min(50, now - t0);
+      t0 = now;
+      if (ambientRun) elapsed += dt * ambientScale;
+      const t = elapsed * 0.00025;
+      d3.select(gOrbits).attr(
+        "transform",
+        `translate(${w / 2}, ${h * 0.42}) rotate(${t * 12})`
+      );
+      d3.select(gStars)
+        .selectAll("circle")
+        .attr("opacity", (d, i) => {
+          const pulse = ambientRun ? 0.5 + 0.5 * Math.sin(t * 3 + i) : 1;
+          return d.o * (ambientRun ? 0.55 + 0.45 * pulse : 1);
+        });
       timer = requestAnimationFrame(tick);
-    }
+    };
+    ambientApi = {
+      start() {
+        if (ticking || !ambientRun) return;
+        ticking = true;
+        t0 = performance.now();
+        timer = requestAnimationFrame(tick);
+      },
+      stop() {
+        ticking = false;
+        if (timer) cancelAnimationFrame(timer);
+        timer = null;
+      },
+    };
+    if (ambientRun) ambientApi.start();
   } else {
     // Vanilla SVG (no D3)
     stars.forEach((d) => {
@@ -223,10 +249,9 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
     core.setAttribute("fill", "url(#asx-core-glow)");
     gOrbits.appendChild(core);
 
-    if (!reduceMotion) {
-      gOrbits.style.transformOrigin = "0 0";
-      gOrbits.style.animation = "asx-orbit-spin 48s linear infinite";
-    }
+    gOrbits.style.transformOrigin = "0 0";
+    gOrbits.style.animation = "asx-orbit-spin 48s linear infinite";
+    if (!ambientRun) gOrbits.style.animationPlayState = "paused";
   }
 
   function onResize() {
@@ -243,6 +268,8 @@ export async function initAmbientD3Bg(canvasId = "three-bg") {
   return {
     mode: d3 ? "ambient-d3" : "ambient-svg",
     dispose() {
+      if (ambientApi) ambientApi.stop();
+      ambientApi = null;
       if (timer) cancelAnimationFrame(timer);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);

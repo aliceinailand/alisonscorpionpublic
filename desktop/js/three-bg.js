@@ -661,6 +661,18 @@ async function loadEarthCloudsBase() {
  * @param {string} [canvasId]
  * @param {{ onContextLost?: Function }} [opts]
  */
+let userMotionRun = true;
+let userMotionScale = 1;
+let threeLoop = null;
+
+/** Freeze or slow the Earth background. Stop leaves the last picture in place. */
+export function applyThreeBgMotion(prefs) {
+  userMotionRun = !prefs || prefs.bgRun !== false;
+  userMotionScale = prefs && prefs.bgSpeed === "slow" ? 0.28 : 1;
+  if (!threeLoop) return;
+  if (userMotionRun) threeLoop.resume();
+}
+
 export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || typeof THREE === "undefined") return null;
@@ -677,6 +689,12 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
   const reduceMotion =
     typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (opts && opts.motion) {
+    userMotionRun = opts.motion.bgRun !== false;
+    userMotionScale = opts.motion.bgSpeed === "slow" ? 0.28 : 1;
+  } else if (reduceMotion) {
+    userMotionRun = false;
+  }
   const mobile = isMobileClient();
   const tiny =
     (window.innerWidth || 0) <= 420 ||
@@ -1132,20 +1150,21 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     if (disposed) return;
     const dt = Math.min(0.05, (now - t0) / 1000);
     t0 = now;
+    const step = userMotionRun ? dt * userMotionScale : 0;
 
-    earth.rotation.y += dt * 0.06;
+    earth.rotation.y += step * 0.06;
 
     // Living weather: differential rotation + UV scroll + opacity breath.
     // Real clouds never sit still relative to the ground; they advect and thin.
-    if (!reduceMotion) {
-      weatherPhase += dt * 0.35;
+    if (userMotionRun) {
+      weatherPhase += step * 0.35;
       // Shells drift relative to Earth (and each other)
-      clouds.rotation.y += dt * 0.095;
-      cirrus.rotation.y -= dt * 0.055;
-      cirrus.rotation.x += dt * 0.012;
+      clouds.rotation.y += step * 0.095;
+      cirrus.rotation.y -= step * 0.055;
+      cirrus.rotation.x += step * 0.012;
       // Texture scroll = weather systems moving / reforming
-      cloudTexScroll = (cloudTexScroll + dt * 0.018) % 1;
-      cirrusTexScroll = (cirrusTexScroll - dt * 0.027 + 1) % 1;
+      cloudTexScroll = (cloudTexScroll + step * 0.018) % 1;
+      cirrusTexScroll = (cirrusTexScroll - step * 0.027 + 1) % 1;
       if (cloudMat.map) {
         cloudMat.map.offset.x = cloudTexScroll;
         cloudMat.map.needsUpdate = true;
@@ -1165,18 +1184,18 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       cirrus.rotation.y = earth.rotation.y * 0.92;
     }
 
-    moonOrbit.rotation.y += dt * 0.18;
-    moon.rotation.y += dt * 0.04;
+    moonOrbit.rotation.y += step * 0.18;
+    moon.rotation.y += step * 0.04;
     // Sidereal drift — very slow so sky feels infinite, not a busy prop
-    stars.rotation.y += dt * 0.0012;
-    stars.rotation.x += dt * 0.00015;
+    stars.rotation.y += step * 0.0012;
+    stars.rotation.x += step * 0.00015;
 
     // Smooth zoom / look
     radius += (targetRadius - radius) * Math.min(1, dt * 3.2);
     lookTarget.lerp(lookGoal, Math.min(1, dt * 3.5));
 
-    if (autoSpin && !dragging && !reduceMotion && targetRadius > RADIUS_MID) {
-      theta += dt * 0.1;
+    if (autoSpin && !dragging && userMotionRun && targetRadius > RADIUS_MID) {
+      theta += step * 0.1;
     }
     if (glareHold > 0) glareHold -= dt;
 
@@ -1196,19 +1215,31 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     frame(now || performance.now());
   }
 
-  if (reduceMotion) frame(performance.now());
-  else animate(performance.now());
-
-  function onVisibility() {
-    if (reduceMotion || disposed) return;
-    if (document.hidden) {
-      running = false;
-      cancelAnimationFrame(raf);
-    } else {
+  threeLoop = {
+    resume() {
+      if (disposed || document.hidden || !userMotionRun || running) return;
       running = true;
       t0 = performance.now();
       animate(t0);
+    },
+  };
+  if (userMotionRun) animate(performance.now());
+  else {
+    running = false;
+    frame(performance.now());
+  }
+
+  function onVisibility() {
+    if (disposed) return;
+    if (document.hidden) {
+      running = false;
+      cancelAnimationFrame(raf);
+      return;
     }
+    if (!userMotionRun || running) return;
+    running = true;
+    t0 = performance.now();
+    animate(t0);
   }
   document.addEventListener("visibilitychange", onVisibility);
 
@@ -1305,7 +1336,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => {
         // Only auto-spin when zoomed out
-        if (!disposed && !reduceMotion && targetRadius > RADIUS_MID) {
+        if (!disposed && userMotionRun && targetRadius > RADIUS_MID) {
           autoSpin = true;
         }
       }, 450);
@@ -1327,7 +1358,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     if (targetRadius > RADIUS_MID) {
       lookGoal.set(0, 0, 0);
       resumeTimer = setTimeout(() => {
-        if (!disposed && !reduceMotion) autoSpin = true;
+        if (!disposed && userMotionRun) autoSpin = true;
       }, 800);
     }
   }
@@ -1377,6 +1408,7 @@ export function initThreeBg(canvasId = "three-bg", opts = {}) {
     if (disposed) return;
     disposed = true;
     running = false;
+    threeLoop = null;
     cancelAnimationFrame(raf);
     clearTimeout(resizeTimer);
     clearTimeout(resumeTimer);

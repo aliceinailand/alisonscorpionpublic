@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Containers — Alison Scorpion</title>
+  <meta name="description" content="Paid Container area. A flat screen that skips the Alison Scorpion desktop. Sign-in is not finished." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="platform/platform.css" />
+</head>
+<body>
+  <noscript>
+    <p class="noscript">The links on this page switch sections without the desktop. Continue does not send an address.</p>
+  </noscript>
+  <div class="app">
+    <aside class="side">
+      <p class="mark">Alison Scorpion</p>
+      <p class="mark-sub">Containers</p>
+      <div class="rails">
+        <nav class="primary" aria-label="Container">
+          <a href="#account">Account</a>
+          <a href="#dashboard">Dashboard</a>
+          <a class="large" href="#new">New container</a>
+          <a href="#containers">Containers</a>
+          <a href="#highlight">Highlight</a>
+        </nav>
+        <nav class="secondary" aria-label="Account tools">
+          <a href="#plans">Plans</a>
+          <a href="#billing">Billing</a>
+          <a href="#settings">Settings</a>
+        </nav>
+      </div>
+      <a class="back" href="index.html">Back to the desktop</a>
+    </aside>
+    <main>
+      <header class="top">
+        <p class="product">Containers</p>
+        <div class="top-actions">
+          <a href="#signup">Sign up</a>
+          <a class="primary" href="#login">Log in</a>
+        </div>
+      </header>
+      <div id="views">
+        <section id="account" class="view">
+          <h2>Account</h2>
+          <div class="stage">
+            <p>You are a guest.</p>
+            <p>An account, when sign-in is finished, is an email link. There is no password.</p>
+            <p><a href="#signup">Sign up</a> · <a href="#login">Log in</a></p>
+          </div>
+        </section>
+        <section id="signup" class="view">
+          <h2>Sign up</h2>
+          <div class="stage">
+            <p>An account is an email link. There is no password.</p>
+            <p>Sign-in is not finished. The address stays in this box until you leave the page. It is not sent, not stored, and no account is created.</p>
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" autocomplete="off" spellcheck="false" />
+            <button type="button" class="continue" id="signup-continue">Continue</button>
+            <p id="signup-result" class="confirm" hidden>Nothing was sent. No account was created.</p>
+          </div>
+        </section>
+        <section id="login" class="view">
+          <h2>Log in</h2>
+          <div class="stage">
+            <p>Log in with the email link for the account. There is no password.</p>
+            <p>Sign-in is not finished. The address stays in this box until you leave the page. It is not sent, not stored, and you are not signed in.</p>
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" autocomplete="off" spellcheck="false" />
+            <button type="button" class="continue" id="login-continue">Continue</button>
+            <p id="login-result" class="confirm" hidden>Nothing was sent. You are still a guest.</p>
+          </div>
+        </section>
+        <section id="new" class="view">
+          <h2>New container</h2>
+          <div class="stage">
+            <p>A container made here would belong to a signed-in account. Sign-in is not finished, so this does not save one.</p>
+            <label for="new-name">Name</label>
+            <input id="new-name" type="text" maxlength="80" autocomplete="off" spellcheck="false" />
+            <button type="button" class="continue" id="new-continue">Continue</button>
+            <p id="new-result" class="confirm" hidden>Nothing was saved.</p>
+          </div>
+        </section>
+        <section id="containers" class="view">
+          <h2>Containers</h2>
+          <div class="stage">
+            <p>Signed-in containers</p>
+            <p class="empty">None. Sign-in is not finished, so this list stays empty.</p>
+          </div>
+        </section>
+        <section id="highlight" class="view">
+          <h2>Highlight</h2>
+          <div class="stage">
+            <p class="empty">Nothing is marked. A highlight belongs to a signed-in container.</p>
+          </div>
+        </section>
+        <section id="plans" class="view">
+          <h2>Plans</h2>
+          <div class="stage">
+            <p>This screen does not include the captured plan tables, so it does not link to a missing catalog. Checkout is off. No price is charged here.</p>
+          </div>
+        </section>
+        <section id="billing" class="view">
+          <h2>Billing</h2>
+          <div class="stage">
+            <p>Checkout is off. No card is taken. There is no payment form on this screen.</p>
+          </div>
+        </section>
+        <section id="settings" class="view">
+          <h2>Settings</h2>
+          <div class="stage">
+            <ul>
+              <li>Sign-in is not finished.</li>
+              <li>There is no password.</li>
+              <li>Checkout is off.</li>
+              <li>No card is taken.</li>
+            </ul>
+          </div>
+        </section>
+        <section id="dashboard" class="view home">
+          <h2>Dashboard</h2>
+          <div class="stage">
+            <p>This is the paid Container area. It is a flat screen, and the desktop is optional.</p>
+            <p>Everyday tools stay open without an account. This screen is the paid part.</p>
+            <ol class="steps">
+              <li><a href="#signup">Sign up</a></li>
+              <li><a href="#login">Log in</a></li>
+              <li><a href="#containers">Open a container</a></li>
+            </ol>
+            <p>Sign-in is not finished. This screen does not create an account, and the signed-in list stays empty.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="platform/platform.js"></script>
+</body>
+</html>

@@ -9,10 +9,10 @@
  * Multi-AI Convergence: Alice (Matthew Gates), Grok, Claude, Gemini, ChatGPT, and Copilot.
  * Public repo: https://github.com/aliceinailand/alisonscorpionpublic
  */
-import { initThreeBg, shouldUseAmbientBg } from "./three-bg.js?v=20260810t480000z";
-import { initAmbientD3Bg } from "./ambient-d3-bg.js?v=20260810t480000z";
-import { initSpaceBg, syncSpaceBg } from "./space-bg.js?v=20260815t210000z";
-import { WindowManager } from "./wm.js?v=20260815t231500z";
+import { initThreeBg, shouldUseAmbientBg, applyThreeBgMotion } from "./three-bg.js?v=20261026bgmotion1";
+import { initAmbientD3Bg, applyAmbientMotion } from "./ambient-d3-bg.js?v=20261026bgmotion1";
+import { initSpaceBg, syncSpaceBg, applySpaceMotion } from "./space-bg.js?v=20261026bgmotion1";
+import { WindowManager } from "./wm.js?v=20261028sb2";
 import {
   applyCapabilityClasses,
   initOutdatedBrowserBanner,
@@ -20,7 +20,9 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20260815t221800z";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261028wiki1";
+import { bindSiteIcon, siteLockForApp } from "./sandbox-browser.js?v=20261028wiki1";
+import { recentActions } from "./local-memory.js?v=20261028mem1";
 import {
   initPresence,
   initSessionTimer,
@@ -48,7 +50,7 @@ import {
   resetPrefs,
   onPrefsChange,
   snapIcon,
-} from "./prefs.js?v=20260815t210000z";
+} from "./prefs.js?v=20261026bgmotion1";
 import {
   showMenu,
   closeMenus,
@@ -56,7 +58,7 @@ import {
   fileToDataUrl,
 } from "./menus.js?v=20260815t220000z";
 import { ensureDomPurify, sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
-import { initBrowserFs } from "./fs.js?v=20260810t480000z";
+import { initBrowserFs } from "./fs.js?v=20261027observer2";
 import { initHashRouter, setAppRoute } from "./hash-router.js?v=20260810t480000z";
 import { ensureJsLite } from "./dom-lite.js?v=20260810t480000z";
 import { initFastClick } from "./touch-boost.js?v=20260810t480000z";
@@ -117,8 +119,21 @@ const DESKTOP_ICONS = [
   { id: "applications", label: "Applications", glyph: "📦", x: 110, y: 16 },
   { id: "agent-asx", label: "Agent", glyph: "α", x: 110, y: 108, agent: true },
   { id: "github", label: "GitHub", glyph: "⌥", x: 110, y: 200 },
+  { id: "wikipedia", label: "Wikipedia", glyph: "W", x: 494, y: 16 },
+  { id: "sandbox-navigator", label: "Sandbox", glyph: "▣", x: 494, y: 120 },
+  { id: "youtube", label: "YouTube", glyph: "▶", x: 494, y: 224 },
   { id: "gdrive", label: "GDrive", glyph: "☁", x: 110, y: 292 },
   { id: "camera", label: "Camera", glyph: "📷", x: 110, y: 384 },
+  {
+    id: "storybook",
+    label: "The Alice and the Scorpion Framework Storybook",
+    glyph: "📖",
+    x: 206,
+    y: 16,
+    wide: true,
+  },
+  { id: "knowledge", label: "Knowledge Base", glyph: "📚", x: 400, y: 16 },
+  { id: "url-downloader", label: "URL Downloader", glyph: "⬇", x: 400, y: 120 },
 ];
 
 function isMobileUi() {
@@ -210,7 +225,10 @@ function placeIcons(layer, openApp) {
   allDesktopIcons().forEach((data) => {
     if ((prefs.hiddenIcons || []).includes(data.id)) return;
     const el = document.createElement("div");
-    el.className = "desk-icon" + (data.agent ? " desk-icon-agent" : "");
+    el.className =
+      "desk-icon" +
+      (data.agent ? " desk-icon-agent" : "") +
+      (data.wide ? " desk-icon-wide" : "");
     const saved = prefs.iconPos?.[data.id];
     const x = saved && Number.isFinite(saved.x) ? saved.x : data.x;
     const y = saved && Number.isFinite(saved.y) ? saved.y : data.y;
@@ -230,6 +248,9 @@ function placeIcons(layer, openApp) {
         data.label
       )}</div>`
     );
+    const siteLock = siteLockForApp(data.app || data.id);
+    const glyph = el.querySelector(".glyph");
+    if (siteLock && glyph) bindSiteIcon(glyph, siteLock);
 
     const select = () => {
       layer.querySelectorAll(".desk-icon").forEach((i) => i.classList.remove("selected"));
@@ -596,6 +617,27 @@ function buildStartMenu(menu, openApp) {
     <div class="sm-item" data-go="settings"><span class="g">⚙</span><span>Settings</span></div>
     <div class="sm-item" data-go="applications"><span class="g">📦</span><span>Applications</span></div>
     <div class="sm-sep"></div>`;
+  const recent = recentActions(6).filter((row) => row.kind === "open");
+  if (recent.length) {
+    const heading = document.createElement("div");
+    heading.className = "sm-cat";
+    heading.textContent = "Recent";
+    menu.appendChild(heading);
+    recent.forEach((row) => {
+      const item = document.createElement("div");
+      item.className = "sm-item";
+      item.textContent = row.name;
+      item.addEventListener("click", () => {
+        openApp(row.ref);
+        menu.classList.remove("open");
+        document.body.classList.remove("start-open");
+      });
+      menu.appendChild(item);
+    });
+    const sep = document.createElement("div");
+    sep.className = "sm-sep";
+    menu.appendChild(sep);
+  }
   // Categorized (same as Applications folder)
   (APP_CATEGORIES || []).forEach((cat) => {
     const h = document.createElement("div");
@@ -607,9 +649,13 @@ function buildStartMenu(menu, openApp) {
       if (!app) return;
       const row = document.createElement("div");
       row.className = "sm-item";
+      row.dataset.app = app.id;
       row.innerHTML = sanitizeHtml(
         `<span class="g">${escapeHtml(app.glyph)}</span><span>${escapeHtml(app.label)}</span>`
       );
+      const siteLock = siteLockForApp(app.id);
+      const mark = row.querySelector(".g");
+      if (siteLock && mark) bindSiteIcon(mark, siteLock);
       row.addEventListener("click", () => {
         openApp(app.id);
         menu.classList.remove("open");
@@ -689,12 +735,25 @@ function wireSeoPanel() {
   });
 }
 
+function applyBgMotion(prefs) {
+  const p = prefs || getPrefs();
+  applyThreeBgMotion(p);
+  applySpaceMotion(p);
+  applyAmbientMotion(p);
+}
+
+function bindBgMotion() {
+  document.addEventListener("asx-prefs", (ev) => applyBgMotion(ev.detail));
+}
+
 async function main() {
   // Thin terminal glass is default; guest prefs override (theme, wallpaper, chrome)
   initTheme();
   initPrefs();
+  bindBgMotion();
   initSpaceBg();
   syncSpaceBg(getPrefs().wallpaper);
+  applyBgMotion(getPrefs());
   applyMobileClass();
   window.addEventListener("resize", applyMobileClass);
   window.addEventListener("orientationchange", () => setTimeout(applyMobileClass, 100));
@@ -889,7 +948,9 @@ async function main() {
 
   const startAmbient = async (reason) => {
     try {
+      applyAmbientMotion(getPrefs());
       await initAmbientD3Bg("three-bg");
+      applyAmbientMotion(getPrefs());
       bgMode = "ambient";
       threeHandle = null;
       console.info("ASX bg: ambient (D3/SVG) —", reason);
@@ -902,6 +963,7 @@ async function main() {
     try {
       await loadThreeJs();
       const handle = initThreeBg("three-bg", {
+        motion: getPrefs(),
         onContextLost: () => {
           startAmbient("webgl-context-lost");
         },
@@ -916,6 +978,7 @@ async function main() {
         handle.bindOrbitTarget(layer);
       }
       console.info("ASX bg: three.js Earth satellite view");
+      applyBgMotion(getPrefs());
     } catch (err) {
       console.warn("ASX Three.js background skipped", err);
       await startAmbient("three-load-error");

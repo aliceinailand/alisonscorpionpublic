@@ -189,7 +189,7 @@ const SEED_FILES = {
     "Admin paths under /home/alisonscorpion require ASX credentials.\n",
   "/home/guest/Desktop/welcome.md":
     "# Welcome\n\nOpen **Containers** for the product app.\n" +
-    "Open **Browser** carefully — adult sites are blocked.\n" +
+    "Open **ASX Web Observer** carefully — adult sites are blocked.\n" +
     "Your guest files persist in this browser via BrowserFS.\n",
   "/home/guest/Documents/notes.txt":
     "Guest notepad area. Create files here from Files or Terminal (touch / echo).\n",

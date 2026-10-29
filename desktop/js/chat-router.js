@@ -19,7 +19,7 @@ const FAQ = [
   },
   {
     re: /what (is|are) containers/i,
-    a: "Containers is Alison's product surface on this desktop — open the Containers app from Applications → ASX.",
+    a: "There is one public chat. Open Chat on the desktop, or Containers under Applications. What you type stays in this browser.",
   },
   {
     re: /honey\s*bee|honeybee/i,

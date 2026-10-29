@@ -1,6 +1,6 @@
 /**
  * ASX Desktop applications — tools inspired by LibreOffice suite + Linux utilities,
- * implemented as web apps (not full LO). Containers = existing staging product.
+ * implemented as web apps (not full LO). Containers = the one public chat, saved in this browser.
  *
  * Multi-AI Convergence: Alice (Matthew Gates), Grok, Claude, Gemini, ChatGPT, and Copilot.
  * Public mirror: https://github.com/aliceinailand/alisonscorpionpublic
@@ -10,7 +10,7 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20260810t250000z";
+} from "./blocklist.js?v=20261028wiki1";
 import {
   listDirAsync,
   openNodeAsync,
@@ -21,36 +21,10 @@ import {
   joinPath,
   canWrite,
   isBrowserFsReady,
-} from "./fs.js?v=20260810t390000z";
-import { routeFreeChat } from "./chat-router.js?v=20260810t250000z";
+} from "./fs.js?v=20261027observer2";
+import { routeFreeChat } from "./chat-router.js?v=20261027intake1";
+import { mountPublicChat } from "./public-chat.js?v=20261027intake1";
 
-const ASX_CHAT_API = "https://api.alisonscorpion.com/v1/asx/chat";
-
-/** Live Python Router / Poe-backed gateway. Falls back to local FAQ on miss. */
-async function askAsxGateway(msg) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 18000);
-  try {
-    const r = await fetch(ASX_CHAT_API, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        text: msg,
-        surface: "desktop",
-        client: "desktop-os",
-      }),
-      signal: ctrl.signal,
-    });
-    if (!r.ok) return null;
-    const data = await r.json();
-    if (data && data.ok && data.reply) return String(data.reply);
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(t);
-  }
-  return null;
-}
 import {
   createAccount,
   softDeleteAccount,
@@ -99,6 +73,7 @@ import {
   sanitizeHtml,
   setSafeHtml,
   escapeHtml,
+  ensureDomPurify,
   ASX_TEXT_PURIFY,
 } from "./sanitize.js?v=20260810t410000z";
 import {
@@ -123,6 +98,29 @@ import {
 } from "./prefs.js?v=20260815t210000z";
 import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t220000z";
 import { applyTheme, THEMES } from "./themes.js?v=20260815t210000z";
+import {
+  colLetters,
+  evaluateGrid,
+  insertRow,
+  deleteRow,
+  insertCol,
+  deleteCol,
+} from "./sheet-calc.js?v=20261027office1";
+import {
+  documentFileHtml,
+  extractDocumentInner,
+  sheetPrintHtml,
+} from "./office-doc.js?v=20261027office1";
+import { openKnowledge } from "./knowledge.js?v=20261027kb1";
+import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261028wiki1";
+import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
+import {
+  openSandbox,
+  openSandboxNavigator,
+  bindSiteIcon,
+  siteLockForApp,
+} from "./sandbox-browser.js?v=20261028wiki1";
+import { rememberAction } from "./local-memory.js?v=20261028mem1";
 
 /** Alison's public read-only GDrive (messages / downloads for guests). */
 export const GDRIVE_PUBLIC_URL =
@@ -224,7 +222,11 @@ export function containersUrl() {
 }
 
 export function registerApps(wm) {
-  const open = (id, opts) => APP_OPENERS[id]?.(wm, opts);
+  const open = (id, opts) => {
+    const app = APP_CATALOG.find((item) => item.id === id);
+    if (app) rememberAction({ kind: "open", name: app.label, ref: app.id });
+    return APP_OPENERS[id]?.(wm, opts);
+  };
   return { open, catalog: APP_CATALOG, categories: APP_CATEGORIES };
 }
 
@@ -233,7 +235,13 @@ export const APP_CATALOG = [
   { id: "terminal", label: "Terminal", glyph: "❯" },
   { id: "computer", label: "Computer", glyph: "🖥" },
   { id: "files", label: "Files", glyph: "📁" },
-  { id: "browser", label: "Browser", glyph: "🌐" },
+  { id: "browser", label: "ASX Web Observer", glyph: "🌐" },
+  { id: "knowledge", label: "Knowledge Base", glyph: "📚" },
+  {
+    id: "storybook",
+    label: "The Alice and the Scorpion Framework Storybook",
+    glyph: "📖",
+  },
   { id: "chat", label: "Chat", glyph: "💬" },
   { id: "trash", label: "Trash", glyph: "🗑" },
   { id: "network", label: "Network", glyph: "🖧" },
@@ -245,8 +253,9 @@ export const APP_CATALOG = [
   { id: "containers", label: "Containers", glyph: "📦" },
   { id: "honeybee", label: "honeybee", glyph: "🐝" },
   { id: "calculator", label: "Calculator", glyph: "🧮" },
+  { id: "catfish-index", label: "Catfish Index", glyph: "🐟" },
   { id: "notepad", label: "Notepad", glyph: "📝" },
-  { id: "quill", label: "Quill", glyph: "🪶" },
+  { id: "quill", label: "Document", glyph: "🪶" },
   { id: "sticky", label: "Sticky Notes", glyph: "📌" },
   { id: "sheet", label: "Spreadsheet", glyph: "📊" },
   { id: "impress", label: "Impress", glyph: "◈" },
@@ -259,6 +268,9 @@ export const APP_CATALOG = [
   { id: "about", label: "About", glyph: "ℹ" },
   { id: "settings", label: "Settings", glyph: "⚙" },
   { id: "github", label: "GitHub", glyph: "⌥" },
+  { id: "wikipedia", label: "Wikipedia", glyph: "W" },
+  { id: "sandbox-navigator", label: "Sandbox Navigator", glyph: "▣" },
+  { id: "url-downloader", label: "URL Downloader", glyph: "⬇" },
   { id: "todo", label: "Todo", glyph: "☑" },
   { id: "games", label: "Games", glyph: "🎮" },
   { id: "invaders", label: "Space Invaders", glyph: "👾" },
@@ -286,7 +298,7 @@ export const APP_CATEGORIES = [
     id: "internet",
     label: "Internet",
     glyph: "🌐",
-    apps: ["browser", "network", "gdrive", "youtube", "github"],
+    apps: ["browser", "network", "gdrive", "youtube", "github", "wikipedia", "sandbox-navigator", "url-downloader"],
   },
   {
     id: "office",
@@ -310,13 +322,13 @@ export const APP_CATEGORIES = [
     id: "asx",
     label: "ASX",
     glyph: "🦂",
-    apps: ["containers", "honeybee", "agent-asx", "chat"],
+    apps: ["knowledge", "storybook", "containers", "honeybee", "agent-asx", "chat"],
   },
   {
     id: "utils",
     label: "Utilities",
     glyph: "🔧",
-    apps: ["calculator", "jsfile"],
+    apps: ["calculator", "catfish-index", "jsfile", "url-downloader"],
   },
   {
     id: "games",
@@ -342,18 +354,21 @@ const APP_OPENERS = {
   terminal: openTerminal,
   computer: openComputer,
   files: openFiles,
-  browser: openBrowser,
+  browser: openLiveBrowser,
+  knowledge: openKnowledge,
+  storybook: openStorybook,
   chat: openChat,
   trash: openTrash,
   network: openNetwork,
   gdrive: openGDrive,
-  youtube: openYoutube,
+  youtube: openYoutubeSandbox,
   users: openUsers,
   applications: openApplications,
   "agent-asx": openAgentAsx,
   containers: openContainers,
   honeybee: openHoneybee,
   calculator: openCalculator,
+  "catfish-index": openCatfishIndex,
   notepad: openNotepad,
   quill: openQuill,
   sticky: openSticky,
@@ -368,6 +383,9 @@ const APP_OPENERS = {
   about: openAbout,
   settings: openSettings,
   github: openGithub,
+  wikipedia: openWikipedia,
+  "sandbox-navigator": openSandboxNavigator,
+  "url-downloader": openUrlDownloader,
   todo: openTodo,
   games: openGamesFolder,
   invaders: openInvaders,
@@ -678,8 +696,13 @@ function openTerminal(wm, opts = {}) {
         }
         if (/^https?:\/\//i.test(arg.trim()) || target.includes(".")) {
           const url = /^https?:\/\//i.test(arg.trim()) ? arg.trim() : "https://" + arg.trim();
-          openBrowser(wm, { initialUrl: url });
-          lines.push("OK:opened browser → " + url);
+          if (/github\.com|wikipedia\.(org|com)|youtube\.com/i.test(url)) {
+            openSandbox(wm, { url });
+            lines.push("OK:opened sandbox → " + url);
+          } else {
+            openBrowser(wm, { initialUrl: url });
+            lines.push("OK:opened browser → " + url);
+          }
           break;
         }
         const map = {
@@ -692,8 +715,16 @@ function openTerminal(wm, opts = {}) {
           containers: () => openContainers(wm),
           honeybee: () => openHoneybee(wm),
           github: () => openGithub(wm),
+          wikipedia: () => openWikipedia(wm),
+          youtube: () => openYoutubeSandbox(wm),
+          sandbox: () => openSandboxNavigator(wm),
+          navigator: () => openSandboxNavigator(wm),
+          downloader: () => openUrlDownloader(wm),
+          "url-downloader": () => openUrlDownloader(wm),
           games: () => openGamesFolder(wm),
           calculator: () => openCalculator(wm),
+          catfish: () => openCatfishIndex(wm),
+          "catfish-index": () => openCatfishIndex(wm),
           notepad: () => openNotepad(wm),
           todo: () => openTodo(wm),
           mindmap: () => openMindmap(wm),
@@ -768,8 +799,8 @@ function runAgentAction(wm, raw, lines) {
   const lower = q.toLowerCase();
 
   const goUrl = (url) => {
-    openBrowser(wm, { id: "browser-agent", title: "Browser — Agent", initialUrl: url });
-    lines.push(`OK:navigating browser → ${url}`);
+    openBrowser(wm, { title: "ASX Web Observer", initialUrl: url });
+    lines.push(`OK:navigating ASX Web Observer → ${url}`);
     return true;
   };
 
@@ -789,7 +820,7 @@ function runAgentAction(wm, raw, lines) {
   }
   if (/open\s+browser|open\s+internet/i.test(q)) {
     openBrowser(wm);
-    lines.push("OK:opened Browser");
+    lines.push("OK:opened ASX Web Observer");
     return true;
   }
   if (/open\s+files|open\s+file\s*manager/i.test(q)) {
@@ -803,8 +834,8 @@ function runAgentAction(wm, raw, lines) {
     return true;
   }
   if (/open\s+youtube/i.test(q)) {
-    openYoutube(wm);
-    lines.push("OK:opened YouTube (AlisonScorpionX)");
+    openYoutubeSandbox(wm);
+    lines.push("OK:opened YouTube sandbox");
     return true;
   }
   if (/open\s+drive|open\s+gdrive|open\s+google\s*drive/i.test(q)) {
@@ -859,16 +890,45 @@ function runAgentAction(wm, raw, lines) {
       target = "https://" + target;
     }
     if (/github\.com/i.test(target) || /^github$/i.test(target)) {
-      return goUrl("https://github.com");
+      openGithub(wm);
+      lines.push("OK:opened GitHub sandbox");
+      return true;
+    }
+    if (/wikipedia\.(org|com)/i.test(target) || /^wikipedia$/i.test(target)) {
+      openSandbox(wm, { title: "Wikipedia sandbox", url: /^https?:\/\//i.test(target) ? target : "https://www.wikipedia.org/" });
+      lines.push("OK:opened Wikipedia sandbox");
+      return true;
+    }
+    if (/youtube\.com/i.test(target) || /^youtube$/i.test(target)) {
+      openYoutubeSandbox(wm);
+      lines.push("OK:opened YouTube sandbox");
+      return true;
     }
     return goUrl(normalizeNavUrl(target));
   }
   if (/github\.com|go\s+to\s+github/i.test(lower)) {
-    return goUrl("https://github.com");
+    openGithub(wm);
+    lines.push("OK:opened GitHub sandbox");
+    return true;
+  }
+  if (/open\s+(the\s+)?sandbox|sandbox navigator/i.test(lower)) {
+    openSandboxNavigator(wm);
+    lines.push("OK:opened Sandbox Navigator");
+    return true;
+  }
+  if (/wikipedia/i.test(lower)) {
+    openWikipedia(wm);
+    lines.push("OK:opened Wikipedia sandbox");
+    return true;
+  }
+  if (/open\s+(the\s+)?(url\s+)?downloader/i.test(lower)) {
+    openUrlDownloader(wm);
+    lines.push("OK:opened URL Downloader");
+    return true;
   }
   if (/youtube\.com|go\s+to\s+youtube/i.test(lower)) {
-    openYoutube(wm);
-    lines.push("OK:opened YouTube app (embeds work; full site needs Open outside)");
+    openYoutubeSandbox(wm);
+    lines.push("OK:opened YouTube sandbox");
     return true;
   }
   return false;
@@ -1164,13 +1224,17 @@ function makeFolderChrome(opts = {}) {
 }
 
 /** Tile button for grid folder views (Computer, Network, Applications). */
-function appendPlaceTile(grid, { glyph, label, sub, action, selectOnClick = true }) {
+function appendPlaceTile(grid, { glyph, label, sub, action, selectOnClick = true, siteLock = "" }) {
   const el = document.createElement("button");
   el.type = "button";
   el.className = "place-tile";
   el.innerHTML = `<span class="g">${glyph}</span><span class="n">${escapeHtml(
     label
   )}</span><span class="s">${escapeHtml(sub || "")}</span>`;
+  if (siteLock) {
+    const mark = el.querySelector(".g");
+    if (mark) bindSiteIcon(mark, siteLock);
+  }
   const go = () => action?.();
   el.addEventListener("dblclick", go);
   el.addEventListener("click", () => {
@@ -1303,6 +1367,7 @@ function openApplications(wm, opts = {}) {
         glyph: app.glyph,
         label: app.label,
         sub: app.id,
+        siteLock: siteLockForApp(app.id),
         selectOnClick: false,
         action: () => openAppId(id),
       });
@@ -1455,13 +1520,14 @@ function openNetwork(wm) {
     {
       glyph: "▶",
       label: "YouTube",
-      sub: "AlisonScorpionX",
-      action: () => openYoutube(wm),
+      sub: "youtube.com",
+      siteLock: "youtube.com",
+      action: () => openYoutubeSandbox(wm),
     },
     {
       glyph: "🌐",
       label: "Internet",
-      sub: "ASX Browser",
+      sub: "ASX Web Observer",
       action: () => openBrowser(wm),
     },
     {
@@ -1555,7 +1621,7 @@ function openSignup(wm) {
   root.className = "app-pad signup-form";
   root.innerHTML = `
     <h2>Create account</h2>
-    <p class="dim">Free guest signup is stored in this browser (localStorage) until the real backend ships. Advanced Chat reasoning will require this later.</p>
+    <p class="dim">Guest actions stay in this browser (localStorage). After sign-in, that record can also use a local database and a session cookie. Advanced Chat reasoning will require an account later.</p>
     <label>Username <input type="text" id="su-user" autocomplete="username" /></label>
     <label>Email <input type="email" id="su-email" autocomplete="email" /></label>
     <label>Password <input type="password" id="su-pass" autocomplete="new-password" /></label>
@@ -1621,7 +1687,7 @@ function openGDrive(wm, opts = {}) {
   const publicBtn = document.createElement("button");
   publicBtn.type = "button";
   publicBtn.className = "folder-action";
-  publicBtn.title = "Open public Google folder in Browser";
+  publicBtn.title = "Open public Google folder in ASX Web Observer";
   publicBtn.textContent = "Public ↗";
   publicBtn.addEventListener("click", () => {
     const top = stack[stack.length - 1];
@@ -1631,7 +1697,7 @@ function openGDrive(wm, opts = {}) {
         : `https://drive.google.com/drive/folders/${top.id}`;
     openBrowser(wm, {
       id: "browser-gdrive",
-      title: "Browser — public Drive",
+      title: "ASX Web Observer",
       initialUrl: url,
     });
   });
@@ -1688,11 +1754,11 @@ function openGDrive(wm, opts = {}) {
       const row = document.createElement("button");
       row.type = "button";
       row.className = "file-row drive-row";
-      row.innerHTML = `<span>☁</span><span class="n">Open real public folder in Browser</span><span class="m">link</span>`;
+      row.innerHTML = `<span>☁</span><span class="n">Open real public folder in ASX Web Observer</span><span class="m">link</span>`;
       const go = () =>
         openBrowser(wm, {
           id: "browser-gdrive",
-          title: "Browser — public Drive",
+          title: "ASX Web Observer",
           initialUrl: GDRIVE_PUBLIC_URL,
         });
       row.addEventListener("dblclick", go);
@@ -1793,8 +1859,14 @@ const YT_DEMO = [
 function parseYoutubeId(input) {
   const s = String(input || "").trim();
   if (/^[\w-]{11}$/.test(s)) return s;
-  const m = s.match(
-    /(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/
+  let text = s;
+  try {
+    text = decodeURIComponent(s);
+  } catch {
+    text = s;
+  }
+  const m = text.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|live\/|v\/)|[?&]v=)([\w-]{11})/
   );
   return m ? m[1] : null;
 }
@@ -1823,7 +1895,7 @@ function openYoutube(wm) {
       <div class="yt-side">
         <div class="yt-now"></div>
         <div class="yt-list"></div>
-        <p class="yt-note">Embed player (works in-frame). Full youtube.com needs Browser → Open outside. Free demo list + paste URL.</p>
+        <p class="yt-note">Search plays here. A full link still works. The YouTube icon opens youtube.com in its own sandbox.</p>
       </div>
     </div>`;
   const player = root.querySelector(".yt-player");
@@ -1856,27 +1928,36 @@ function openYoutube(wm) {
     });
   };
 
-  root.querySelector(".yt-search")?.addEventListener("submit", (e) => {
+  root.querySelector(".yt-search")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const raw = qIn.value.trim();
+    if (!raw) return;
     const id = parseYoutubeId(raw);
     if (id) {
       play(id, raw);
       renderList([{ id, title: "Pasted video", ch: "YouTube" }, ...YT_DEMO]);
       return;
     }
-    // No API key: filter demo + note
-    const q = raw.toLowerCase();
-    const filtered = YT_DEMO.filter(
-      (v) => v.title.toLowerCase().includes(q) || v.ch.toLowerCase().includes(q)
-    );
-    if (filtered.length) {
-      renderList(filtered);
-      play(filtered[0].id, filtered[0].title);
-    } else {
-      window.alert(
-        "Free YouTube app: paste a video URL/ID, or pick a demo. Full search needs a YouTube Data API key (account / Settings later)."
+    now.textContent = "Searching YouTube…";
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8791/youtube-search?q=" + encodeURIComponent(raw)
       );
+      const data = await response.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      const rows = items
+        .filter((item) => item && /^[\w-]{11}$/.test(item.id) && item.title)
+        .slice(0, 12)
+        .map((item) => ({ id: item.id, title: String(item.title), ch: String(item.channel || "YouTube") }));
+      if (!rows.length) {
+        now.textContent = "No videos found for that search.";
+        renderList(YT_DEMO);
+        return;
+      }
+      renderList(rows);
+      play(rows[0].id, rows[0].title);
+    } catch {
+      now.textContent = "Search needs ASX Web Observer running on this computer. A video link still plays.";
       renderList(YT_DEMO);
     }
   });
@@ -2353,6 +2434,10 @@ function showFrameHint(frame, url, openOutsideFn) {
 }
 
 function openBrowser(wm, opts = {}) {
+  return openLiveBrowser(wm, opts);
+}
+
+function openFramedBrowserUnused(wm, opts = {}) {
   const winId = opts.id || "browser";
   const winTitle = opts.title || "ASX Browser";
   const startUrl = opts.initialUrl || ASX_HOME;
@@ -2585,133 +2670,54 @@ function openBrowser(wm, opts = {}) {
   });
 }
 
-/* ── Chat (free Q&A router — no desktop actions) ─────────── */
-function openChat(wm) {
+/* ── One public chat. The transcript stays in this browser. ─ */
+function openPublicContainer(wm) {
   const root = document.createElement("div");
-  root.className = "term chat-free";
-  root.innerHTML = `
-    <div class="chat-banner">ASX Chat · live Python Router (api.alisonscorpion.com) · Poe bot AlisonScorpion</div>
-    <div class="chat-scroll tse-scrollable asx-tse" data-chat-scroll>
-      <div class="tse-content term-out chat-stream" data-chat-out style="padding:12px"></div>
-    </div>
-    <div class="term-in">
-      <span class="prompt">you ›</span>
-      <input type="text" placeholder="Ask a simple question…" />
-    </div>`;
-  const out = root.querySelector("[data-chat-out]");
-  const input = root.querySelector("input");
-  /** @type {ReturnType<typeof attachTrackpadScroll>|null} */
-  let tse = null;
-
-  const add = (who, text, cls) => {
-    const d = document.createElement("div");
-    d.style.marginBottom = "8px";
-    setSafeHtml(
-      d,
-      `<span class="${escapeHtml(cls || "")}" style="color:${
-        who === "Chat" || who === "ASX" ? "var(--brand)" : "var(--gold)"
-      }">${escapeHtml(who)}</span> ${escapeHtml(text)}`,
-      ASX_TEXT_PURIFY
-    );
-    out.appendChild(d);
-    tse?.scrollToBottom(true);
-    tse?.recalculate();
-  };
-  const addLinks = (links) => {
-    if (!links?.length) return;
-    const d = document.createElement("div");
-    d.className = "chat-links";
-    links.forEach((L) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.textContent = L.label;
-      b.addEventListener("click", () => {
-        if (L.action === "signup") openUsers(wm);
-        else if (L.action === "agent") openAgentAsx(wm);
-      });
-      d.appendChild(b);
-    });
-    out.appendChild(d);
-    tse?.scrollToBottom(true);
-  };
-  add(
-    "ASX",
-    "Live gateway is up. Type here to hit POST /v1/asx/chat (same router Poe uses). AMN is not mounted — FACT only with law+record; else HOLD. Agent α still handles open/navigate on this desktop.",
-    "ok"
-  );
-
-  const send = async () => {
-    const msg = input.value.trim();
-    if (!msg) return;
-    add("You", msg);
-    input.value = "";
-    const d = document.createElement("div");
-    d.style.marginBottom = "8px";
-    const label = document.createElement("span");
-    label.style.color = "var(--brand)";
-    label.textContent = "ASX ";
-    const body = document.createElement("span");
-    body.className = "dim";
-    d.appendChild(label);
-    d.appendChild(body);
-    out.appendChild(d);
-    const live = await askAsxGateway(msg);
-    if (live) {
-      await streamTextInto(tse, body, live, { cps: 2 });
-      return;
-    }
-    const r = routeFreeChat(msg);
-    label.style.color = r.type === "upgrade" ? "var(--fail)" : "var(--brand)";
-    await streamTextInto(
-      tse,
-      body,
-      r.text + "\n\n—\nLocal fallback · live API unreachable",
-      { cps: 2 }
-    );
-    addLinks(r.links);
-  };
-  input.addEventListener("keydown", (e) => e.key === "Enter" && send());
-
+  const host = location.hostname;
+  const local = host === "127.0.0.1" || host === "localhost";
+  const statusUrl = local ? "http://127.0.0.1:18080/v1/public-chat/status" : "";
+  const intakeUrl = local ? "http://127.0.0.1:18080/v1/public-chat/intake" : "";
   wm.open({
-    id: "chat",
-    title: "Chat — free Q&A",
-    w: 520,
-    h: 440,
+    id: "public-chat",
+    title: "Public chat",
+    w: 640,
+    h: 520,
     body: root,
-    onMount: async () => {
-      await ensureTrackpadScrollCss();
-      tse = attachTrackpadScroll(root.querySelector("[data-chat-scroll]"), {
-        autoHide: true,
+    onMount: () => {
+      mountPublicChat(root, {
+        reply: async (text) => {
+          if (!intakeUrl) return routeFreeChat(text).text;
+          try {
+            const response = await fetch(intakeUrl, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ text }),
+            });
+            if (!response.ok) return routeFreeChat(text).text;
+            const data = await response.json();
+            const answer = String(data.reply || "").trim();
+            return answer || routeFreeChat(text).text;
+          } catch {
+            return routeFreeChat(text).text;
+          }
+        },
+        statusUrl,
       });
-      tse?.scrollToBottom(false);
-      input.focus();
-    },
-    onClose: () => {
-      tse?.destroy();
-      tse = null;
+      root.querySelector("[data-public-chat-input]")?.focus();
     },
   });
 }
 
-/* ── Containers (existing website) ────────────────────────── */
+function openChat(wm) {
+  openPublicContainer(wm);
+}
+
+/* ── One public Container ─────────────────────────────────── */
 function openContainers(wm) {
-  const url = containersUrl();
-  const body = document.createElement("div");
-  body.style.cssText = "height:100%;display:flex;flex-direction:column";
-  body.innerHTML = `
-    <div style="padding:6px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(19,17,26,0.9)">
-      Containers · product app (previous alisonscorpionpublic design) · <a href="${url}" target="_blank" rel="noopener" style="color:var(--brand)">open tab</a>
-    </div>
-    <iframe src="${url}" title="Containers" style="flex:1;border:0;background:#0a0809"></iframe>`;
-  wm.open({
-    id: "containers",
-    title: "Containers",
-    w: 980,
-    h: 640,
-    x: 40,
-    y: 20,
-    body,
-  });
+  openPublicContainer(wm);
 }
 
 /* ── Honey Bee Engine ─────────────────────────────────────── */
@@ -2769,6 +2775,21 @@ function openCalculator(wm) {
     root.appendChild(b);
   });
   wm.open({ id: "calculator", title: "Calculator", w: 300, h: 380, body: root });
+}
+
+function openCatfishIndex(wm) {
+  const root = document.createElement("div");
+  root.style.padding = "12px";
+  root.style.font = "14px/1.4 sans-serif";
+  root.innerHTML = `<p><strong>Catfish Index</strong> searches a file list for the folders you name. It does not walk the whole disk.</p>
+<p>The desktop page cannot see your folders. The executable on this machine is <code>catfish-index</code>.</p>
+<pre>catfish-index
+search some name
+index /path/one /path/two
+roots
+quit</pre>
+<p>The menu item used to exit at once because a command was required. It now stays open on that prompt.</p>`;
+  wm.open({ id: "catfish-index", title: "Catfish Index", w: 520, h: 280, body: root });
 }
 
 /* ── Quill Text Editor (Office) ─────────────────────────────
@@ -2841,45 +2862,247 @@ function loadQuill() {
   return quillLoadPromise;
 }
 
+/** Quill tags that the general UI sanitizer would otherwise drop. */
+const DOC_PURIFY = {
+  USE_PROFILES: { html: true },
+  ALLOWED_TAGS: [
+    "a", "b", "blockquote", "br", "code", "div", "em", "h1", "h2", "h3",
+    "h4", "hr", "i", "img", "li", "ol", "p", "pre", "s", "span", "strong",
+    "sub", "sup", "u", "ul",
+  ],
+  ALLOWED_ATTR: ["href", "rel", "target", "class", "style", "src", "alt", "spellcheck"],
+};
+
+const HTML_PICKER_TYPES = [
+  { description: "Web page", accept: { "text/html": [".html", ".htm"] } },
+];
+const DOC_OPEN_TYPES = [
+  ...HTML_PICKER_TYPES,
+  { description: "Plain text", accept: { "text/plain": [".txt"] } },
+];
+const XLSX_PICKER_TYPES = [
+  {
+    description: "Excel workbook",
+    accept: {
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+    },
+  },
+];
+const SHEET_OPEN_TYPES = [
+  ...XLSX_PICKER_TYPES,
+  { description: "CSV", accept: { "text/csv": [".csv"] } },
+];
+const CSV_PICKER_TYPES = [
+  { description: "CSV", accept: { "text/csv": [".csv"] } },
+];
+
+function cleanComputerName(name, fallback, ext) {
+  const base = String(name || fallback || "file")
+    .split(/[/\\]/)
+    .pop()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80) || fallback || "file";
+  if (ext && !base.toLowerCase().endsWith(ext)) return `${base}${ext}`;
+  return base;
+}
+
+async function writeExistingHandle(handle, blob) {
+  if (typeof handle.queryPermission === "function") {
+    let perm = await handle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted" && typeof handle.requestPermission === "function") {
+      perm = await handle.requestPermission({ mode: "readwrite" });
+    }
+    if (perm !== "granted") {
+      return { ok: false, message: "Permission to that file was not granted" };
+    }
+  }
+  const writable = await handle.createWritable();
+  await writable.write(blob);
+  await writable.close();
+  return { ok: true, method: "picker", name: handle.name, handle };
+}
+
+async function pickSaveHandle(suggestedName, types) {
+  const picker = window.showSaveFilePicker;
+  if (typeof picker !== "function") return { missing: true };
+  try {
+    return { handle: await picker({ suggestedName, startIn: "desktop", types }) };
+  } catch (e) {
+    if (e && e.name === "AbortError") return { cancelled: true };
+    try {
+      return { handle: await picker({ suggestedName, types }) };
+    } catch (e2) {
+      if (e2 && e2.name === "AbortError") return { cancelled: true };
+      return { missing: true };
+    }
+  }
+}
+
+/**
+ * Write a file on the person's own computer.
+ * The save dialog starts on the Desktop when the browser allows it.
+ * Cancelling does not download. Without the file-picker API, the file downloads.
+ */
+async function saveBlobToComputer(blob, suggestedName, types, existingHandle) {
+  if (existingHandle && typeof existingHandle.createWritable === "function") {
+    try {
+      return await writeExistingHandle(existingHandle, blob);
+    } catch (e) {
+      if (e && e.name === "AbortError") return { ok: false, cancelled: true };
+    }
+  }
+  const picked = await pickSaveHandle(suggestedName, types);
+  if (picked.cancelled) return { ok: false, cancelled: true };
+  if (picked.handle) {
+    try {
+      return await writeExistingHandle(picked.handle, blob);
+    } catch (e) {
+      return { ok: false, message: e?.message || "Save failed" };
+    }
+  }
+  downloadBlob(blob, suggestedName);
+  return { ok: true, method: "download", name: suggestedName };
+}
+
+function computerSaveStatus(result, fallbackName) {
+  if (result?.cancelled) return "Save cancelled";
+  if (result?.message && result.ok === false) return result.message;
+  if (result?.method === "picker") {
+    return `Saved ${result.name || fallbackName} on your computer. The dialog opens on the Desktop.`;
+  }
+  if (result?.method === "download") {
+    return `Downloaded ${result.name || fallbackName}. This browser has no desktop save dialog, so the file went to your downloads folder. Move it to the Desktop if you want it there.`;
+  }
+  return result?.message || "Saved";
+}
+
+async function openFileFromComputer(types, accept) {
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      let handles;
+      try {
+        handles = await window.showOpenFilePicker({
+          multiple: false,
+          startIn: "desktop",
+          types,
+        });
+      } catch (e) {
+        if (e && e.name === "AbortError") return { cancelled: true };
+        handles = await window.showOpenFilePicker({ multiple: false, types });
+      }
+      const handle = handles && handles[0];
+      if (!handle) return { cancelled: true };
+      return { file: await handle.getFile(), handle };
+    } catch (e) {
+      if (e && e.name === "AbortError") return { cancelled: true };
+    }
+  }
+  const files = await pickLocalFiles({ accept });
+  if (!files.length) return { cancelled: true };
+  return { file: files[0], handle: null };
+}
+
+function printHtml(html) {
+  const frame = document.createElement("iframe");
+  frame.setAttribute("title", "Print");
+  frame.style.cssText = "position:fixed;width:0;height:0;border:0;right:0;bottom:0;";
+  document.body.appendChild(frame);
+  const doc = frame.contentDocument || frame.contentWindow?.document;
+  if (!doc) {
+    frame.remove();
+    return false;
+  }
+  doc.open();
+  doc.write(html);
+  doc.close();
+  const win = frame.contentWindow;
+  setTimeout(() => {
+    try {
+      win.focus();
+      win.print();
+    } catch {
+      /* the saved file can still be printed from the computer */
+    }
+    setTimeout(() => frame.remove(), 1500);
+  }, 60);
+  return true;
+}
+
+function plainTextToHtml(text) {
+  return String(text ?? "")
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => `<p>${escapeHtml(line) || "<br>"}</p>`)
+    .join("");
+}
+
+function docInner(html) {
+  return sanitizeHtml(html || "<p><br></p>", DOC_PURIFY);
+}
+
 const QUILL_LS = "asx-quill-doc-v1";
 const QUILL_DEFAULT_HTML = `<h1>Untitled</h1>
-<p>Welcome to <strong>Quill</strong> on Alison Scorpion’s desktop — a free rich text editor for guests.</p>
-<p>Try <em>italic</em>, <u>underline</u>, lists, and headings. Save under <code>/home/guest/Documents</code>.</p>`;
+<p>This document editor is free. No account is required.</p>
+<p>Spellcheck is on. Use <strong>Print</strong> for a paper copy. <strong>Save</strong> writes an HTML file on your own computer, and the dialog opens on the Desktop.</p>
+<p>Try headings, lists, <em>italic</em>, and <u>underline</u>. Formulas live in the Spreadsheet.</p>`;
 
 function openQuill(wm, opts = {}) {
   const root = document.createElement("div");
   root.className = "quill-app";
   root.innerHTML = `
     <div class="quill-toolbar-bar" role="toolbar" aria-label="Document">
-      <span class="quill-brand" title="Quill rich text editor">Quill</span>
+      <span class="quill-brand" title="Free document editor">Document</span>
       <button type="button" class="sheet-btn" data-q="new" title="New document">New</button>
-      <button type="button" class="sheet-btn" data-q="open" title="Open HTML from guest FS">Open…</button>
-      <button type="button" class="sheet-btn primary" data-q="save" title="Save HTML">Save</button>
-      <button type="button" class="sheet-btn" data-q="save-as" title="Save as…">Save as…</button>
-      <button type="button" class="sheet-btn" data-q="export" title="Download HTML file">↓ HTML</button>
-      <input type="text" class="quill-path" spellcheck="false"
-        value="/home/guest/Documents/document.html" aria-label="File path" />
-      <span class="quill-status dim" data-q-status>Loading Quill…</span>
+      <button type="button" class="sheet-btn" data-q="open" title="Open an HTML or text file from your computer">Open…</button>
+      <button type="button" class="sheet-btn primary" data-q="save" title="Save on your computer. The dialog opens on the Desktop.">Save</button>
+      <button type="button" class="sheet-btn" data-q="save-as" title="Save a copy on your computer">Save as…</button>
+      <button type="button" class="sheet-btn" data-q="print" title="Print this document">Print</button>
+      <button type="button" class="sheet-btn" data-q="find" title="Find and replace">Find</button>
+      <button type="button" class="sheet-btn is-on" data-q="spell" aria-pressed="true" title="Turn spellcheck on or off">Spelling</button>
+      <button type="button" class="sheet-btn" data-q="guest-open" title="Open HTML from the guest virtual disk">Open guest…</button>
+      <button type="button" class="sheet-btn" data-q="guest-save" title="Copy onto the guest virtual disk, not your computer">Guest copy</button>
+      <input type="text" class="quill-path" spellcheck="false" value="document.html" aria-label="File name" />
+      <span class="quill-count dim" data-q-count>0 words</span>
+      <span class="quill-status dim" data-q-status>Loading editor…</span>
+    </div>
+    <div class="quill-find" data-q-findbar hidden>
+      <input type="text" data-q-find spellcheck="true" placeholder="Find" aria-label="Find" />
+      <input type="text" data-q-replace spellcheck="true" placeholder="Replace" aria-label="Replace" />
+      <button type="button" class="sheet-btn" data-q="find-next">Next</button>
+      <button type="button" class="sheet-btn" data-q="find-prev">Previous</button>
+      <button type="button" class="sheet-btn" data-q="replace-one">Replace</button>
+      <button type="button" class="sheet-btn" data-q="replace-all">All</button>
     </div>
     <div class="quill-editor-wrap">
       <div class="quill-editor" data-quill-editor></div>
     </div>
-    <p class="quill-foot dim">Quill ${QUILL_VERSION} · snow theme · cdnjs → jsDelivr · Office · guest BrowserFS</p>`;
+    <p class="quill-foot dim">Free document editor · no account · Save writes HTML on your computer · Quill ${QUILL_VERSION}</p>`;
 
-  const pathIn = root.querySelector(".quill-path");
+  const fileIn = root.querySelector(".quill-path");
   const statusEl = root.querySelector("[data-q-status]");
+  const countEl = root.querySelector("[data-q-count]");
   const editorEl = root.querySelector("[data-quill-editor]");
+  const findBar = root.querySelector("[data-q-findbar]");
+  const findIn = root.querySelector("[data-q-find]");
+  const replaceIn = root.querySelector("[data-q-replace]");
   let quill = null;
-  let currentPath = opts.path || "/home/guest/Documents/document.html";
-  pathIn.value = currentPath;
+  let fileHandle = null;
+  let spellOn = true;
+  fileIn.value = fileLabel(opts.path || "document.html");
 
   const setStatus = (s) => {
     if (statusEl) statusEl.textContent = s || "";
   };
 
+  function fileLabel(path) {
+    const base = String(path || "document.html").split(/[/\\]/).pop() || "document.html";
+    return cleanComputerName(base, "document.html");
+  }
+
   const getHtml = () => {
     if (!quill) return "";
-    // Quill 2: prefer semantic HTML when available
     try {
       if (typeof quill.getSemanticHTML === "function") return quill.getSemanticHTML();
     } catch {
@@ -2888,15 +3111,32 @@ function openQuill(wm, opts = {}) {
     return quill.root?.innerHTML || "";
   };
 
+  const applySpell = () => {
+    if (!quill?.root) return;
+    quill.root.spellcheck = spellOn;
+    const lang = document.documentElement.lang;
+    if (lang) quill.root.lang = lang;
+    quill.root.setAttribute("aria-label", "Document text");
+  };
+
+  const updateCount = () => {
+    if (!quill || !countEl) return;
+    const text = (quill.getText() || "").replace(/\n$/, "");
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    countEl.textContent = `${words} ${words === 1 ? "word" : "words"} · ${text.length} characters`;
+  };
+
   const setHtml = (html) => {
-    const safe = sanitizeHtml(html || "<p><br></p>");
+    const safe = docInner(html || "<p><br></p>");
     if (!quill) return;
     try {
       quill.setContents([]);
-      quill.clipboard.dangerouslyPasteHTML(0, safe);
+      quill.clipboard.dangerouslyPasteHTML(0, safe || "<p><br></p>");
     } catch {
-      quill.root.innerHTML = safe;
+      quill.root.innerHTML = safe || "<p><br></p>";
     }
+    applySpell();
+    updateCount();
   };
 
   const persistLocal = () => {
@@ -2904,7 +3144,7 @@ function openQuill(wm, opts = {}) {
       localStorage.setItem(
         QUILL_LS,
         JSON.stringify({
-          path: currentPath,
+          path: fileIn.value || "document.html",
           html: getHtml(),
           t: Date.now(),
         })
@@ -2922,86 +3162,256 @@ function openQuill(wm, opts = {}) {
     }
   };
 
-  const doSave = async (path) => {
-    const html = getHtml();
+  const guestDocPath = () => {
+    const named = cleanComputerName(
+      String(fileIn.value || "document").replace(/\.txt$/i, ""),
+      "document",
+      ".html"
+    );
+    return `/home/guest/Documents/${named}`;
+  };
+
+  const doGuestSave = async () => {
+    const path = guestDocPath();
+    const html = documentFileHtml(fileIn.value || "Document", docInner(getHtml()));
     const r = await writeFile(path, html);
     if (r.error) {
       setStatus(r.message || r.error);
-      window.alert(r.message || "Save failed — use a path under /home/guest");
       return false;
     }
-    currentPath = path;
-    pathIn.value = path;
     persistLocal();
-    setStatus(`Saved ${path} · ${new Date().toLocaleTimeString()}`);
+    setStatus(`Guest copy saved at ${path}. That disk is inside the browser, not your computer.`);
     return true;
+  };
+
+  const saveToComputer = async (saveAs) => {
+    const suggested = cleanComputerName(
+      String(fileIn.value || "document").replace(/\.txt$/i, ""),
+      "document",
+      ".html"
+    );
+    const html = documentFileHtml(suggested, docInner(getHtml()));
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const result = await saveBlobToComputer(
+      blob,
+      suggested,
+      HTML_PICKER_TYPES,
+      saveAs ? null : fileHandle
+    );
+    if (result?.handle) fileHandle = result.handle;
+    if (result?.name) fileIn.value = result.name;
+    persistLocal();
+    setStatus(computerSaveStatus(result, suggested));
+  };
+
+  const openFromComputer = async () => {
+    const opened = await openFileFromComputer(
+      DOC_OPEN_TYPES,
+      ".html,.htm,.txt,text/html,text/plain"
+    );
+    if (opened.cancelled || !opened.file) {
+      if (opened.cancelled) setStatus("Open cancelled");
+      return;
+    }
+    if (opened.file.size > 2_000_000) {
+      setStatus("That file is over 2 MB. Open a smaller HTML or text file.");
+      return;
+    }
+    const text = await opened.file.text();
+    const looksHtml = /<\/?[a-z][\s\S]*>/i.test(text);
+    setHtml(looksHtml ? extractDocumentInner(text) : plainTextToHtml(text));
+    fileHandle = opened.handle;
+    fileIn.value = fileLabel(opened.file.name);
+    persistLocal();
+    setStatus(`Opened ${opened.file.name} from your computer`);
+  };
+
+  const findNext = (back) => {
+    if (!quill) return;
+    const needle = findIn.value;
+    if (!needle) {
+      setStatus("Type something to find");
+      return;
+    }
+    const text = quill.getText();
+    const sel = quill.getSelection();
+    const from = sel ? sel.index : 0;
+    let idx = -1;
+    if (!back) {
+      const start = sel && text.slice(from, from + needle.length) === needle ? from + needle.length : from;
+      idx = text.indexOf(needle, start);
+      if (idx < 0) idx = text.indexOf(needle);
+    } else {
+      idx = text.lastIndexOf(needle, Math.max(0, from - 1));
+      if (idx < 0) idx = text.lastIndexOf(needle);
+    }
+    if (idx < 0) {
+      setStatus(`“${needle}” was not found`);
+      return;
+    }
+    quill.focus();
+    quill.setSelection(idx, needle.length, "user");
+    setStatus(`Found “${needle}”`);
+  };
+
+  const replaceOne = () => {
+    if (!quill) return;
+    const needle = findIn.value;
+    if (!needle) {
+      setStatus("Type something to find");
+      return;
+    }
+    let sel = quill.getSelection();
+    if (!sel || quill.getText(sel.index, sel.length) !== needle) {
+      findNext(false);
+      sel = quill.getSelection();
+      if (!sel || quill.getText(sel.index, sel.length) !== needle) return;
+    }
+    const repl = replaceIn.value;
+    quill.deleteText(sel.index, sel.length, "user");
+    quill.insertText(sel.index, repl, "user");
+    quill.setSelection(sel.index, repl.length, "user");
+    setStatus("Replaced");
+    updateCount();
+  };
+
+  const replaceAll = () => {
+    if (!quill) return;
+    const needle = findIn.value;
+    if (!needle) return;
+    const repl = replaceIn.value;
+    const text = quill.getText();
+    const indexes = [];
+    let from = 0;
+    while (from < text.length) {
+      const idx = text.indexOf(needle, from);
+      if (idx < 0) break;
+      indexes.push(idx);
+      from = idx + needle.length;
+    }
+    for (let k = indexes.length - 1; k >= 0; k--) {
+      quill.deleteText(indexes[k], needle.length, "user");
+      quill.insertText(indexes[k], repl, "user");
+    }
+    setStatus(indexes.length ? `Replaced ${indexes.length}` : "Not found");
   };
 
   wm.open({
     id: opts.id || "quill",
-    title: opts.title || "Quill — Text Editor",
-    w: 780,
-    h: 560,
+    title: opts.title || "Document",
+    w: 920,
+    h: 640,
     body: root,
     onMount: async () => {
-      setStatus("Loading Quill…");
+      setStatus("Loading editor…");
       try {
+        await ensureDomPurify();
         const Quill = await loadQuill();
-        quill = new Quill(editorEl, {
-          theme: "snow",
-          placeholder: "Start writing…",
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ color: [] }, { background: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ indent: "-1" }, { indent: "+1" }],
-              [{ align: [] }],
-              ["blockquote", "code-block"],
-              ["link"],
-              ["clean"],
-            ],
-          },
-        });
+        const richModules = {
+          history: { delay: 400, maxStack: 200, userOnly: true },
+          toolbar: [
+            ["undo", "redo"],
+            [{ header: [1, 2, 3, false] }],
+            [{ font: [] }, { size: [] }],
+            ["bold", "italic", "underline", "strike"],
+            [{ script: "sub" }, { script: "super" }],
+            [{ color: [] }, { background: [] }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ indent: "-1" }, { indent: "+1" }],
+            [{ align: [] }],
+            ["blockquote", "code-block"],
+            ["link"],
+            ["clean"],
+          ],
+        };
+        try {
+          quill = new Quill(editorEl, {
+            theme: "snow",
+            placeholder: "Start writing…",
+            modules: richModules,
+          });
+        } catch {
+          editorEl.parentElement?.querySelector(".ql-toolbar")?.remove();
+          editorEl.innerHTML = "";
+          quill = new Quill(editorEl, {
+            theme: "snow",
+            placeholder: "Start writing…",
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ color: [] }, { background: [] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                [{ indent: "-1" }, { indent: "+1" }],
+                [{ align: [] }],
+                ["blockquote", "code-block"],
+                ["link"],
+                ["clean"],
+              ],
+            },
+          });
+        }
+        const toolbar = quill.getModule("toolbar");
+        toolbar?.addHandler("undo", () => quill.history?.undo());
+        toolbar?.addHandler("redo", () => quill.history?.redo());
 
         let initial = opts.html || QUILL_DEFAULT_HTML;
         const saved = loadLocal();
-        if (opts.path) currentPath = opts.path;
-        else if (saved?.path) currentPath = saved.path;
-        pathIn.value = currentPath;
+        if (!opts.html && !opts.path && saved?.html) initial = saved.html;
+        if (saved?.path && !opts.path) fileIn.value = fileLabel(saved.path);
+        if (opts.path) fileIn.value = fileLabel(opts.path);
 
-        if (canWrite(currentPath)) {
-          const fr = await readFileAsync(currentPath);
+        if (opts.path && canWrite(opts.path)) {
+          const fr = await readFileAsync(opts.path);
           if (!fr.error && fr.content && !opts.html) {
-            initial = fr.content;
-            setStatus(`Opened ${currentPath}`);
-          } else if (saved?.html && !opts.html) {
-            initial = saved.html;
+            initial = extractDocumentInner(fr.content);
+            setStatus(`Opened ${opts.path}`);
           }
-        } else if (saved?.html && !opts.html) {
-          initial = saved.html;
         }
 
         setHtml(initial);
-        setStatus(`Ready · Quill ${QUILL_VERSION}`);
+        applySpell();
+        setStatus("Ready · spellcheck on · Save writes a file on your computer");
 
-        quill.on("text-change", () => persistLocal());
+        quill.on("text-change", () => {
+          persistLocal();
+          updateCount();
+        });
 
         root.querySelector('[data-q="new"]').addEventListener("click", () => {
-          if (quill.getText().trim() && !window.confirm("Discard current document?")) return;
+          if (quill.getText().trim() && !window.confirm("Start a new document? The current text stays in this browser until you save it.")) return;
+          fileHandle = null;
+          fileIn.value = "document.html";
           setHtml(QUILL_DEFAULT_HTML);
-          currentPath = "/home/guest/Documents/untitled.html";
-          pathIn.value = currentPath;
           persistLocal();
           setStatus("New document");
         });
-
-        root.querySelector('[data-q="open"]').addEventListener("click", async () => {
-          const p = window.prompt(
-            "Open HTML under /home/guest:",
-            currentPath
-          );
+        root.querySelector('[data-q="open"]').addEventListener("click", () => {
+          openFromComputer();
+        });
+        root.querySelector('[data-q="save"]').addEventListener("click", () => {
+          saveToComputer(false);
+        });
+        root.querySelector('[data-q="save-as"]').addEventListener("click", () => {
+          saveToComputer(true);
+        });
+        root.querySelector('[data-q="print"]').addEventListener("click", () => {
+          const ok = printHtml(documentFileHtml(fileIn.value || "Document", docInner(getHtml())));
+          setStatus(ok ? "Print dialog opened" : "Could not open the print dialog");
+        });
+        root.querySelector('[data-q="find"]').addEventListener("click", () => {
+          findBar.hidden = !findBar.hidden;
+          if (!findBar.hidden) findIn.focus();
+        });
+        root.querySelector('[data-q="spell"]').addEventListener("click", (e) => {
+          spellOn = !spellOn;
+          applySpell();
+          e.currentTarget.classList.toggle("is-on", spellOn);
+          e.currentTarget.setAttribute("aria-pressed", spellOn ? "true" : "false");
+          setStatus(spellOn ? "Spellcheck on" : "Spellcheck off");
+        });
+        root.querySelector('[data-q="guest-open"]').addEventListener("click", async () => {
+          const p = window.prompt("Open HTML from the guest disk:", guestDocPath());
           if (!p) return;
           const path = p.startsWith("/") ? p.trim() : `/home/guest/${p.trim()}`;
           const r = await readFileAsync(path);
@@ -3009,53 +3419,42 @@ function openQuill(wm, opts = {}) {
             window.alert(r.message || r.error);
             return;
           }
-          setHtml(r.content || "<p><br></p>");
-          currentPath = path;
-          pathIn.value = path;
+          fileHandle = null;
+          setHtml(extractDocumentInner(r.content || ""));
+          fileIn.value = fileLabel(path);
           persistLocal();
-          setStatus(`Opened ${path}`);
+          setStatus(`Opened guest file ${path}`);
         });
-
-        root.querySelector('[data-q="save"]').addEventListener("click", () => {
-          doSave((pathIn.value || currentPath).trim());
+        root.querySelector('[data-q="guest-save"]').addEventListener("click", () => {
+          doGuestSave();
         });
-        root.querySelector('[data-q="save-as"]').addEventListener("click", () => {
-          const p = window.prompt(
-            "Save as (guest path):",
-            pathIn.value || currentPath
-          );
-          if (p) {
-            doSave(p.startsWith("/") ? p.trim() : `/home/guest/${p.trim()}`);
+        root.querySelector('[data-q="find-next"]').addEventListener("click", () => findNext(false));
+        root.querySelector('[data-q="find-prev"]').addEventListener("click", () => findNext(true));
+        root.querySelector('[data-q="replace-one"]').addEventListener("click", () => replaceOne());
+        root.querySelector('[data-q="replace-all"]').addEventListener("click", () => replaceAll());
+        findIn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            findNext(e.shiftKey);
           }
         });
-        root.querySelector('[data-q="export"]').addEventListener("click", () => {
-          const html = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><title>${escapeHtml(
-            (pathIn.value || "document").split("/").pop() || "document"
-          )}</title>
-<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;line-height:1.5;color:#1a1a1a}</style>
-</head><body>
-${getHtml()}
-</body></html>`;
-          const name =
-            (pathIn.value || "document.html").split("/").pop() || "document.html";
-          downloadBlob(
-            new Blob([html], { type: "text/html;charset=utf-8" }),
-            name.endsWith(".html") ? name : name + ".html"
-          );
-          setStatus(`Downloaded ${name}`);
-        });
 
-        // Ctrl/Cmd+S
         root.addEventListener("keydown", (e) => {
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
             e.preventDefault();
-            doSave((pathIn.value || currentPath).trim());
+            saveToComputer(e.shiftKey);
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+            e.preventDefault();
+            printHtml(documentFileHtml(fileIn.value || "Document", docInner(getHtml())));
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+            e.preventDefault();
+            findBar.hidden = false;
+            findIn.focus();
           }
         });
       } catch (e) {
-        setStatus(e?.message || "Quill failed");
-        editorEl.innerHTML = `<div class="app-pad"><p style="color:var(--fail)">Could not load Quill from CDN.</p>
+        setStatus(e?.message || "Editor failed to load");
+        editorEl.innerHTML = `<div class="app-pad"><p style="color:var(--fail)">Could not load the document editor from the CDN.</p>
           <p class="dim" style="font-size:12px">${escapeHtml(e?.message || String(e))}</p></div>`;
       }
     },
@@ -3132,11 +3531,10 @@ function openSticky(wm) {
   wm.open({ id: "sticky", title: "Sticky Notes", w: 360, h: 420, body: root });
 }
 
-/* ── Spreadsheet (LibreOffice Calc-style) ───────────────────
- * Save: localStorage + export CSV / XLSX via ExcelJS (cdnjs).
- * https://cdnjs.com/libraries/exceljs
- * DataTables plugins are for display tables (sort/filter), not free-form
- * cell edit grids — ExcelJS covers the Calc “save as” path instead.
+/* ── Spreadsheet ────────────────────────────────────────────
+ * Free, no account. Formulas run in this page. Save writes .xlsx on the
+ * user's computer (Desktop dialog when the browser allows it).
+ * ExcelJS (cdnjs) reads and writes .xlsx. This is not Excel.
  */
 const EXCELJS_VERSION = "4.4.0";
 const EXCELJS_SOURCES = [
@@ -3179,17 +3577,6 @@ function loadExcelJs() {
   return excelJsLoadPromise;
 }
 
-function colLetters(i) {
-  // 0 → A, 25 → Z, 26 → AA
-  let n = i;
-  let s = "";
-  do {
-    s = String.fromCharCode(65 + (n % 26)) + s;
-    n = Math.floor(n / 26) - 1;
-  } while (n >= 0);
-  return s;
-}
-
 function sheetEscapeCsvCell(v) {
   const s = String(v ?? "");
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -3218,6 +3605,11 @@ function openSheet(wm) {
   let fileBase = "asx-spreadsheet";
   let dirty = false;
   let active = { r: 0, c: 0 };
+  let computerHandle = null;
+  let display = [];
+  let draftTimer = 0;
+  const MAX_ROWS = 200;
+  const MAX_COLS = 40;
 
   const emptyGrid = (rows, cols) =>
     Array.from({ length: rows }, () => Array.from({ length: cols }, () => ""));
@@ -3260,19 +3652,21 @@ function openSheet(wm) {
     <div class="sheet-menubar" role="toolbar" aria-label="Spreadsheet">
       <div class="sheet-menu-group">
         <button type="button" class="sheet-btn" data-act="new" title="New sheet">New</button>
-        <label class="sheet-btn sheet-file-label" title="Open CSV or XLSX">
-          Open…
-          <input type="file" class="sheet-open" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
-        </label>
-        <button type="button" class="sheet-btn primary" data-act="save-local" title="Save in this browser (session cache)">Save</button>
-        <button type="button" class="sheet-btn" data-act="save-disk" title="Write CSV to guest virtual disk Documents">Save to disk</button>
-        <button type="button" class="sheet-btn" data-act="open-disk" title="Read CSV/JSON from guest Documents">Open from disk</button>
-        <button type="button" class="sheet-btn" data-act="export-csv" title="Download CSV to your computer">↓ CSV</button>
-        <button type="button" class="sheet-btn" data-act="export-xlsx" title="Download Excel XLSX (ExcelJS CDN)">↓ XLSX</button>
+        <button type="button" class="sheet-btn" data-act="open-computer" title="Open a CSV or Excel file from your computer">Open…</button>
+        <button type="button" class="sheet-btn primary" data-act="save-computer" title="Save an Excel file on your computer. The dialog opens on the Desktop.">Save</button>
+        <button type="button" class="sheet-btn" data-act="save-as" title="Save a copy on your computer">Save as…</button>
+        <button type="button" class="sheet-btn" data-act="save-csv" title="Save a CSV file on your computer">Save CSV…</button>
+        <button type="button" class="sheet-btn" data-act="print" title="Print the calculated sheet">Print</button>
+        <button type="button" class="sheet-btn" data-act="save-disk" title="Copy a CSV onto the guest virtual disk, not your computer">Guest copy</button>
+        <button type="button" class="sheet-btn" data-act="open-disk" title="Open a CSV from the guest virtual disk">Open guest…</button>
       </div>
       <div class="sheet-menu-group">
-        <button type="button" class="sheet-btn" data-act="add-row" title="Insert row at bottom">+ Row</button>
-        <button type="button" class="sheet-btn" data-act="add-col" title="Insert column at right">+ Col</button>
+        <button type="button" class="sheet-btn" data-act="add-row" title="Add a row at the bottom">+ Row</button>
+        <button type="button" class="sheet-btn" data-act="add-col" title="Add a column at the right">+ Col</button>
+        <button type="button" class="sheet-btn" data-act="insert-row" title="Insert a row above the selected cell">Insert row</button>
+        <button type="button" class="sheet-btn" data-act="insert-col" title="Insert a column left of the selected cell">Insert col</button>
+        <button type="button" class="sheet-btn" data-act="delete-row" title="Delete the selected row">Delete row</button>
+        <button type="button" class="sheet-btn" data-act="delete-col" title="Delete the selected column">Delete col</button>
         <button type="button" class="sheet-btn" data-act="clear" title="Clear all cells">Clear</button>
       </div>
       <div class="sheet-menu-group sheet-name-group">
@@ -3286,12 +3680,13 @@ function openSheet(wm) {
     </div>
     <div class="sheet-formula-bar">
       <span class="sheet-ref" title="Active cell">A1</span>
-      <input type="text" class="sheet-fx" spellcheck="false" placeholder="Cell value" aria-label="Formula bar" />
+      <span class="sheet-fx-label" aria-hidden="true">fx</span>
+      <input type="text" class="sheet-fx" spellcheck="true" placeholder="Value or =formula" aria-label="Formula bar" />
     </div>
     <div class="sheet-scroll">
       <table class="sheet" aria-label="Spreadsheet grid"></table>
     </div>
-    <div class="sheet-status dim" aria-live="polite">ASX Sheet · ExcelJS ${EXCELJS_VERSION} · browser cache + guest disk + download (not MS/Google clone)</div>`;
+    <div class="sheet-status dim" aria-live="polite">Free spreadsheet · no account · Save writes a file on your computer</div>`;
 
   const table = root.querySelector("table.sheet");
   const status = root.querySelector(".sheet-status");
@@ -3299,7 +3694,6 @@ function openSheet(wm) {
   const fx = root.querySelector(".sheet-fx");
   const nameIn = root.querySelector(".sheet-name");
   const fileIn = root.querySelector(".sheet-filebase");
-  const openIn = root.querySelector(".sheet-open");
 
   const setStatus = (msg) => {
     if (status) status.textContent = msg || "";
@@ -3316,6 +3710,8 @@ function openSheet(wm) {
     if (!data[r]) data[r] = Array.from({ length: nCols }, () => "");
     data[r][c] = String(val ?? "");
     dirty = true;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => saveLocal(true), 400);
   };
 
   const syncFx = () => {
@@ -3333,7 +3729,32 @@ function openSheet(wm) {
     td?.classList.add("sheet-active");
     const inp = td?.querySelector("input");
     syncFx();
+    if (fx) fx.spellcheck = spellCell(fx.value);
     return inp;
+  };
+
+  const spellCell = (raw) => {
+    const s = String(raw ?? "").trim();
+    if (!s || s.startsWith("=")) return false;
+    if (/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(s)) return false;
+    return true;
+  };
+
+  const refreshValues = () => {
+    display = evaluateGrid(data);
+    table.querySelectorAll("td[data-r]").forEach((td) => {
+      const r = Number(td.dataset.r);
+      const c = Number(td.dataset.c);
+      const inp = td.querySelector("input");
+      if (!inp) return;
+      const raw = getCell(r, c);
+      const shown = display[r]?.[c] ?? "";
+      const formula = raw.startsWith("=");
+      td.classList.toggle("sheet-err", formula && shown.startsWith("#"));
+      inp.title = formula ? raw : "";
+      inp.spellcheck = spellCell(raw);
+      if (document.activeElement !== inp) inp.value = formula ? shown : raw;
+    });
   };
 
   const renderGrid = () => {
@@ -3361,13 +3782,29 @@ function openSheet(wm) {
         td.dataset.c = String(c);
         const inp = document.createElement("input");
         inp.type = "text";
-        inp.value = getCell(r, c);
-        inp.spellcheck = false;
         inp.setAttribute("aria-label", cellRef(r, c));
-        inp.addEventListener("focus", () => focusCell(r, c));
+        const atEdge = (dir) => {
+          const start = inp.selectionStart;
+          const end = inp.selectionEnd;
+          if (start == null || start !== end) return false;
+          return dir < 0 ? start === 0 : start === inp.value.length;
+        };
+        inp.addEventListener("focus", () => {
+          focusCell(r, c);
+          inp.value = getCell(r, c);
+          inp.spellcheck = spellCell(inp.value);
+        });
+        inp.addEventListener("blur", () => {
+          const raw = getCell(r, c);
+          if (raw.startsWith("=")) inp.value = display[r]?.[c] ?? raw;
+        });
         inp.addEventListener("input", () => {
           setCell(r, c, inp.value);
-          if (active.r === r && active.c === c) fx.value = inp.value;
+          if (active.r === r && active.c === c) {
+            fx.value = inp.value;
+            fx.spellcheck = spellCell(inp.value);
+          }
+          refreshValues();
         });
         inp.addEventListener("keydown", (e) => {
           if (e.key === "Enter") {
@@ -3376,12 +3813,18 @@ function openSheet(wm) {
           } else if (e.key === "Tab") {
             e.preventDefault();
             focusCell(r, c + (e.shiftKey ? -1 : 1))?.focus();
-          } else if (e.key === "ArrowDown" && !e.shiftKey) {
+          } else if (e.key === "ArrowDown" && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             focusCell(r + 1, c)?.focus();
-          } else if (e.key === "ArrowUp" && !e.shiftKey) {
+          } else if (e.key === "ArrowUp" && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             focusCell(r - 1, c)?.focus();
+          } else if (e.key === "ArrowLeft" && !e.shiftKey && atEdge(-1)) {
+            e.preventDefault();
+            focusCell(r, c - 1)?.focus();
+          } else if (e.key === "ArrowRight" && !e.shiftKey && atEdge(1)) {
+            e.preventDefault();
+            focusCell(r, c + 1)?.focus();
           }
         });
         td.appendChild(inp);
@@ -3389,7 +3832,8 @@ function openSheet(wm) {
       }
       table.appendChild(tr);
     }
-    focusCell(active.r, active.c);
+    refreshValues();
+    focusCell(active.r, active.c)?.focus();
   };
 
   const readMeta = () => {
@@ -3402,7 +3846,7 @@ function openSheet(wm) {
         .slice(0, 64) || "asx-spreadsheet";
   };
 
-  const saveLocal = () => {
+  const saveLocal = (quiet) => {
     readMeta();
     try {
       const payload = JSON.stringify({
@@ -3413,14 +3857,14 @@ function openSheet(wm) {
         t: Date.now(),
       });
       if (payload.length > 1_500_000) {
-        setStatus("Sheet too large for browser cache — use ↓ CSV / ↓ XLSX download instead");
+        if (!quiet) setStatus("Sheet too large for the browser draft. Save still writes the file on your computer.");
         return;
       }
       localStorage.setItem(LS_KEY, payload);
-      dirty = false;
-      setStatus(`Saved in browser · ${sheetName} · ${nRows}×${nCols} · ${new Date().toLocaleTimeString()}`);
+      if (!quiet) dirty = false;
+      if (!quiet) setStatus(`Draft kept in this browser · ${sheetName} · ${nRows}×${nCols}`);
     } catch (e) {
-      setStatus(e?.message || "localStorage save failed (quota?) — try download export");
+      if (!quiet) setStatus(e?.message || "Could not keep a browser draft. Save still writes the file on your computer.");
     }
   };
 
@@ -3443,52 +3887,95 @@ function openSheet(wm) {
     );
   };
 
-  const exportCsv = () => {
+  const csvBlob = () => {
     readMeta();
     const mat = matrixFromGrid();
     const csv = mat.map((row) => row.map(sheetEscapeCsvCell).join(",")).join("\r\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    downloadBlob(blob, `${fileBase}.csv`);
-    setStatus(`Downloaded ${fileBase}.csv · ${mat.length} rows`);
+    return {
+      blob: new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }),
+      rows: mat.length,
+    };
   };
 
-  const exportXlsx = async () => {
+  const xlsxBlob = async () => {
     readMeta();
-    setStatus("Loading ExcelJS…");
     const ExcelJS = await loadExcelJs();
-    if (!ExcelJS) {
-      setStatus("ExcelJS failed to load from CDN — try CSV export");
-      return;
-    }
+    if (!ExcelJS) return null;
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Alison Scorpion Spreadsheet";
+    wb.created = new Date();
+    const ws = wb.addWorksheet((sheetName || "Sheet1").slice(0, 31) || "Sheet1");
+    const mat = matrixFromGrid();
+    const shown = evaluateGrid(data);
+    mat.forEach((row, ri) => {
+      row.forEach((val, ci) => {
+        const cell = ws.getCell(ri + 1, ci + 1);
+        const s = String(val ?? "");
+        if (s.startsWith("=")) {
+          const resultText = shown[ri]?.[ci] ?? "";
+          const result = /^-?\d+(\.\d+)?$/.test(resultText) ? Number(resultText) : resultText;
+          cell.value = { formula: s.slice(1), result };
+        } else if (s !== "" && /^-?\d+(\.\d+)?$/.test(s)) {
+          cell.value = Number(s);
+        } else {
+          cell.value = s;
+        }
+      });
+    });
+    ws.views = [{ state: "frozen", ySplit: 1 }];
+    const buf = await wb.xlsx.writeBuffer();
+    return new Blob([buf], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+  };
+
+  const saveWorkbook = async (saveAs) => {
+    readMeta();
+    setStatus("Preparing the workbook…");
     try {
-      const wb = new ExcelJS.Workbook();
-      wb.creator = "ASX Desktop Spreadsheet";
-      wb.created = new Date();
-      const ws = wb.addWorksheet(sheetName.slice(0, 31) || "Sheet1");
-      const mat = matrixFromGrid();
-      mat.forEach((row, ri) => {
-        row.forEach((val, ci) => {
-          const cell = ws.getCell(ri + 1, ci + 1);
-          const s = String(val ?? "");
-          // Numbers when plain numeric
-          if (s !== "" && /^-?\d+(\.\d+)?$/.test(s)) cell.value = Number(s);
-          else cell.value = s;
-        });
-      });
-      // Light header style on first row if present
-      if (mat[0]) {
-        ws.getRow(1).font = { bold: true };
+      const blob = await xlsxBlob();
+      if (!blob) {
+        const csv = csvBlob();
+        const result = await saveBlobToComputer(csv.blob, `${fileBase}.csv`, CSV_PICKER_TYPES, null);
+        saveLocal(true);
+        setStatus(computerSaveStatus(result, `${fileBase}.csv`) + " Excel export did not load, so this is a CSV.");
+        return;
       }
-      ws.views = [{ state: "frozen", ySplit: 1 }];
-      const buf = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buf], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      downloadBlob(blob, `${fileBase}.xlsx`);
-      setStatus(`Downloaded ${fileBase}.xlsx · ExcelJS ${EXCELJS_VERSION}`);
+      const name = cleanComputerName(fileBase, "spreadsheet", ".xlsx");
+      const result = await saveBlobToComputer(
+        blob,
+        name,
+        XLSX_PICKER_TYPES,
+        saveAs ? null : computerHandle
+      );
+      if (result?.handle) computerHandle = result.handle;
+      if (result?.name) {
+        fileBase = result.name.replace(/\.xlsx$/i, "").replace(/[^\w.-]+/g, "-").slice(0, 64) || fileBase;
+        fileIn.value = fileBase;
+      }
+      saveLocal(true);
+      if (result?.ok) dirty = false;
+      setStatus(computerSaveStatus(result, name));
     } catch (e) {
-      setStatus(e?.message || "XLSX export failed");
+      setStatus(e?.message || "Save failed");
     }
+  };
+
+  const saveCsvToComputer = async () => {
+    readMeta();
+    const csv = csvBlob();
+    const name = cleanComputerName(fileBase, "spreadsheet", ".csv");
+    const result = await saveBlobToComputer(csv.blob, name, CSV_PICKER_TYPES, null);
+    setStatus(computerSaveStatus(result, name));
+  };
+
+  const printSheet = () => {
+    readMeta();
+    const shown = evaluateGrid(data);
+    const mat = matrixFromGrid();
+    const rows = mat.map((row, r) => row.map((_, c) => shown[r]?.[c] ?? ""));
+    const ok = printHtml(sheetPrintHtml(sheetName, rows));
+    setStatus(ok ? "Print dialog opened" : "Could not open the print dialog");
   };
 
   const applyMatrix = (mat, nameHint) => {
@@ -3583,6 +4070,10 @@ function openSheet(wm) {
           const arr = [];
           row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
             while (arr.length < colNumber - 1) arr.push("");
+            if (typeof cell.formula === "string" && cell.formula) {
+              arr[colNumber - 1] = cell.formula.startsWith("=") ? cell.formula : `=${cell.formula}`;
+              return;
+            }
             let v = cell.value;
             if (v && typeof v === "object") {
               if (v.result != null) v = v.result;
@@ -3608,6 +4099,8 @@ function openSheet(wm) {
   // Formula bar → active cell
   fx.addEventListener("input", () => {
     setCell(active.r, active.c, fx.value);
+    fx.spellcheck = spellCell(fx.value);
+    refreshValues();
     const inp = table.querySelector(
       `td[data-r="${active.r}"][data-c="${active.c}"] input`
     );
@@ -3630,7 +4123,7 @@ function openSheet(wm) {
   });
 
   root.querySelector('[data-act="new"]').addEventListener("click", () => {
-    if (dirty && !window.confirm("Discard unsaved changes?")) return;
+    if (dirty && !window.confirm("Start a new sheet? Save first if you want this one on your computer.")) return;
     nRows = 24;
     nCols = 10;
     data = emptyGrid(nRows, nCols);
@@ -3638,6 +4131,7 @@ function openSheet(wm) {
     fileBase = "asx-spreadsheet";
     nameIn.value = sheetName;
     fileIn.value = fileBase;
+    computerHandle = null;
     dirty = false;
     active = { r: 0, c: 0 };
     renderGrid();
@@ -3666,7 +4160,7 @@ function openSheet(wm) {
     const jsonPath = path.replace(/\.csv$/i, ".asxsheet.json");
     const payload = JSON.stringify({ v: 2, sheetName, fileBase, data: mat, t: Date.now() });
     if (payload.length > 1_500_000) {
-      setStatus("Sheet too large for guest disk snapshot — use ↓ CSV / ↓ XLSX download");
+      setStatus("Sheet too large for a guest-disk copy. Save still writes the file on your computer.");
       return;
     }
     setStatus("Writing guest disk…");
@@ -3685,7 +4179,7 @@ function openSheet(wm) {
     } catch {
       /* ignore */
     }
-    setStatus(`Saved to disk ${path} (+ .asxsheet.json) · download still available via ↓`);
+    setStatus(`Guest copy saved at ${path}. That disk is inside the browser, not your computer.`);
   };
 
   const openFromDisk = async () => {
@@ -3711,6 +4205,7 @@ function openSheet(wm) {
       setStatus("Access denied — only /home/guest/**");
       return;
     }
+    computerHandle = null;
     setStatus("Reading guest disk…");
     const r = await readFileAsync(path);
     if (r.error) {
@@ -3742,26 +4237,85 @@ function openSheet(wm) {
   };
 
 
-  root.querySelector('[data-act="save-local"]').addEventListener("click", saveLocal);
+  const applyStructure = (next, message) => {
+    data = next;
+    nRows = data.length;
+    nCols = data[0]?.length || 1;
+    if (active.r >= nRows) active.r = nRows - 1;
+    if (active.c >= nCols) active.c = nCols - 1;
+    dirty = true;
+    renderGrid();
+    setStatus(message);
+  };
+
+  root.querySelector('[data-act="open-computer"]').addEventListener("click", async () => {
+    const opened = await openFileFromComputer(
+      SHEET_OPEN_TYPES,
+      ".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    if (opened.cancelled || !opened.file) {
+      if (opened.cancelled) setStatus("Open cancelled");
+      return;
+    }
+    const lower = (opened.file.name || "").toLowerCase();
+    computerHandle = lower.endsWith(".xlsx") ? opened.handle : null;
+    await importFile(opened.file);
+  });
+  root.querySelector('[data-act="save-computer"]').addEventListener("click", () => {
+    saveWorkbook(false);
+  });
+  root.querySelector('[data-act="save-as"]').addEventListener("click", () => {
+    saveWorkbook(true);
+  });
+  root.querySelector('[data-act="save-csv"]').addEventListener("click", () => {
+    saveCsvToComputer();
+  });
+  root.querySelector('[data-act="print"]').addEventListener("click", printSheet);
   root.querySelector('[data-act="save-disk"]')?.addEventListener("click", () => { saveToDisk(); });
   root.querySelector('[data-act="open-disk"]')?.addEventListener("click", () => { openFromDisk(); });
-  root.querySelector('[data-act="export-csv"]').addEventListener("click", exportCsv);
-  root.querySelector('[data-act="export-xlsx"]').addEventListener("click", () => {
-    exportXlsx();
-  });
   root.querySelector('[data-act="add-row"]').addEventListener("click", () => {
-    data.push(Array.from({ length: nCols }, () => ""));
-    nRows = data.length;
-    dirty = true;
-    renderGrid();
-    setStatus(`Rows: ${nRows}`);
+    if (nRows >= MAX_ROWS) {
+      setStatus(`This free sheet stops at ${MAX_ROWS} rows`);
+      return;
+    }
+    applyStructure(insertRow(data, nRows), `${nRows + 1} rows`);
   });
   root.querySelector('[data-act="add-col"]').addEventListener("click", () => {
-    data.forEach((row) => row.push(""));
-    nCols += 1;
-    dirty = true;
-    renderGrid();
-    setStatus(`Columns: ${nCols} (${colLetters(nCols - 1)})`);
+    if (nCols >= MAX_COLS) {
+      setStatus(`This free sheet stops at ${MAX_COLS} columns`);
+      return;
+    }
+    applyStructure(insertCol(data, nCols), `${nCols + 1} columns`);
+  });
+  root.querySelector('[data-act="insert-row"]').addEventListener("click", () => {
+    if (nRows >= MAX_ROWS) {
+      setStatus(`This free sheet stops at ${MAX_ROWS} rows`);
+      return;
+    }
+    applyStructure(insertRow(data, active.r), "Inserted a row. Formulas moved with it.");
+  });
+  root.querySelector('[data-act="insert-col"]').addEventListener("click", () => {
+    if (nCols >= MAX_COLS) {
+      setStatus(`This free sheet stops at ${MAX_COLS} columns`);
+      return;
+    }
+    applyStructure(insertCol(data, active.c), "Inserted a column. Formulas moved with it.");
+  });
+  root.querySelector('[data-act="delete-row"]').addEventListener("click", () => {
+    const result = deleteRow(data, active.r);
+    if (result.error) {
+      setStatus(result.error);
+      return;
+    }
+    applyStructure(result.data, "Deleted the row. A formula that pointed at it shows #REF!.");
+  });
+  root.querySelector('[data-act="delete-col"]').addEventListener("click", () => {
+    const result = deleteCol(data, active.c);
+    if (result.error) {
+      setStatus(result.error);
+      return;
+    }
+    applyStructure(result.data, "Deleted the column. A formula that pointed at it shows #REF!.");
   });
   root.querySelector('[data-act="clear"]').addEventListener("click", () => {
     if (!window.confirm("Clear all cells?")) return;
@@ -3770,33 +4324,36 @@ function openSheet(wm) {
     renderGrid();
     setStatus("Cleared");
   });
-  openIn.addEventListener("change", () => {
-    const f = openIn.files?.[0];
-    if (f) importFile(f);
-    openIn.value = "";
-  });
 
-  // Ctrl/Cmd+S → local save
   root.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
-      saveLocal();
+      saveWorkbook(e.shiftKey);
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      printSheet();
     }
   });
 
   renderGrid();
-  // Prefetch ExcelJS so Save XLSX is snappy
   loadExcelJs().then((lib) => {
-    if (lib) setStatus(`Ready · ExcelJS loaded · Save (browser) or ↓ CSV / ↓ XLSX`);
-    else setStatus(`Ready · CSV export OK · XLSX needs ExcelJS CDN`);
+    if (lib) {
+      setStatus("Ready · =SUM(A1:A10) · =A1+B1 · =IF(A1>1,\"yes\",\"no\") · Save writes a file on your computer");
+    } else {
+      setStatus("Ready · formulas work here · Excel save needs the ExcelJS CDN · CSV save still works");
+    }
   });
 
   wm.open({
     id: "sheet",
     title: "Spreadsheet",
-    w: 860,
-    h: 580,
+    w: 980,
+    h: 640,
     body: root,
+    onClose: () => {
+      clearTimeout(draftTimer);
+      saveLocal(true);
+    },
   });
 }
 
@@ -3858,7 +4415,7 @@ function defaultImpressSlides() {
       x: 1000,
       y: 0,
       scale: 1,
-      html: `<h2>Free apps</h2><p>Quill · Monaco · Spreadsheet · Agent · Files…</p><p>Hop on and use them today.</p>`,
+      html: `<h2>Free apps</h2><p>Document · Spreadsheet · Monaco · Agent · Files…</p><p>Hop on and use them today.</p>`,
     },
     {
       id: "construct",
@@ -5531,7 +6088,8 @@ function openSettings(wm, opts = {}) {
     { group: "Appearance", id: "appearance", label: "Theme", icon: "◐" },
     { id: "wallpaper", label: "Wallpaper", icon: "🖼" },
     { id: "colors", label: "Colors", icon: "●" },
-    { group: "Desktop", id: "desktop", label: "Icons & layout", icon: "▦" },
+    { group: "Desktop", id: "background", label: "Background", icon: "✦" },
+    { id: "desktop", label: "Icons & layout", icon: "▦" },
     { id: "taskbar", label: "Taskbar", icon: "▁" },
     { id: "windows", label: "Windows", icon: "▢" },
     { group: "Account", id: "about", label: "About you", icon: "👤" },
@@ -5654,6 +6212,34 @@ function openSettings(wm, opts = {}) {
       });
       main.querySelector("#asx-wall-pick")?.addEventListener("click", () => {
         main.querySelector('[data-wall="image"]')?.click();
+      });
+      return;
+    }
+    if (id === "background") {
+      const running = p.bgRun !== false;
+      const slow = p.bgSpeed === "slow";
+      main.innerHTML = `
+        <h2>Background</h2>
+        <p class="dim settings-lead">The moving background can cause motion sickness. Stop freezes the picture. Slow runs at about a quarter of the usual speed. The choice stays on this desktop.</p>
+        <p class="settings-label">Motion</p>
+        <div class="settings-row" role="group" aria-label="Background motion">
+          <button type="button" class="sheet-btn ${running ? "is-on" : ""}" data-bg="start" aria-pressed="${running ? "true" : "false"}">Start</button>
+          <button type="button" class="sheet-btn ${running ? "" : "is-on"}" data-bg="stop" aria-pressed="${running ? "false" : "true"}">Stop</button>
+        </div>
+        <p class="settings-label">Speed</p>
+        <div class="settings-row" role="group" aria-label="Background speed">
+          <button type="button" class="sheet-btn ${slow ? "is-on" : ""}" data-bg="slow" aria-pressed="${slow ? "true" : "false"}">Slow</button>
+          <button type="button" class="sheet-btn ${slow ? "" : "is-on"}" data-bg="normal" aria-pressed="${slow ? "false" : "true"}">Normal</button>
+        </div>`;
+      main.querySelectorAll("[data-bg]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const kind = btn.getAttribute("data-bg");
+          if (kind === "start") setPref("bgRun", true);
+          else if (kind === "stop") setPref("bgRun", false);
+          else if (kind === "slow") setPref("bgSpeed", "slow");
+          else if (kind === "normal") setPref("bgSpeed", "normal");
+          paint("background");
+        });
       });
       return;
     }
@@ -5856,14 +6442,30 @@ function safeCalc(input) {
 }
 
 
-/* ── GitHub (public repo) ───────────────────────────────── */
+/* ── GitHub (public repo, opened in ASX Web Observer) ──── */
 const PUBLIC_GITHUB = "https://github.com/aliceinailand/alisonscorpionpublic";
 
 function openGithub(wm) {
-  openBrowser(wm, {
-    id: "browser-github",
-    title: "GitHub — alisonscorpionpublic",
-    initialUrl: PUBLIC_GITHUB,
+  openSandbox(wm, {
+    title: "GitHub sandbox",
+    site: "github.com",
+    url: PUBLIC_GITHUB,
+  });
+}
+
+function openWikipedia(wm) {
+  openSandbox(wm, {
+    title: "Wikipedia sandbox",
+    site: "wikipedia.org",
+    url: "https://www.wikipedia.org/",
+  });
+}
+
+function openYoutubeSandbox(wm) {
+  openSandbox(wm, {
+    title: "YouTube sandbox",
+    site: "youtube.com",
+    url: "https://www.youtube.com/",
   });
 }
 

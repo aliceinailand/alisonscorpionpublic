@@ -1,0 +1,170 @@
+/* Flat Container screen. No desktop, no WebGL. */
+:root {
+  --bg: #0e0f12;
+  --side: #121318;
+  --panel: #17181e;
+  --line: #2c2e36;
+  --text: #f2f2f4;
+  --dim: #a0a1ab;
+  --accent: #6d5efc;
+  --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 var(--sans);
+}
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+.app { display: flex; min-height: 100vh; }
+.side {
+  width: 232px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 12px 16px;
+  background: var(--side);
+  border-right: 1px solid var(--line);
+}
+.mark {
+  margin: 0 8px;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.mark-sub {
+  margin: -6px 8px 4px;
+  color: var(--dim);
+  font-size: 12px;
+}
+.rails { display: flex; flex-direction: column; gap: 12px; }
+.primary, .secondary { display: flex; flex-direction: column; gap: 4px; }
+.secondary {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.side a, .top-actions a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--dim);
+  text-decoration: none;
+}
+.primary a.large {
+  min-height: 52px;
+  padding: 12px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.side a[aria-current="page"], .side a:hover, .top-actions a:hover {
+  background: #1c1e26;
+  color: var(--text);
+}
+.secondary a { font-size: 13px; }
+.back { margin-top: auto; font-size: 13px; }
+main { flex: 1; min-width: 0; }
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.product { margin: 0; font-size: 18px; font-weight: 650; }
+.top-actions { display: flex; gap: 8px; }
+.top-actions a { border: 1px solid var(--line); }
+.top-actions a.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 700;
+}
+#views { padding: 24px; max-width: 760px; }
+.view { display: none; }
+.view:target { display: block; }
+.home { display: block; }
+#views > .view:target ~ .home { display: none; }
+h2 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+p, li { color: var(--dim); }
+.stage {
+  margin-top: 16px;
+  padding: 20px;
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.steps { margin: 12px 0 0; padding-left: 1.2rem; }
+.stage a { color: var(--text); }
+label { display: block; margin-top: 14px; color: var(--dim); font-size: 13px; }
+input[type="email"], input[type="text"] {
+  display: block;
+  width: min(100%, 420px);
+  margin-top: 6px;
+  padding: 10px 12px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+button.continue {
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.confirm {
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.empty { margin-bottom: 0; }
+.noscript {
+  margin: 0;
+  padding: 10px 16px;
+  background: #1a1c24;
+  color: var(--dim);
+}
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid #c8b273;
+  outline-offset: 2px;
+}
+@media (max-width: 720px) {
+  .app { display: block; }
+  .side {
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .rails {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .primary, .secondary {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .side a, .top-actions a { white-space: nowrap; }
+  .back { margin-top: 8px; }
+  .top { flex-wrap: wrap; padding: 12px 16px; }
+  #views { padding: 16px; }
+}
