@@ -134,7 +134,14 @@ button.continue {
   padding: 10px 12px;
 }
 .lead { color: var(--text); font-size: 18px; font-weight: 650; }
-.tiers { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+.tiers {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
 .tiers li {
   margin: 0;
   padding: 14px;
