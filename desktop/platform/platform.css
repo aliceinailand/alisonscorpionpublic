@@ -133,6 +133,30 @@ button.continue {
   border-radius: 8px;
   padding: 10px 12px;
 }
+.lead { color: var(--text); font-size: 18px; font-weight: 650; }
+.tiers { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+.tiers li {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.tier-name { margin: 0; color: var(--text); font-weight: 700; }
+.tier-price { margin: 4px 0; color: var(--text); font-size: 22px; font-weight: 650; }
+.stage a.tier-action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tier-off { margin: 8px 0 0; font-size: 13px; }
 .empty { margin-bottom: 0; }
 .noscript {
   margin: 0;
