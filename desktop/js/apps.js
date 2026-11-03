@@ -53,7 +53,8 @@ import {
   mountPhysics,
   mountInvaders,
   mountPacman,
-} from "./games.js?v=20260815t210000z";
+  mountAsteroids,
+} from "./games.js?v=20261103pause2";
 import {
   loadScriptChain,
   MATTER_SOURCES,
@@ -279,6 +280,7 @@ export const APP_CATALOG = [
   { id: "pong", label: "Ping Pong", glyph: "🏓" },
   { id: "blocks", label: "Blocks", glyph: "▦" },
   { id: "snake", label: "Snake", glyph: "〰" },
+  { id: "asteroids", label: "Asteroids", glyph: "☄" },
   { id: "breakout", label: "Breakout", glyph: "▣" },
   { id: "memory", label: "Memory", glyph: "🃏" },
   { id: "mines", label: "Mines", glyph: "⚑" },
@@ -342,6 +344,7 @@ export const APP_CATEGORIES = [
       "tic-tac-toe",
       "blocks",
       "snake",
+      "asteroids",
       "breakout",
       "memory",
       "mines",
@@ -394,6 +397,7 @@ const APP_OPENERS = {
   pong: openPong,
   blocks: openBlocks,
   snake: openSnake,
+  asteroids: openAsteroids,
   breakout: openBreakout,
   memory: openMemory,
   mines: openMines,
@@ -734,6 +738,7 @@ function openTerminal(wm, opts = {}) {
           pong: () => openPong(wm),
           blocks: () => openBlocks(wm),
           snake: () => openSnake(wm),
+          asteroids: () => openAsteroids(wm),
           breakout: () => openBreakout(wm),
           memory: () => openMemory(wm),
           mines: () => openMines(wm),
@@ -6558,6 +6563,7 @@ const GAME_TITLES = [
   { id: "pacman", label: "Pac-Man", glyph: "ᗧ", sub: "HTML5 · arrows" },
   { id: "pong", label: "Ping Pong", glyph: "🏓", sub: "HTML5 · W/S" },
   { id: "snake", label: "Snake", glyph: "〰", sub: "HTML5 · arrows" },
+  { id: "asteroids", label: "Asteroids", glyph: "☄", sub: "HTML5 · ← → ↑ Space" },
   { id: "breakout", label: "Breakout", glyph: "▣", sub: "HTML5 · ← →" },
   { id: "blocks", label: "Blocks", glyph: "▦", sub: "HTML5 · arrows" },
   { id: "tic-tac-toe", label: "Tic Tac Toe", glyph: "✕", sub: "HTML5" },
@@ -6735,6 +6741,16 @@ function openBlocks(wm) {
 function openSnake(wm) {
   openGameWindow(wm, { id: "snake", title: "Snake", hint: "Arrows", w: 420, h: 380, mount: mountSnake });
 }
+function openAsteroids(wm) {
+  openGameWindow(wm, {
+    id: "asteroids",
+    title: "Asteroids",
+    hint: "← → rotate · ↑ thrust · Space fire",
+    w: 520,
+    h: 420,
+    mount: mountAsteroids,
+  });
+}
 function openBreakout(wm) {
   openGameWindow(wm, { id: "breakout", title: "Breakout", hint: "← →", w: 460, h: 400, mount: mountBreakout });
 }
@@ -6765,6 +6781,10 @@ function openPhysics(wm) {
       return {
         reset: () => ctrl.reset?.(),
         destroy: () => ctrl.destroy?.(),
+        get paused() {
+          return !!ctrl.paused;
+        },
+        togglePause: () => ctrl.togglePause?.(),
       };
     },
   });

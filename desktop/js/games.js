@@ -14,10 +14,148 @@ function gameShell(title, hint) {
     <div class="asx-game-bar">
       <strong>${escapeHtml(title)}</strong>
       <span class="asx-game-hint">${escapeHtml(hint || "")}</span>
+      <button type="button" class="asx-game-pause" title="Pause / resume (P)" aria-pressed="false">Pause</button>
       <button type="button" class="asx-game-reset" title="Restart">↻</button>
     </div>
     <div class="asx-game-stage"></div>`;
   return root;
+}
+
+/**
+ * Shared pause for ASX games — lose focus pauses, regain focus resumes;
+ * P key + bar button still work. Manual pause stays until Resume/P.
+ * Realtime games skip updates while paused; turn-based games ignore input.
+ */
+function createPauseControl({ onStatus, getIdleHint, onChange, stage } = {}) {
+  let paused = false;
+  /** True when the current pause came from focus loss (auto-resume on focus). */
+  let focusHeldPause = false;
+  let hostMo = null;
+  const hint = () =>
+    (typeof getIdleHint === "function" ? getIdleHint() : getIdleHint) || "";
+
+  const hostWin = () => stage?.closest?.(".asx-window") || null;
+
+  const gameHasFocus = () => {
+    if (document.hidden) return false;
+    if (typeof document.hasFocus === "function" && !document.hasFocus()) {
+      return false;
+    }
+    const el = hostWin();
+    if (!el) return true;
+    if (el.classList.contains("minimized")) return false;
+    return el.classList.contains("active");
+  };
+
+  const syncBar = () => {
+    const root = stage?.closest?.(".asx-game");
+    const btn = root?.querySelector(".asx-game-pause");
+    if (!btn) return;
+    btn.setAttribute("aria-pressed", paused ? "true" : "false");
+    btn.textContent = paused ? "Resume" : "Pause";
+    btn.hidden = false;
+  };
+
+  const pauseMessage = () =>
+    focusHeldPause
+      ? "Paused — return focus to resume"
+      : "Paused — P to resume";
+
+  const setPaused = (next, { fromFocus = false } = {}) => {
+    if (fromFocus) {
+      if (next) {
+        // Already paused (manual or prior focus) — leave focusHeldPause as-is
+        // so a manual pause is never promoted into an auto-resume pause.
+        if (paused) return;
+        paused = true;
+        focusHeldPause = true;
+      } else {
+        // Auto-resume only undoes a focus-held pause
+        if (!paused || !focusHeldPause) return;
+        paused = false;
+        focusHeldPause = false;
+      }
+    } else {
+      if (paused === next) return;
+      paused = next;
+      focusHeldPause = false;
+    }
+    if (paused) onStatus?.(pauseMessage());
+    else onStatus?.(hint() || "Playing");
+    syncBar();
+    onChange?.(paused);
+  };
+
+  const syncFocusPause = () => {
+    if (gameHasFocus()) setPaused(false, { fromFocus: true });
+    else setPaused(true, { fromFocus: true });
+  };
+
+  const toggle = () => {
+    setPaused(!paused);
+    // Still unfocused after a manual resume → keep focus-pause
+    if (!paused && !gameHasFocus()) setPaused(true, { fromFocus: true });
+  };
+
+  const onKey = (e) => {
+    if (e.repeat) return;
+    if (e.key !== "p" && e.key !== "P") return;
+    e.preventDefault();
+    toggle();
+  };
+
+  return {
+    get paused() {
+      return paused;
+    },
+    toggle,
+    pause: () => setPaused(true),
+    resume: () => setPaused(false),
+    bind() {
+      window.addEventListener("keydown", onKey);
+      document.addEventListener("visibilitychange", syncFocusPause);
+      window.addEventListener("blur", syncFocusPause);
+      window.addEventListener("focus", syncFocusPause);
+      const el = hostWin();
+      if (el && typeof MutationObserver === "function") {
+        hostMo = new MutationObserver(syncFocusPause);
+        hostMo.observe(el, { attributes: true, attributeFilter: ["class"] });
+      }
+      syncFocusPause();
+    },
+    unbind() {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("visibilitychange", syncFocusPause);
+      window.removeEventListener("blur", syncFocusPause);
+      window.removeEventListener("focus", syncFocusPause);
+      hostMo?.disconnect?.();
+      hostMo = null;
+    },
+    /** Dim canvas and stamp PAUSED. Call after the game's own draw. */
+    drawOverlay(ctx, w, h) {
+      if (!paused || !ctx) return;
+      ctx.save();
+      ctx.fillStyle = "rgba(10, 6, 24, 0.55)";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#e8e0ff";
+      ctx.font = "bold 22px ui-monospace, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("PAUSED", w / 2, h / 2 - 8);
+      ctx.font = "12px ui-monospace, monospace";
+      ctx.fillText(
+        focusHeldPause ? "return focus to resume" : "P to resume",
+        w / 2,
+        h / 2 + 18
+      );
+      ctx.restore();
+    },
+    /** CSS class on stage for turn-based / DOM games. */
+    syncDom(stageEl) {
+      if (!stageEl) return;
+      stageEl.classList.toggle("asx-game-paused", paused);
+    },
+  };
 }
 
 /** Tic Tac Toe — pure DOM. */
@@ -39,6 +177,15 @@ export function mountTicTacToe(stage, onStatus) {
   grid.className = "ttt-grid";
   stage.appendChild(grid);
 
+  const idleHint = () => (over ? "Game over — restart?" : `${turn}'s turn`);
+  const pause = createPauseControl({
+    stage,
+    onStatus,
+    getIdleHint: idleHint,
+    onChange: () => pause.syncDom(stage),
+  });
+  pause.bind();
+
   const status = (msg) => onStatus?.(msg);
 
   const winner = () => {
@@ -54,12 +201,13 @@ export function mountTicTacToe(stage, onStatus) {
       .map(
         (c, i) =>
           `<button type="button" class="ttt-cell" data-i="${i}" ${
-            c || over ? "disabled" : ""
+            c || over || pause.paused ? "disabled" : ""
           }>${escapeHtml(c || "")}</button>`
       )
       .join("");
     grid.querySelectorAll(".ttt-cell").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (pause.paused) return;
         const i = +btn.dataset.i;
         if (over || board[i]) return;
         board[i] = turn;
@@ -83,11 +231,22 @@ export function mountTicTacToe(stage, onStatus) {
     board = Array(9).fill("");
     turn = "X";
     over = false;
-    status("X's turn");
+    pause.resume();
+    status("X's turn · P to pause");
     paint();
   };
   reset();
-  return { reset };
+  return {
+    reset,
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => {
+      pause.toggle();
+      paint();
+    },
+    destroy: () => pause.unbind(),
+  };
 }
 
 /** Ping Pong — canvas 2P / vs simple AI. */
@@ -110,6 +269,9 @@ export function mountPong(stage, onStatus) {
   let keys = {};
   let raf = 0;
   let live = true;
+  const idleHint = () => `You ${scoreL} — ASX ${scoreR} · W/S or ↑/↓ · P pause`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
 
   const onKey = (e) => {
     keys[e.key] = e.type === "keydown";
@@ -125,37 +287,7 @@ export function mountPong(stage, onStatus) {
     bvy = (Math.random() * 2 - 1) * 2.5;
   };
 
-  const frame = () => {
-    if (!live) return;
-    if (keys.ArrowUp || keys.w || keys.W) py = Math.max(0, py - 5);
-    if (keys.ArrowDown || keys.s || keys.S) py = Math.min(220, py + 5);
-    // simple AI
-    const target = by - 30;
-    ay += Math.sign(target - ay) * Math.min(4, Math.abs(target - ay));
-    ay = Math.max(0, Math.min(220, ay));
-
-    bx += bvx;
-    by += bvy;
-    if (by < 4 || by > 276) bvy *= -1;
-    if (bx < 18 && by > py && by < py + 60) {
-      bvx = Math.abs(bvx) * 1.05;
-      bvy += (by - (py + 30)) * 0.08;
-    }
-    if (bx > 462 && by > ay && by < ay + 60) {
-      bvx = -Math.abs(bvx) * 1.05;
-      bvy += (by - (ay + 30)) * 0.08;
-    }
-    if (bx < 0) {
-      scoreR++;
-      resetBall(1);
-      onStatus?.(`You ${scoreL} — ASX ${scoreR}`);
-    }
-    if (bx > 480) {
-      scoreL++;
-      resetBall(-1);
-      onStatus?.(`You ${scoreL} — ASX ${scoreR}`);
-    }
-
+  const draw = () => {
     ctx.fillStyle = "#0a0618";
     ctx.fillRect(0, 0, 480, 280);
     ctx.strokeStyle = "rgba(180,140,255,0.35)";
@@ -175,11 +307,47 @@ export function mountPong(stage, onStatus) {
     ctx.font = "14px monospace";
     ctx.fillText(String(scoreL), 200, 24);
     ctx.fillText(String(scoreR), 268, 24);
+    pause.drawOverlay(ctx, 480, 280);
+  };
 
+  const frame = () => {
+    if (!live) return;
+    if (!pause.paused) {
+      if (keys.ArrowUp || keys.w || keys.W) py = Math.max(0, py - 5);
+      if (keys.ArrowDown || keys.s || keys.S) py = Math.min(220, py + 5);
+      // simple AI
+      const target = by - 30;
+      ay += Math.sign(target - ay) * Math.min(4, Math.abs(target - ay));
+      ay = Math.max(0, Math.min(220, ay));
+
+      bx += bvx;
+      by += bvy;
+      if (by < 4 || by > 276) bvy *= -1;
+      if (bx < 18 && by > py && by < py + 60) {
+        bvx = Math.abs(bvx) * 1.05;
+        bvy += (by - (py + 30)) * 0.08;
+      }
+      if (bx > 462 && by > ay && by < ay + 60) {
+        bvx = -Math.abs(bvx) * 1.05;
+        bvy += (by - (ay + 30)) * 0.08;
+      }
+      if (bx < 0) {
+        scoreR++;
+        resetBall(1);
+        onStatus?.(idleHint());
+      }
+      if (bx > 480) {
+        scoreL++;
+        resetBall(-1);
+        onStatus?.(idleHint());
+      }
+    }
+    draw();
     raf = requestAnimationFrame(frame);
   };
   frame();
   canvas.focus();
+  onStatus?.("W/S or ↑/↓ · P to pause");
 
   return {
     reset: () => {
@@ -188,11 +356,17 @@ export function mountPong(stage, onStatus) {
       py = 110;
       ay = 110;
       resetBall(1);
-      onStatus?.("W/S or ↑/↓ — first to… forever");
+      pause.resume();
+      onStatus?.("W/S or ↑/↓ · P to pause");
     },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);
     },
@@ -250,6 +424,10 @@ export function mountBlocks(stage, onStatus) {
   let live = true;
   let dropMs = 500;
   let last = 0;
+  const idleHint = () =>
+    live ? `Score ${score} · ← → ↑/Space · P pause` : `Game over — score ${score}`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
 
   const spawn = () => {
     const name = NAMES[Math.floor(Math.random() * NAMES.length)];
@@ -307,7 +485,7 @@ export function mountBlocks(stage, onStatus) {
   };
 
   const onKey = (e) => {
-    if (!live || !piece) return;
+    if (!live || !piece || pause.paused) return;
     if (e.key === "ArrowLeft") {
       piece.x--;
       if (collides(piece)) piece.x++;
@@ -342,6 +520,7 @@ export function mountBlocks(stage, onStatus) {
         }
       }
     }
+    pause.drawOverlay(ctx, canvas.width, canvas.height);
   };
 
   const loop = (t) => {
@@ -349,21 +528,25 @@ export function mountBlocks(stage, onStatus) {
       draw();
       return;
     }
-    if (!last) last = t;
-    if (t - last > dropMs) {
-      last = t;
-      piece.y++;
-      if (collides(piece)) {
-        piece.y--;
-        merge();
+    if (!pause.paused) {
+      if (!last) last = t;
+      if (t - last > dropMs) {
+        last = t;
+        piece.y++;
+        if (collides(piece)) {
+          piece.y--;
+          merge();
+        }
       }
+    } else {
+      last = t;
     }
     draw();
     raf = requestAnimationFrame(loop);
   };
 
   spawn();
-  onStatus?.("← → move · ↑/Space rotate · ↓ soft drop");
+  onStatus?.("← → move · ↑/Space rotate · ↓ soft drop · P pause");
   raf = requestAnimationFrame(loop);
   canvas.focus();
 
@@ -373,14 +556,20 @@ export function mountBlocks(stage, onStatus) {
       score = 0;
       live = true;
       last = 0;
+      pause.resume();
       spawn();
-      onStatus?.(`Score 0`);
+      onStatus?.(`Score 0 · P to pause`);
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(loop);
     },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
     },
   };
@@ -401,6 +590,10 @@ export function mountSnake(stage, onStatus) {
   stage.appendChild(canvas);
   const ctx = canvas.getContext("2d");
   let snake, dir, nextDir, food, score, live, raf, last;
+  const idleHint = () =>
+    live ? `Arrows · score ${score} · P pause` : `Game over · ${score}`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
   const reset = () => {
     snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }];
     dir = { x: 1, y: 0 };
@@ -409,7 +602,8 @@ export function mountSnake(stage, onStatus) {
     score = 0;
     live = true;
     last = 0;
-    onStatus?.("Arrows · score 0");
+    pause.resume();
+    onStatus?.("Arrows · score 0 · P pause");
   };
   const placeFood = () => {
     for (let i = 0; i < 200; i++) {
@@ -421,6 +615,7 @@ export function mountSnake(stage, onStatus) {
     }
   };
   const onKey = (e) => {
+    if (pause.paused) return;
     const k = e.key;
     if (k === "ArrowUp" && dir.y !== 1) nextDir = { x: 0, y: -1 };
     else if (k === "ArrowDown" && dir.y !== -1) nextDir = { x: 0, y: 1 };
@@ -431,22 +626,26 @@ export function mountSnake(stage, onStatus) {
   window.addEventListener("keydown", onKey);
   const tick = (t) => {
     if (!live) return;
-    if (!last) last = t;
-    if (t - last > 110) {
-      last = t;
-      dir = nextDir;
-      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-      if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || snake.some((s) => s.x === head.x && s.y === head.y)) {
-        live = false;
-        onStatus?.(`Game over · ${score}`);
-      } else {
-        snake.unshift(head);
-        if (head.x === food.x && head.y === food.y) {
-          score += 10;
-          onStatus?.(`Score ${score}`);
-          placeFood();
-        } else snake.pop();
+    if (!pause.paused) {
+      if (!last) last = t;
+      if (t - last > 110) {
+        last = t;
+        dir = nextDir;
+        const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+        if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || snake.some((s) => s.x === head.x && s.y === head.y)) {
+          live = false;
+          onStatus?.(`Game over · ${score}`);
+        } else {
+          snake.unshift(head);
+          if (head.x === food.x && head.y === food.y) {
+            score += 10;
+            onStatus?.(`Score ${score} · P pause`);
+            placeFood();
+          } else snake.pop();
+        }
       }
+    } else {
+      last = t;
     }
     ctx.fillStyle = "#0a0618";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -458,6 +657,7 @@ export function mountSnake(stage, onStatus) {
       ctx.fillRect(s.x * SIZE + 1, s.y * SIZE + 1, SIZE - 2, SIZE - 2);
     });
     ctx.globalAlpha = 1;
+    pause.drawOverlay(ctx, canvas.width, canvas.height);
     raf = requestAnimationFrame(tick);
   };
   reset();
@@ -472,9 +672,14 @@ export function mountSnake(stage, onStatus) {
       live = true;
       raf = requestAnimationFrame(tick);
     },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
     },
   };
@@ -492,6 +697,10 @@ export function mountBreakout(stage, onStatus) {
   stage.appendChild(canvas);
   const ctx = canvas.getContext("2d");
   let px, ball, bricks, live, score, keys, raf;
+  const idleHint = () =>
+    live ? `← → · score ${score} · P pause` : `Done · score ${score}`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
   const reset = () => {
     px = 180;
     ball = { x: 210, y: 200, vx: 2.6, vy: -2.8 };
@@ -502,7 +711,8 @@ export function mountBreakout(stage, onStatus) {
     live = true;
     score = 0;
     keys = {};
-    onStatus?.("← → · clear the bricks");
+    pause.resume();
+    onStatus?.("← → · clear the bricks · P pause");
   };
   const onKey = (e) => {
     keys[e.key] = e.type === "keydown";
@@ -512,32 +722,34 @@ export function mountBreakout(stage, onStatus) {
   window.addEventListener("keyup", onKey);
   const frame = () => {
     if (!live) return;
-    if (keys.ArrowLeft) px = Math.max(0, px - 6);
-    if (keys.ArrowRight) px = Math.min(W - 70, px + 6);
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-    if (ball.x < 6 || ball.x > W - 6) ball.vx *= -1;
-    if (ball.y < 6) ball.vy *= -1;
-    if (ball.y > H) {
-      live = false;
-      onStatus?.(`Miss · score ${score}`);
-    }
-    if (ball.y > H - 28 && ball.x > px && ball.x < px + 70) {
-      ball.vy = -Math.abs(ball.vy);
-      ball.vx += (ball.x - (px + 35)) * 0.08;
-    }
-    bricks.forEach((b) => {
-      if (!b.alive) return;
-      if (ball.x > b.x && ball.x < b.x + b.w && ball.y > b.y && ball.y < b.y + b.h) {
-        b.alive = false;
-        ball.vy *= -1;
-        score += 5;
-        onStatus?.(`Score ${score}`);
+    if (!pause.paused) {
+      if (keys.ArrowLeft) px = Math.max(0, px - 6);
+      if (keys.ArrowRight) px = Math.min(W - 70, px + 6);
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      if (ball.x < 6 || ball.x > W - 6) ball.vx *= -1;
+      if (ball.y < 6) ball.vy *= -1;
+      if (ball.y > H) {
+        live = false;
+        onStatus?.(`Miss · score ${score}`);
       }
-    });
-    if (bricks.every((b) => !b.alive)) {
-      live = false;
-      onStatus?.(`Clear! ${score}`);
+      if (ball.y > H - 28 && ball.x > px && ball.x < px + 70) {
+        ball.vy = -Math.abs(ball.vy);
+        ball.vx += (ball.x - (px + 35)) * 0.08;
+      }
+      bricks.forEach((b) => {
+        if (!b.alive) return;
+        if (ball.x > b.x && ball.x < b.x + b.w && ball.y > b.y && ball.y < b.y + b.h) {
+          b.alive = false;
+          ball.vy *= -1;
+          score += 5;
+          onStatus?.(`Score ${score} · P pause`);
+        }
+      });
+      if (bricks.every((b) => !b.alive)) {
+        live = false;
+        onStatus?.(`Clear! ${score}`);
+      }
     }
     ctx.fillStyle = "#0a0618";
     ctx.fillRect(0, 0, W, H);
@@ -551,6 +763,7 @@ export function mountBreakout(stage, onStatus) {
       ctx.fillStyle = "#7c5cff";
       ctx.fillRect(b.x, b.y, b.w, b.h);
     });
+    pause.drawOverlay(ctx, W, H);
     raf = requestAnimationFrame(frame);
   };
   reset();
@@ -563,9 +776,14 @@ export function mountBreakout(stage, onStatus) {
       live = true;
       raf = requestAnimationFrame(frame);
     },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);
     },
@@ -584,26 +802,39 @@ export function mountMemory(stage, onStatus) {
   const grid = document.createElement("div");
   grid.className = "mem-grid";
   stage.appendChild(grid);
+  const idleHint = () =>
+    matched >= pool.length ? "All matched!" : `Find pairs · ${matched}/${pool.length} · P pause`;
+  const pause = createPauseControl({
+    stage,
+    onStatus,
+    getIdleHint: idleHint,
+    onChange: () => {
+      pause.syncDom(stage);
+      paint();
+    },
+  });
+  pause.bind();
   const reset = () => {
     cards = [...pool, ...pool].sort(() => Math.random() - 0.5).map((g, i) => ({ g, i, open: false, done: false }));
     flip = [];
     lock = false;
     matched = 0;
-    onStatus?.("Find pairs");
+    pause.resume();
+    onStatus?.("Find pairs · P to pause");
     paint();
   };
   const paint = () => {
     grid.innerHTML = cards
       .map(
         (c, i) =>
-          `<button type="button" class="mem-card ${c.open || c.done ? "open" : ""}" data-i="${i}">${
-            c.open || c.done ? c.g : "?"
-          }</button>`
+          `<button type="button" class="mem-card ${c.open || c.done ? "open" : ""}" data-i="${i}" ${
+            pause.paused ? "disabled" : ""
+          }>${c.open || c.done ? c.g : "?"}</button>`
       )
       .join("");
     grid.querySelectorAll(".mem-card").forEach((btn) => {
       btn.addEventListener("click", () => {
-        if (lock) return;
+        if (pause.paused || lock) return;
         const i = +btn.dataset.i;
         const c = cards[i];
         if (c.done || c.open) return;
@@ -618,7 +849,7 @@ export function mountMemory(stage, onStatus) {
             matched++;
             flip = [];
             lock = false;
-            onStatus?.(matched >= pool.length ? "All matched!" : `Pairs ${matched}/${pool.length}`);
+            onStatus?.(matched >= pool.length ? "All matched!" : `Pairs ${matched}/${pool.length} · P pause`);
             paint();
           } else {
             setTimeout(() => {
@@ -633,7 +864,14 @@ export function mountMemory(stage, onStatus) {
     });
   };
   reset();
-  return { reset };
+  return {
+    reset,
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
+    destroy: () => pause.unbind(),
+  };
 }
 
 /** Minesweeper-lite. */
@@ -645,6 +883,18 @@ export function mountMines(stage, onStatus) {
   grid.className = "mine-grid";
   stage.appendChild(grid);
   let cells, open, flag, dead, won;
+  const idleHint = () =>
+    dead ? "Boom" : won ? "Clear!" : "L-click open · R-click flag · P pause";
+  const pause = createPauseControl({
+    stage,
+    onStatus,
+    getIdleHint: idleHint,
+    onChange: () => {
+      pause.syncDom(stage);
+      paint();
+    },
+  });
+  pause.bind();
   const idx = (x, y) => y * W + x;
   const neigh = (x, y) => {
     const o = [];
@@ -673,7 +923,8 @@ export function mountMines(stage, onStatus) {
         if (cells[i] === -1) continue;
         cells[i] = neigh(x, y).filter((j) => cells[j] === -1).length;
       }
-    onStatus?.("L-click open · R-click flag");
+    pause.resume();
+    onStatus?.("L-click open · R-click flag · P pause");
     paint();
   };
   const flood = (i) => {
@@ -691,12 +942,13 @@ export function mountMines(stage, onStatus) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "mine-cell" + (open[i] ? " open" : "") + (flag[i] ? " flag" : "");
+      b.disabled = pause.paused;
       if (open[i]) {
         if (cells[i] === -1) b.textContent = "✸";
         else if (cells[i] > 0) b.textContent = String(cells[i]);
       } else if (flag[i]) b.textContent = "⚑";
       b.addEventListener("click", () => {
-        if (dead || won || flag[i]) return;
+        if (pause.paused || dead || won || flag[i]) return;
         if (cells[i] === -1) {
           open[i] = true;
           dead = true;
@@ -713,7 +965,7 @@ export function mountMines(stage, onStatus) {
       });
       b.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        if (dead || won || open[i]) return;
+        if (pause.paused || dead || won || open[i]) return;
         flag[i] = !flag[i];
         paint();
       });
@@ -721,7 +973,14 @@ export function mountMines(stage, onStatus) {
     }
   };
   reset();
-  return { reset };
+  return {
+    reset,
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
+    destroy: () => pause.unbind(),
+  };
 }
 
 /** Matter.js physics playground — CDN lazy. */
@@ -764,16 +1023,35 @@ export async function mountPhysics(stage, onStatus, loadMatter) {
   Matter.Render.run(render);
   const runner = Matter.Runner.create();
   Matter.Runner.run(runner, engine);
-  const onClick = () => spawn();
+  const pause = createPauseControl({
+    stage,
+    onStatus,
+    getIdleHint: () => "Click to drop · Matter.js · P pause",
+    onChange: (paused) => {
+      if (paused) Matter.Runner.stop(runner);
+      else Matter.Runner.run(runner, engine);
+    },
+  });
+  pause.bind();
+  const onClick = () => {
+    if (pause.paused) return;
+    spawn();
+  };
   canvas.addEventListener("click", onClick);
-  onStatus?.("Click to drop · Matter.js physics");
+  onStatus?.("Click to drop · Matter.js · P pause");
   return {
     reset: () => {
       Matter.World.clear(world, false);
       Matter.World.add(world, [ground, wallL, wallR]);
       for (let i = 0; i < 8; i++) spawn();
+      pause.resume();
     },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
+      pause.unbind();
       canvas.removeEventListener("click", onClick);
       Matter.Render.stop(render);
       Matter.Runner.stop(runner);
@@ -856,11 +1134,18 @@ export function mountInvaders(stage, onStatus) {
     tick = 0;
     spawnWave();
     resetBunkers();
-    onStatus?.("← →  Space to fire");
+    onStatus?.("← →  Space to fire · P pause");
   };
 
+  const idleHint = () =>
+    over
+      ? `Hit — score ${score}. Restart ↻`
+      : `← →  Space · score ${score} · wave ${wave} · P pause`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
+
   const fire = () => {
-    if (over || cool > 0) return;
+    if (over || pause.paused || cool > 0) return;
     bullets.push({ x: px + 12, y: H - 36 });
     cool = 16;
   };
@@ -875,6 +1160,7 @@ export function mountInvaders(stage, onStatus) {
   window.addEventListener("keydown", onKey);
   window.addEventListener("keyup", onKey);
   canvas.addEventListener("pointerdown", (e) => {
+    if (pause.paused) return;
     const r = canvas.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width) * W;
     if (x < W * 0.33) keys.ArrowLeft = true;
@@ -890,74 +1176,76 @@ export function mountInvaders(stage, onStatus) {
 
   const frame = () => {
     if (!live) return;
-    tick++;
-    if (!over) {
-      if (keys.ArrowLeft || keys.a || keys.A) px = Math.max(8, px - 4);
-      if (keys.ArrowRight || keys.d || keys.D) px = Math.min(W - 32, px + 4);
-      if (cool) cool--;
+    if (!pause.paused) {
+      tick++;
+      if (!over) {
+        if (keys.ArrowLeft || keys.a || keys.A) px = Math.max(8, px - 4);
+        if (keys.ArrowRight || keys.d || keys.D) px = Math.min(W - 32, px + 4);
+        if (cool) cool--;
 
-      bullets = bullets.filter((b) => {
-        b.y -= 7;
-        return b.y > 8;
-      });
-      bombs = bombs.filter((b) => {
-        b.y += 3 + wave * 0.3;
-        return b.y < H;
-      });
+        bullets = bullets.filter((b) => {
+          b.y -= 7;
+          return b.y > 8;
+        });
+        bombs = bombs.filter((b) => {
+          b.y += 3 + wave * 0.3;
+          return b.y < H;
+        });
 
-      const living = aliens.filter((a) => a.alive);
-      const cadence = Math.max(8, 28 - wave * 2 - Math.floor((COLS * ROWS - living.length) / 3));
-      if (tick % cadence === 0 && living.length) {
-        let edge = false;
-        for (const a of living) {
-          a.x += dir * 8;
-          if (a.x < 10 || a.x > W - 28) edge = true;
-        }
-        if (edge) {
-          dir *= -1;
-          stepY++;
-          for (const a of living) a.y += 12;
-        }
-      }
-      if (living.length && Math.random() < 0.02 + wave * 0.004) {
-        const shooter = living[(Math.random() * living.length) | 0];
-        bombs.push({ x: shooter.x + 8, y: shooter.y + 14 });
-      }
-
-      for (const b of bullets) {
-        for (const a of aliens) {
-          if (!a.alive) continue;
-          if (hitBox(b.x - 1, b.y - 4, 3, 8, a.x, a.y, 20, 14)) {
-            a.alive = false;
-            b.y = -99;
-            score += (4 - a.t) * 10;
-            onStatus?.(`Score ${score}  ·  wave ${wave}`);
+        const living = aliens.filter((a) => a.alive);
+        const cadence = Math.max(8, 28 - wave * 2 - Math.floor((COLS * ROWS - living.length) / 3));
+        if (tick % cadence === 0 && living.length) {
+          let edge = false;
+          for (const a of living) {
+            a.x += dir * 8;
+            if (a.x < 10 || a.x > W - 28) edge = true;
+          }
+          if (edge) {
+            dir *= -1;
+            stepY++;
+            for (const a of living) a.y += 12;
           }
         }
-      }
-      for (const shot of [...bullets, ...bombs]) {
-        for (const k of bunkers) {
-          if (k.hp <= 0) continue;
-          if (hitBox(shot.x - 1, shot.y - 2, 3, 6, k.x, k.y, 8, 8)) {
-            k.hp--;
-            shot.y = shot === bombs[bombs.indexOf(shot)] ? H + 9 : -99;
+        if (living.length && Math.random() < 0.02 + wave * 0.004) {
+          const shooter = living[(Math.random() * living.length) | 0];
+          bombs.push({ x: shooter.x + 8, y: shooter.y + 14 });
+        }
+
+        for (const b of bullets) {
+          for (const a of aliens) {
+            if (!a.alive) continue;
+            if (hitBox(b.x - 1, b.y - 4, 3, 8, a.x, a.y, 20, 14)) {
+              a.alive = false;
+              b.y = -99;
+              score += (4 - a.t) * 10;
+              onStatus?.(`Score ${score}  ·  wave ${wave} · P pause`);
+            }
           }
         }
-      }
-      for (const b of bombs) {
-        if (hitBox(b.x - 2, b.y, 4, 6, px, H - 28, 24, 12)) {
+        for (const shot of [...bullets, ...bombs]) {
+          for (const k of bunkers) {
+            if (k.hp <= 0) continue;
+            if (hitBox(shot.x - 1, shot.y - 2, 3, 6, k.x, k.y, 8, 8)) {
+              k.hp--;
+              shot.y = shot === bombs[bombs.indexOf(shot)] ? H + 9 : -99;
+            }
+          }
+        }
+        for (const b of bombs) {
+          if (hitBox(b.x - 2, b.y, 4, 6, px, H - 28, 24, 12)) {
+            over = true;
+            onStatus?.(`Hit — score ${score}. Restart ↻`);
+          }
+        }
+        if (living.some((a) => a.y > H - 48)) {
           over = true;
-          onStatus?.(`Hit — score ${score}. Restart ↻`);
+          onStatus?.(`Landed — score ${score}. Restart ↻`);
         }
-      }
-      if (living.some((a) => a.y > H - 48)) {
-        over = true;
-        onStatus?.(`Landed — score ${score}. Restart ↻`);
-      }
-      if (!living.length) {
-        wave++;
-        spawnWave();
-        onStatus?.(`Wave ${wave}  ·  score ${score}`);
+        if (!living.length) {
+          wave++;
+          spawnWave();
+          onStatus?.(`Wave ${wave}  ·  score ${score} · P pause`);
+        }
       }
     }
 
@@ -996,17 +1284,27 @@ export function mountInvaders(stage, onStatus) {
       ctx.fillStyle = "#fff";
       ctx.fillText("GAME OVER", 190, 154);
     }
+    pause.drawOverlay(ctx, W, H);
 
     raf = requestAnimationFrame(frame);
   };
-  reset();
+  const doReset = () => {
+    pause.resume();
+    reset();
+  };
+  doReset();
   frame();
   canvas.focus();
   return {
-    reset,
+    reset: doReset,
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);
     },
@@ -1110,6 +1408,15 @@ export function mountPacman(stage, onStatus) {
     frightened = 0;
   };
 
+  const idleHint = () =>
+    over
+      ? `Caught — ${score}. Restart ↻`
+      : won
+        ? `Clear — ${score}. Restart ↻`
+        : `Arrows / WASD · score ${score} · P pause`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
+
   const reset = () => {
     rebuild();
     resetActors();
@@ -1117,7 +1424,8 @@ export function mountPacman(stage, onStatus) {
     over = false;
     won = false;
     acc = 0;
-    onStatus?.("Arrows / WASD · eat the dots");
+    pause.resume();
+    onStatus?.("Arrows / WASD · eat the dots · P pause");
   };
 
   const dirs = [
@@ -1128,6 +1436,7 @@ export function mountPacman(stage, onStatus) {
   ];
 
   const onKey = (e) => {
+    if (pause.paused) return;
     const map = {
       ArrowLeft: [-1, 0],
       ArrowRight: [1, 0],
@@ -1284,21 +1593,26 @@ export function mountPacman(stage, onStatus) {
       ctx.font = "14px ui-monospace, monospace";
       ctx.fillText(won ? "CLEAR" : "CAUGHT", canvas.width / 2 - 28, canvas.height / 2 + 5);
     }
+    pause.drawOverlay(ctx, canvas.width, canvas.height);
   };
 
   const loop = (t) => {
     if (!live) return;
-    if (!last) last = t;
-    acc += t - last;
-    last = t;
-    const stepMs = 130;
-    while (acc > stepMs) {
-      acc -= stepMs;
-      if (!over && !won) {
-        stepPlayer();
-        if (tickGhost(acc)) stepGhosts();
-        if (frightened > 0) frightened--;
+    if (!pause.paused) {
+      if (!last) last = t;
+      acc += t - last;
+      last = t;
+      const stepMs = 130;
+      while (acc > stepMs) {
+        acc -= stepMs;
+        if (!over && !won) {
+          stepPlayer();
+          if (tickGhost(acc)) stepGhosts();
+          if (frightened > 0) frightened--;
+        }
       }
+    } else {
+      last = t;
     }
     draw();
     raf = requestAnimationFrame(loop);
@@ -1315,9 +1629,14 @@ export function mountPacman(stage, onStatus) {
   canvas.focus();
   return {
     reset,
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
     destroy: () => {
       live = false;
       cancelAnimationFrame(raf);
+      pause.unbind();
       window.removeEventListener("keydown", onKey);
     },
   };
@@ -1328,13 +1647,281 @@ export function mountPacman(stage, onStatus) {
  * @param {object} wm
  * @param {{ id: string, title: string, hint: string, mount: Function, w?: number, h?: number }} spec
  */
+export function makeAsteroidRock(x, y, r, vx, vy, rng = Math.random) {
+  const n = 7 + Math.floor(rng() * 4);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const d = r * (0.72 + rng() * 0.36);
+    pts.push([Math.cos(a) * d, Math.sin(a) * d]);
+  }
+  return { x, y, r, vx, vy, pts };
+}
+
+export function splitRockChildren(rock, makeRock = makeAsteroidRock) {
+  const nr = rock.r * 0.55;
+  return [
+    makeRock(rock.x, rock.y, nr, rock.vx + 36, rock.vy - 18),
+    makeRock(rock.x, rock.y, nr, rock.vx - 28, rock.vy + 30),
+  ];
+}
+
+export function nearBodies(a, b, reach) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy < reach * reach;
+}
+
+/**
+ * Resolve shot-vs-rock hits for one frame.
+ * Mutates nothing; returns next rocks/shots and score gained.
+ */
+export function resolveShotHits(rocks, shots, makeRock = makeAsteroidRock) {
+  let nextShots = shots.slice();
+  const kept = [];
+  let scoreDelta = 0;
+  for (const rock of rocks) {
+    const shot = nextShots.find((s) => nearBodies(s, rock, rock.r));
+    if (!shot) {
+      kept.push(rock);
+      continue;
+    }
+    nextShots = nextShots.filter((s) => s !== shot);
+    scoreDelta += scoreForRockRadius(rock.r);
+    if (shouldSplitRock(rock.r)) {
+      kept.push(...splitRockChildren(rock, makeRock));
+    }
+  }
+  return { rocks: kept, shots: nextShots, scoreDelta };
+}
+
+/** After a hull collision when invuln is 0. */
+export function applyHullHit(lives) {
+  const next = lives - 1;
+  return { lives: next, over: next <= 0, invuln: 1.6 };
+}
+
+export function mountAsteroids(stage, onStatus) {
+  const W = 480;
+  const H = 320;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  canvas.className = "asx-game-canvas";
+  canvas.setAttribute("tabindex", "0");
+  stage.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  let ship, rocks, shots, keys, score, lives, live, raf, last, over, invuln;
+  const idleHint = () =>
+    over
+      ? `Game over · ${score}. Restart ↻`
+      : `← → thrust · Space fire · score ${score} · P pause`;
+  const pause = createPauseControl({ stage, onStatus, getIdleHint: idleHint });
+  pause.bind();
+
+  const makeRock = (x, y, r, vx, vy) => makeAsteroidRock(x, y, r, vx, vy);
+  const wrap = (o) => wrapPoint(o, W, H);
+
+  const spawnWave = (count) => {
+    for (let i = 0; i < count; i++) {
+      const edge = i % 4;
+      const x = edge === 0 || edge === 2 ? 24 + i * 36 : edge === 1 ? W - 30 : 30;
+      const y = edge === 1 || edge === 3 ? 24 + i * 28 : edge === 0 ? 30 : H - 30;
+      rocks.push(makeRock(x, y, 28, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50));
+    }
+  };
+
+  const reset = () => {
+    ship = { x: W / 2, y: H / 2, a: -Math.PI / 2, vx: 0, vy: 0 };
+    rocks = [];
+    shots = [];
+    keys = {};
+    score = 0;
+    lives = 3;
+    over = false;
+    live = true;
+    invuln = 1.2;
+    last = 0;
+    spawnWave(4);
+    onStatus?.("← → rotate · ↑ thrust · Space fire · score 0");
+  };
+
+  const fire = () => {
+    if (over || shots.length >= 5) return;
+    shots.push({
+      x: ship.x + Math.cos(ship.a) * 16,
+      y: ship.y + Math.sin(ship.a) * 16,
+      vx: Math.cos(ship.a) * 240 + ship.vx,
+      vy: Math.sin(ship.a) * 240 + ship.vy,
+      life: 0.85,
+    });
+  };
+
+  const onKey = (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === " ") {
+      e.preventDefault();
+    }
+    if (e.repeat) return;
+    keys[e.key] = e.type === "keydown";
+    if (e.type === "keydown" && e.key === " ") fire();
+  };
+
+  const near = (a, b, reach) => nearBodies(a, b, reach);
+
+  const step = (dt) => {
+    if (over) return;
+    if (keys.ArrowLeft) ship.a -= 3.4 * dt;
+    if (keys.ArrowRight) ship.a += 3.4 * dt;
+    if (keys.ArrowUp) {
+      ship.vx += Math.cos(ship.a) * 110 * dt;
+      ship.vy += Math.sin(ship.a) * 110 * dt;
+    }
+    const speed = Math.hypot(ship.vx, ship.vy);
+    if (speed > 160) {
+      ship.vx *= 160 / speed;
+      ship.vy *= 160 / speed;
+    }
+    ship.vx *= 0.992;
+    ship.vy *= 0.992;
+    ship.x += ship.vx * dt;
+    ship.y += ship.vy * dt;
+    wrap(ship);
+
+    shots.forEach((s) => {
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.life -= dt;
+      wrap(s);
+    });
+    shots = shots.filter((s) => s.life > 0);
+    rocks.forEach((r) => {
+      r.x += r.vx * dt;
+      r.y += r.vy * dt;
+      wrap(r);
+    });
+
+    const hit = resolveShotHits(rocks, shots, makeRock);
+    rocks = hit.rocks;
+    shots = hit.shots;
+    score += hit.scoreDelta;
+    if (invuln > 0) invuln -= dt;
+    else if (rocks.some((r) => near(ship, r, r.r + 8))) {
+      const hull = applyHullHit(lives);
+      lives = hull.lives;
+      invuln = hull.invuln;
+      over = hull.over;
+      ship.x = W / 2;
+      ship.y = H / 2;
+      ship.vx = 0;
+      ship.vy = 0;
+    }
+    if (!rocks.length && !over) spawnWave(5);
+    onStatus?.(`← → · ↑ · Space · score ${score} · ships ${lives}`);
+  };
+
+  const draw = () => {
+    ctx.fillStyle = "#07060f";
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "#e9d5ff";
+    ctx.lineWidth = 1.5;
+    const blinkOff = invuln > 0 && Math.floor(invuln * 8) % 2 === 0;
+    ctx.save();
+    ctx.globalAlpha = blinkOff ? 0.25 : 1;
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.a);
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-10, 8);
+    ctx.lineTo(-5, 0);
+    ctx.lineTo(-10, -8);
+    ctx.closePath();
+    ctx.stroke();
+    if (keys.ArrowUp) {
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.lineTo(-16, 3);
+      ctx.lineTo(-16, -3);
+      ctx.closePath();
+      ctx.strokeStyle = "#c4b5fd";
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = "#f5f3ff";
+    shots.forEach((s) => ctx.fillRect(s.x - 1.5, s.y - 1.5, 3, 3));
+    ctx.strokeStyle = "#ddd6fe";
+    rocks.forEach((r) => {
+      ctx.beginPath();
+      r.pts.forEach((p, i) => {
+        const x = r.x + p[0];
+        const y = r.y + p[1];
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.stroke();
+    });
+    if (over) {
+      ctx.fillStyle = "#fff";
+      ctx.font = "16px ui-monospace, monospace";
+      ctx.fillText("HULL LOST", W / 2 - 48, H / 2);
+    }
+  };
+
+  const loop = (t) => {
+    if (!live) return;
+    if (!pause.paused) {
+      if (!last) last = t;
+      const dt = Math.min(0.033, (t - last) / 1000);
+      last = t;
+      step(dt);
+    } else {
+      last = t;
+    }
+    draw();
+    pause.drawOverlay(ctx, W, H);
+    raf = requestAnimationFrame(loop);
+  };
+
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("keyup", onKey);
+  reset();
+  raf = requestAnimationFrame(loop);
+  canvas.focus();
+  return {
+    reset: () => {
+      pause.resume();
+      reset();
+    },
+    get paused() {
+      return pause.paused;
+    },
+    togglePause: () => pause.toggle(),
+    destroy: () => {
+      live = false;
+      cancelAnimationFrame(raf);
+      pause.unbind();
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+    },
+  };
+}
+
+
 export function openGameWindow(wm, spec) {
   const root = gameShell(spec.title, spec.hint);
   const stage = root.querySelector(".asx-game-stage");
   const hintEl = root.querySelector(".asx-game-hint");
+  const pauseBtn = root.querySelector(".asx-game-pause");
   let ctrl = null;
   const setHint = (m) => {
     if (hintEl) hintEl.textContent = m;
+  };
+  const syncPauseBtn = () => {
+    if (!pauseBtn) return;
+    const on = !!ctrl?.paused;
+    pauseBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    pauseBtn.textContent = on ? "Resume" : "Pause";
+    pauseBtn.hidden = typeof ctrl?.togglePause !== "function";
   };
   const boot = () => {
     try {
@@ -1343,11 +1930,29 @@ export function openGameWindow(wm, spec) {
       /* ignore */
     }
     stage.innerHTML = "";
+    stage.classList.remove("asx-game-paused");
     ctrl = spec.mount(stage, setHint);
+    syncPauseBtn();
+    // Async mounts (Physics) fill togglePause after CDN load
+    if (ctrl && typeof ctrl.togglePause !== "function") {
+      let n = 0;
+      const wait = () => {
+        n += 1;
+        syncPauseBtn();
+        if (typeof ctrl?.togglePause === "function" || n > 40) return;
+        setTimeout(wait, 100);
+      };
+      setTimeout(wait, 100);
+    }
   };
   root.querySelector(".asx-game-reset")?.addEventListener("click", () => {
     if (ctrl?.reset) ctrl.reset();
     else boot();
+    syncPauseBtn();
+  });
+  pauseBtn?.addEventListener("click", () => {
+    ctrl?.togglePause?.();
+    syncPauseBtn();
   });
   wm.open({
     id: spec.id,
