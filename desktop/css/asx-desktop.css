@@ -3596,13 +3596,18 @@ body.asx-bg-slow .ambient-orbits {
   color: var(--muted, #a898c8);
   font-size: 11px;
 }
-.asx-game-reset {
+.asx-game-reset,
+.asx-game-pause {
   border: 1px solid rgba(180, 140, 255, 0.4);
   background: rgba(80, 40, 140, 0.35);
   color: inherit;
   border-radius: 6px;
   padding: 4px 10px;
   cursor: pointer;
+}
+.asx-game-pause[aria-pressed="true"] {
+  background: rgba(180, 80, 140, 0.45);
+  border-color: rgba(240, 160, 255, 0.55);
 }
 .asx-game-stage {
   flex: 1;
@@ -3611,6 +3616,20 @@ body.asx-bg-slow .ambient-orbits {
   justify-content: center;
   min-height: 0;
   padding: 10px;
+  position: relative;
+}
+.asx-game-stage.asx-game-paused::after {
+  content: "PAUSED · P to resume";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 6, 24, 0.55);
+  color: #e8e0ff;
+  font: bold 16px ui-monospace, monospace;
+  pointer-events: none;
+  z-index: 2;
 }
 .asx-game-canvas {
   max-width: 100%;
@@ -4144,4 +4163,187 @@ html {
     max-height: 28vh;
   }
   .settings-nav-group { width: 100%; margin-top: 8px; }
+}
+
+/* ── Utilities: Reader + Notepad ─────────────────────────── */
+.notepad-app .notepad-hint {
+  color: var(--muted, #9e8db8);
+  font-size: 11px;
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+.notepad-app .notepad-title-row,
+.notepad-app .notepad-folder {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted, #9e8db8);
+  margin-bottom: 8px;
+}
+.notepad-app .np-name,
+.notepad-app .np-folder {
+  font: 12px var(--font, system-ui, sans-serif);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border, rgba(167, 139, 250, 0.3));
+  background: rgba(10, 8, 16, 0.45);
+  color: var(--text, #e8e6f0);
+}
+.notepad-app textarea.np {
+  min-height: 220px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.notepad-app .notepad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  margin-top: 10px;
+}
+.notepad-app .notepad-actions .notepad-folder {
+  margin-bottom: 0;
+  min-width: 140px;
+}
+.notepad-app .status {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted, #9e8db8);
+  font-size: 11px;
+}
+
+.doc-reader {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: rgba(12, 10, 18, 0.35);
+  font-family: var(--font, system-ui, sans-serif);
+}
+.doc-reader-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border, rgba(167, 139, 250, 0.25));
+  background: rgba(20, 14, 32, 0.55);
+  flex-shrink: 0;
+}
+.doc-reader-open {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.doc-reader-open > span {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--border, rgba(167, 139, 250, 0.35));
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text, #e8e6f0);
+  background: rgba(124, 58, 237, 0.25);
+}
+.doc-reader-open .doc-file {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.doc-reader-name,
+.doc-reader-kind,
+.doc-reader-status {
+  font-size: 11px;
+  color: var(--muted, #9e8db8);
+}
+.doc-btn {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border, rgba(167, 139, 250, 0.3));
+  border-radius: 4px;
+  background: rgba(10, 8, 16, 0.5);
+  color: var(--text, #e8e6f0);
+  font: 12px var(--font, system-ui, sans-serif);
+  cursor: pointer;
+}
+.doc-reader-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+.doc-reader-empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 12px;
+}
+.doc-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text, #e8e6f0);
+}
+.doc-md,
+.doc-docx {
+  max-width: 46rem;
+  margin: 0 auto;
+  color: var(--text, #e8e6f0);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.doc-md h1, .doc-md h2, .doc-md h3,
+.doc-docx h1, .doc-docx h2, .doc-docx h3 {
+  color: var(--brand, #a78bfa);
+  margin: 0.8em 0 0.4em;
+}
+.doc-md code, .doc-docx code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+.doc-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.doc-audio,
+.doc-video {
+  display: block;
+  width: min(100%, 720px);
+  margin: 12px auto;
+}
+.doc-pdf-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 24px;
+}
+.doc-pdf-canvas {
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+.doc-reader-foot {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  border-top: 1px solid var(--border, rgba(167, 139, 250, 0.15));
+  flex-shrink: 0;
+}
+.doc-reader-pdf-chrome {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.doc-reader-pdf-chrome[hidden] {
+  display: none !important;
+}
+.doc-page {
+  font-size: 11px;
+  color: var(--muted, #9e8db8);
 }

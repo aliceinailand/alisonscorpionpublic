@@ -3,8 +3,9 @@
  * /home/alisonscorpion/* appears browsable; deep/private nodes → ACCESS DENIED
  * (ASX is administrator; guest may look, not enter admin vaults).
  *
- * Guest writable area (/home/guest/**) is persisted via BrowserFS → IndexedDB
- * when available (js/browser-fs.js). Static FS below is the skeleton + admin tree.
+ * Guest writable area (/home/guest/**) is persisted via BrowserFS
+ * (IndexedDB → LocalStorage → InMemory) when available (js/browser-fs.js).
+ * Static FS below is the skeleton + admin tree.
  */
 
 import {
@@ -18,7 +19,8 @@ import {
   guestMkdir,
   guestUnlink,
   bfsNormalize,
-} from "./browser-fs.js?v=20261027observer2";
+  browserFsBackend,
+} from "./browser-fs.js?v=20261103reader2";
 
 export const FS = {
   "/": {
@@ -594,4 +596,10 @@ export function canWrite(path) {
   return isGuestWritablePath(normalizePath(path));
 }
 
-export { initBrowserFs, isBrowserFsReady, isGuestWritablePath, bfsNormalize };
+export {
+  initBrowserFs,
+  isBrowserFsReady,
+  isGuestWritablePath,
+  bfsNormalize,
+  browserFsBackend,
+};

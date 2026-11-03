@@ -21,7 +21,7 @@ import {
   joinPath,
   canWrite,
   isBrowserFsReady,
-} from "./fs.js?v=20261027observer2";
+} from "./fs.js?v=20261103reader2";
 import { routeFreeChat } from "./chat-router.js?v=20261027intake1";
 import { mountPublicChat } from "./public-chat.js?v=20261027intake1";
 
@@ -41,6 +41,8 @@ import {
   resolveWhoami,
   ensureGuestSession,
 } from "./guest-session.js?v=20260811t140000z";
+import { openNotepad as openNotepadApp } from "./notepad-app.js?v=20261103reader2";
+import { openDocReader } from "./doc-reader.js?v=20261103reader2";
 import {
   openGameWindow,
   mountTicTacToe,
@@ -53,7 +55,7 @@ import {
   mountPhysics,
   mountInvaders,
   mountPacman,
-} from "./games.js?v=20260815t210000z";
+} from "./games.js?v=20261103pause2";
 import {
   loadScriptChain,
   MATTER_SOURCES,
@@ -255,6 +257,7 @@ export const APP_CATALOG = [
   { id: "calculator", label: "Calculator", glyph: "🧮" },
   { id: "catfish-index", label: "Catfish Index", glyph: "🐟" },
   { id: "notepad", label: "Notepad", glyph: "📝" },
+  { id: "reader", label: "Reader", glyph: "👁" },
   { id: "quill", label: "Document", glyph: "🪶" },
   { id: "sticky", label: "Sticky Notes", glyph: "📌" },
   { id: "sheet", label: "Spreadsheet", glyph: "📊" },
@@ -304,7 +307,7 @@ export const APP_CATEGORIES = [
     id: "office",
     label: "Office",
     glyph: "📊",
-    apps: ["quill", "notepad", "sticky", "sheet", "impress", "mindmap", "todo", "pdf"],
+    apps: ["quill", "notepad", "reader", "sticky", "sheet", "impress", "mindmap", "todo", "pdf"],
   },
   {
     id: "media",
@@ -328,7 +331,7 @@ export const APP_CATEGORIES = [
     id: "utils",
     label: "Utilities",
     glyph: "🔧",
-    apps: ["calculator", "catfish-index", "jsfile", "url-downloader"],
+    apps: ["reader", "notepad", "calculator", "catfish-index", "jsfile", "url-downloader"],
   },
   {
     id: "games",
@@ -370,6 +373,7 @@ const APP_OPENERS = {
   calculator: openCalculator,
   "catfish-index": openCatfishIndex,
   notepad: openNotepad,
+  reader: openDocReader,
   quill: openQuill,
   sticky: openSticky,
   sheet: openSheet,
@@ -726,6 +730,7 @@ function openTerminal(wm, opts = {}) {
           catfish: () => openCatfishIndex(wm),
           "catfish-index": () => openCatfishIndex(wm),
           notepad: () => openNotepad(wm),
+          reader: () => openDocReader(wm),
           todo: () => openTodo(wm),
           mindmap: () => openMindmap(wm),
           agent: () => openAgentAsx(wm),
@@ -3469,24 +3474,9 @@ function openQuill(wm, opts = {}) {
   });
 }
 
-/* ── Notepad ──────────────────────────────────────────────── */
-function openNotepad(wm) {
-  const key = "asx-notepad";
-  const root = document.createElement("div");
-  root.className = "app-pad";
-  root.innerHTML = `
-    <h2>Notepad</h2>
-    <p style="color:var(--muted);font-size:11px;margin-bottom:8px">Stored in this browser only (localStorage). Not synced to ASX servers.</p>
-    <textarea class="np"></textarea>
-    <button type="button" class="primary save">Save (local)</button>
-    <span class="status" style="margin-left:10px;color:var(--muted);font-size:11px"></span>`;
-  const ta = root.querySelector(".np");
-  ta.value = localStorage.getItem(key) || "";
-  root.querySelector(".save").addEventListener("click", () => {
-    localStorage.setItem(key, ta.value);
-    root.querySelector(".status").textContent = "Saved local · " + new Date().toLocaleTimeString();
-  });
-  wm.open({ id: "notepad", title: "Notepad", w: 520, h: 400, body: root });
+/* ── Notepad (Utilities: ASX desktop + host Downloads) ───── */
+function openNotepad(wm, opts) {
+  return openNotepadApp(wm, opts);
 }
 
 /* ── Sticky notes ─────────────────────────────────────────── */
@@ -6765,6 +6755,10 @@ function openPhysics(wm) {
       return {
         reset: () => ctrl.reset?.(),
         destroy: () => ctrl.destroy?.(),
+        get paused() {
+          return !!ctrl.paused;
+        },
+        togglePause: () => ctrl.togglePause?.(),
       };
     },
   });
