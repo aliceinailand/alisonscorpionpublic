@@ -2,7 +2,9 @@
  * BrowserFS guest persistence layer (cdnjs → jsDelivr).
  * https://cdnjs.com/libraries/BrowserFS
  *
- * Stores *guest-writable* paths under /home/guest in IndexedDB.
+ * Stores *guest-writable* paths under /home/guest.
+ * Backend order: IndexedDB → LocalStorage → InMemory (probed; IDB often
+ * configures without a usable root `/` in some Chromium builds).
  * Admin tree (/home/alisonscorpion, …) stays in static fs.js only (EACCES).
  * Never touches the real host disk.
  */
@@ -20,6 +22,8 @@ let bfs = null;
 /** @type {Promise<boolean>|null} */
 let initPromise = null;
 let ready = false;
+/** @type {string} which BrowserFS backend won (LocalStorage / IndexedDB / InMemory) */
+let backendLabel = "";
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -58,23 +62,68 @@ function loadBrowserFsLib() {
   })();
 }
 
-function configureBrowserFs(BrowserFS) {
+function configureOne(BrowserFS, conf) {
   return new Promise((resolve, reject) => {
     try {
-      BrowserFS.configure(
-        {
-          fs: "IndexedDB",
-          options: { storeName: IDB_STORE },
-        },
-        (err) => {
-          if (err) reject(err);
-          else resolve(BrowserFS.BFSRequire("fs"));
-        }
-      );
+      BrowserFS.configure(conf, (err) => {
+        if (err) reject(err);
+        else resolve(BrowserFS.BFSRequire("fs"));
+      });
     } catch (e) {
       reject(e);
     }
   });
+}
+
+/**
+ * BrowserFS 2.0 IndexedDB often configures "ok" but has no root `/`
+ * (mkdir /home → ENOENT on '/'). Probe before trusting a backend.
+ */
+async function probeWritable(fsApi) {
+  const readdir = promisify(fsApi.readdir, fsApi);
+  const mkdir = promisify(fsApi.mkdir, fsApi);
+  try {
+    await readdir("/");
+    return true;
+  } catch {
+    /* try creating under root */
+  }
+  try {
+    await mkdir("/home");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Prefer IndexedDB (larger), then LocalStorage (persists, works when IDB root is broken),
+ * then InMemory (session only).
+ */
+async function configureBrowserFs(BrowserFS) {
+  const candidates = [
+    {
+      label: "IndexedDB",
+      conf: { fs: "IndexedDB", options: { storeName: IDB_STORE } },
+    },
+    { label: "LocalStorage", conf: { fs: "LocalStorage" } },
+    { label: "InMemory", conf: { fs: "InMemory" } },
+  ];
+  let last;
+  for (const c of candidates) {
+    try {
+      const fsApi = await configureOne(BrowserFS, c.conf);
+      if (!(await probeWritable(fsApi))) {
+        last = new Error(`${c.label} configured but root not writable`);
+        continue;
+      }
+      backendLabel = c.label;
+      return fsApi;
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last || new Error("No BrowserFS backend available");
 }
 
 function promisify(fn, ctx) {
@@ -121,7 +170,11 @@ export function initBrowserFs() {
       bfs = await configureBrowserFs(BrowserFS);
       await seedGuestHome();
       ready = true;
-      console.info("[asx-bfs] BrowserFS IndexedDB ready · store:", IDB_STORE);
+      console.info(
+        "[asx-bfs] BrowserFS ready · backend:",
+        backendLabel,
+        backendLabel === "IndexedDB" ? `· store: ${IDB_STORE}` : ""
+      );
       return true;
     } catch (e) {
       console.warn("[asx-bfs] BrowserFS unavailable — static VFS only", e);
@@ -139,6 +192,10 @@ export function isBrowserFsReady() {
 
 export function browserFsVersion() {
   return BROWSERFS_VERSION;
+}
+
+export function browserFsBackend() {
+  return backendLabel;
 }
 
 async function exists(path) {
