@@ -54,7 +54,7 @@ import {
   mountInvaders,
   mountPacman,
   mountAsteroids,
-} from "./games.js?v=20261103asteroids";
+} from "./games.js?v=20261103pause2";
 import {
   loadScriptChain,
   MATTER_SOURCES,
@@ -6781,6 +6781,10 @@ function openPhysics(wm) {
       return {
         reset: () => ctrl.reset?.(),
         destroy: () => ctrl.destroy?.(),
+        get paused() {
+          return !!ctrl.paused;
+        },
+        togglePause: () => ctrl.togglePause?.(),
       };
     },
   });

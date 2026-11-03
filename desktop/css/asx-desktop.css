@@ -3596,13 +3596,18 @@ body.asx-bg-slow .ambient-orbits {
   color: var(--muted, #a898c8);
   font-size: 11px;
 }
-.asx-game-reset {
+.asx-game-reset,
+.asx-game-pause {
   border: 1px solid rgba(180, 140, 255, 0.4);
   background: rgba(80, 40, 140, 0.35);
   color: inherit;
   border-radius: 6px;
   padding: 4px 10px;
   cursor: pointer;
+}
+.asx-game-pause[aria-pressed="true"] {
+  background: rgba(180, 80, 140, 0.45);
+  border-color: rgba(240, 160, 255, 0.55);
 }
 .asx-game-stage {
   flex: 1;
@@ -3611,6 +3616,20 @@ body.asx-bg-slow .ambient-orbits {
   justify-content: center;
   min-height: 0;
   padding: 10px;
+  position: relative;
+}
+.asx-game-stage.asx-game-paused::after {
+  content: "PAUSED · P to resume";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 6, 24, 0.55);
+  color: #e8e0ff;
+  font: bold 16px ui-monospace, monospace;
+  pointer-events: none;
+  z-index: 2;
 }
 .asx-game-canvas {
   max-width: 100%;
