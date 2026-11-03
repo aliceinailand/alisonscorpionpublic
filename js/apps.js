@@ -25,31 +25,40 @@ import {
 import { routeFreeChat } from "./chat-router.js?v=20260810t250000z";
 
 const ASX_CHAT_API = "https://api.alisonscorpion.com/v1/asx/chat";
+const ASX_OFFLINE_LINE = "Alison is offline";
 
-/** Live Python Router / Poe-backed gateway. Falls back to local FAQ on miss. */
-async function askAsxGateway(msg) {
+/**
+ * Live Python Router / Poe-backed gateway.
+ * Body field must be `text` (not `message`) — wrong shape returns nginx 500.
+ * @returns {Promise<{ok:true,reply:string}|{ok:false,offline:true,status?:number}>}
+ */
+async function askAsxGateway(msg, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 18000);
   try {
     const r = await fetch(ASX_CHAT_API, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        Accept: "application/json",
+        "content-type": "application/json",
+      },
       body: JSON.stringify({
-        text: msg,
-        surface: "desktop",
-        client: "desktop-os",
+        text: String(msg || ""),
+        client: opts.client || "website",
+        surface: opts.surface || "desktop",
       }),
       signal: ctrl.signal,
     });
-    if (!r.ok) return null;
+    if (!r.ok) return { ok: false, offline: true, status: r.status };
     const data = await r.json();
-    if (data && data.ok && data.reply) return String(data.reply);
+    const reply = String(data?.reply || "").trim();
+    if (!reply) return { ok: false, offline: true, status: r.status };
+    return { ok: true, reply };
   } catch {
-    return null;
+    return { ok: false, offline: true };
   } finally {
     clearTimeout(t);
   }
-  return null;
 }
 import {
   createAccount,
@@ -2655,9 +2664,12 @@ function openChat(wm) {
     d.appendChild(label);
     d.appendChild(body);
     out.appendChild(d);
-    const live = await askAsxGateway(msg);
-    if (live) {
-      await streamTextInto(tse, body, live, { cps: 2 });
+    const live = await askAsxGateway(msg, {
+      client: "desktop-os",
+      surface: "desktop",
+    });
+    if (live.ok) {
+      await streamTextInto(tse, body, live.reply, { cps: 2 });
       return;
     }
     const r = routeFreeChat(msg);
@@ -2665,7 +2677,7 @@ function openChat(wm) {
     await streamTextInto(
       tse,
       body,
-      r.text + "\n\n—\nLocal fallback · live API unreachable",
+      `${ASX_OFFLINE_LINE}\n\n${r.text}`,
       { cps: 2 }
     );
     addLinks(r.links);

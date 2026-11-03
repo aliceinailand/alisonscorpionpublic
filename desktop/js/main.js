@@ -20,7 +20,7 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261103pause2";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261103chat1";
 import { bindSiteIcon, siteLockForApp } from "./sandbox-browser.js?v=20261028wiki1";
 import { recentActions } from "./local-memory.js?v=20261028mem1";
 import {

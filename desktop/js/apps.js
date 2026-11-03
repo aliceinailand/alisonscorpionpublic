@@ -25,6 +25,43 @@ import {
 import { routeFreeChat } from "./chat-router.js?v=20261027intake1";
 import { mountPublicChat } from "./public-chat.js?v=20261027intake1";
 
+const ASX_CHAT_API = "https://api.alisonscorpion.com/v1/asx/chat";
+const ASX_OFFLINE_LINE = "Alison is offline";
+
+/**
+ * Live Python Router / Poe-backed gateway.
+ * Body field must be `text` (not `message`) — wrong shape returns nginx 500.
+ * @returns {Promise<{ok:true,reply:string}|{ok:false,offline:true,status?:number}>}
+ */
+async function askAsxGateway(msg, opts = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 18000);
+  try {
+    const r = await fetch(ASX_CHAT_API, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        text: String(msg || ""),
+        client: opts.client || "website",
+        surface: opts.surface || "desktop",
+      }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) return { ok: false, offline: true, status: r.status };
+    const data = await r.json();
+    const reply = String(data?.reply || "").trim();
+    if (!reply) return { ok: false, offline: true, status: r.status };
+    return { ok: true, reply };
+  } catch {
+    return { ok: false, offline: true };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 import {
   createAccount,
   softDeleteAccount,
@@ -2691,23 +2728,32 @@ function openPublicContainer(wm) {
     onMount: () => {
       mountPublicChat(root, {
         reply: async (text) => {
-          if (!intakeUrl) return routeFreeChat(text).text;
-          try {
-            const response = await fetch(intakeUrl, {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ text }),
-            });
-            if (!response.ok) return routeFreeChat(text).text;
-            const data = await response.json();
-            const answer = String(data.reply || "").trim();
-            return answer || routeFreeChat(text).text;
-          } catch {
-            return routeFreeChat(text).text;
+          const live = await askAsxGateway(text, {
+            client: "desktop-os",
+            surface: "desktop",
+          });
+          if (live.ok) return live.reply;
+          if (intakeUrl) {
+            try {
+              const response = await fetch(intakeUrl, {
+                method: "POST",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ text }),
+              });
+              if (response.ok) {
+                const data = await response.json();
+                const answer = String(data.reply || "").trim();
+                if (answer) return answer;
+              }
+            } catch {
+              /* fall through to offline line */
+            }
           }
+          const localFaq = routeFreeChat(text).text;
+          return `${ASX_OFFLINE_LINE}\n\n${localFaq}`;
         },
         statusUrl,
       });
