@@ -1323,6 +1323,268 @@ export function mountPacman(stage, onStatus) {
   };
 }
 
+/** Asteroids — first-party canvas. Original shapes, no Atari assets. */
+/** Pure Asteroids simulation helpers (testable without canvas). */
+export const ASTEROIDS_W = 480;
+export const ASTEROIDS_H = 320;
+
+export function wrapPoint(o, w = ASTEROIDS_W, h = ASTEROIDS_H) {
+  if (o.x < 0) o.x += w;
+  if (o.x >= w) o.x -= w;
+  if (o.y < 0) o.y += h;
+  if (o.y >= h) o.y -= h;
+  return o;
+}
+
+export function scoreForRockRadius(r) {
+  return r > 18 ? 20 : r > 11 ? 50 : 100;
+}
+
+export function shouldSplitRock(r) {
+  return r > 12;
+}
+
+/** Build an irregular rock. pts may be seeded for tests. */
+export function makeAsteroidRock(x, y, r, vx, vy, rng = Math.random) {
+  const n = 7 + Math.floor(rng() * 4);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const d = r * (0.72 + rng() * 0.36);
+    pts.push([Math.cos(a) * d, Math.sin(a) * d]);
+  }
+  return { x, y, r, vx, vy, pts };
+}
+
+export function splitRockChildren(rock, makeRock = makeAsteroidRock) {
+  const nr = rock.r * 0.55;
+  return [
+    makeRock(rock.x, rock.y, nr, rock.vx + 36, rock.vy - 18),
+    makeRock(rock.x, rock.y, nr, rock.vx - 28, rock.vy + 30),
+  ];
+}
+
+export function nearBodies(a, b, reach) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy < reach * reach;
+}
+
+/**
+ * Resolve shot-vs-rock hits for one frame.
+ * Mutates nothing; returns next rocks/shots and score gained.
+ */
+export function resolveShotHits(rocks, shots, makeRock = makeAsteroidRock) {
+  let nextShots = shots.slice();
+  const kept = [];
+  let scoreDelta = 0;
+  for (const rock of rocks) {
+    const shot = nextShots.find((s) => nearBodies(s, rock, rock.r));
+    if (!shot) {
+      kept.push(rock);
+      continue;
+    }
+    nextShots = nextShots.filter((s) => s !== shot);
+    scoreDelta += scoreForRockRadius(rock.r);
+    if (shouldSplitRock(rock.r)) {
+      kept.push(...splitRockChildren(rock, makeRock));
+    }
+  }
+  return { rocks: kept, shots: nextShots, scoreDelta };
+}
+
+/** After a hull collision when invuln is 0. */
+export function applyHullHit(lives) {
+  const next = lives - 1;
+  return { lives: next, over: next <= 0, invuln: 1.6 };
+}
+
+export function mountAsteroids(stage, onStatus) {
+  const W = 480;
+  const H = 320;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  canvas.className = "asx-game-canvas";
+  canvas.setAttribute("tabindex", "0");
+  stage.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  let ship, rocks, shots, keys, score, lives, live, raf, last, over, invuln;
+
+  const makeRock = (x, y, r, vx, vy) => makeAsteroidRock(x, y, r, vx, vy);
+  const wrap = (o) => wrapPoint(o, W, H);
+
+  const spawnWave = (count) => {
+    for (let i = 0; i < count; i++) {
+      const edge = i % 4;
+      const x = edge === 0 || edge === 2 ? 24 + i * 36 : edge === 1 ? W - 30 : 30;
+      const y = edge === 1 || edge === 3 ? 24 + i * 28 : edge === 0 ? 30 : H - 30;
+      rocks.push(makeRock(x, y, 28, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50));
+    }
+  };
+
+  const reset = () => {
+    ship = { x: W / 2, y: H / 2, a: -Math.PI / 2, vx: 0, vy: 0 };
+    rocks = [];
+    shots = [];
+    keys = {};
+    score = 0;
+    lives = 3;
+    over = false;
+    live = true;
+    invuln = 1.2;
+    last = 0;
+    spawnWave(4);
+    onStatus?.("← → rotate · ↑ thrust · Space fire · score 0");
+  };
+
+  const fire = () => {
+    if (over || shots.length >= 5) return;
+    shots.push({
+      x: ship.x + Math.cos(ship.a) * 16,
+      y: ship.y + Math.sin(ship.a) * 16,
+      vx: Math.cos(ship.a) * 240 + ship.vx,
+      vy: Math.sin(ship.a) * 240 + ship.vy,
+      life: 0.85,
+    });
+  };
+
+  const onKey = (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === " ") {
+      e.preventDefault();
+    }
+    if (e.repeat) return;
+    keys[e.key] = e.type === "keydown";
+    if (e.type === "keydown" && e.key === " ") fire();
+  };
+
+  const near = (a, b, reach) => nearBodies(a, b, reach);
+
+  const step = (dt) => {
+    if (over) return;
+    if (keys.ArrowLeft) ship.a -= 3.4 * dt;
+    if (keys.ArrowRight) ship.a += 3.4 * dt;
+    if (keys.ArrowUp) {
+      ship.vx += Math.cos(ship.a) * 110 * dt;
+      ship.vy += Math.sin(ship.a) * 110 * dt;
+    }
+    const speed = Math.hypot(ship.vx, ship.vy);
+    if (speed > 160) {
+      ship.vx *= 160 / speed;
+      ship.vy *= 160 / speed;
+    }
+    ship.vx *= 0.992;
+    ship.vy *= 0.992;
+    ship.x += ship.vx * dt;
+    ship.y += ship.vy * dt;
+    wrap(ship);
+
+    shots.forEach((s) => {
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.life -= dt;
+      wrap(s);
+    });
+    shots = shots.filter((s) => s.life > 0);
+    rocks.forEach((r) => {
+      r.x += r.vx * dt;
+      r.y += r.vy * dt;
+      wrap(r);
+    });
+
+    const hit = resolveShotHits(rocks, shots, makeRock);
+    rocks = hit.rocks;
+    shots = hit.shots;
+    score += hit.scoreDelta;
+    if (invuln > 0) invuln -= dt;
+    else if (rocks.some((r) => near(ship, r, r.r + 8))) {
+      const hull = applyHullHit(lives);
+      lives = hull.lives;
+      invuln = hull.invuln;
+      over = hull.over;
+      ship.x = W / 2;
+      ship.y = H / 2;
+      ship.vx = 0;
+      ship.vy = 0;
+    }
+    if (!rocks.length && !over) spawnWave(5);
+    onStatus?.(`← → · ↑ · Space · score ${score} · ships ${lives}`);
+  };
+
+  const draw = () => {
+    ctx.fillStyle = "#07060f";
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "#e9d5ff";
+    ctx.lineWidth = 1.5;
+    const blinkOff = invuln > 0 && Math.floor(invuln * 8) % 2 === 0;
+    ctx.save();
+    ctx.globalAlpha = blinkOff ? 0.25 : 1;
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.a);
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-10, 8);
+    ctx.lineTo(-5, 0);
+    ctx.lineTo(-10, -8);
+    ctx.closePath();
+    ctx.stroke();
+    if (keys.ArrowUp) {
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.lineTo(-16, 3);
+      ctx.lineTo(-16, -3);
+      ctx.closePath();
+      ctx.strokeStyle = "#c4b5fd";
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = "#f5f3ff";
+    shots.forEach((s) => ctx.fillRect(s.x - 1.5, s.y - 1.5, 3, 3));
+    ctx.strokeStyle = "#ddd6fe";
+    rocks.forEach((r) => {
+      ctx.beginPath();
+      r.pts.forEach((p, i) => {
+        const x = r.x + p[0];
+        const y = r.y + p[1];
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.stroke();
+    });
+    if (over) {
+      ctx.fillStyle = "#fff";
+      ctx.font = "16px ui-monospace, monospace";
+      ctx.fillText("HULL LOST", W / 2 - 48, H / 2);
+    }
+  };
+
+  const loop = (t) => {
+    if (!live) return;
+    if (!last) last = t;
+    const dt = Math.min(0.033, (t - last) / 1000);
+    last = t;
+    step(dt);
+    draw();
+    raf = requestAnimationFrame(loop);
+  };
+
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("keyup", onKey);
+  reset();
+  raf = requestAnimationFrame(loop);
+  canvas.focus();
+  return {
+    reset,
+    destroy: () => {
+      live = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+    },
+  };
+}
+
 /**
  * Open a game window via WindowManager.
  * @param {object} wm
