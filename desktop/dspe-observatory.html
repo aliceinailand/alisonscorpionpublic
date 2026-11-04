@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DSPE Observatory — Alison Scorpion</title>
+  <meta name="description" content="Local-only Dyarchic Synthetic Persona Emergence measurement scaffold. Separable from the Alison Scorpion desktop." />
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root { color-scheme: dark; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+    body { margin: 0; background: #0f1115; color: #e8eaed; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 1.5rem; }
+    a { color: #9bbcff; }
+    h1 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+    .lede { color: #b0b6c0; line-height: 1.45; }
+    textarea, input, button, pre {
+      display: block; width: 100%; box-sizing: border-box; margin: 0.65rem 0;
+      font: inherit;
+    }
+    textarea, pre {
+      background: #171a21; border: 1px solid #2a3140; border-radius: 8px;
+      padding: 0.75rem; color: inherit;
+    }
+    button {
+      width: auto; padding: 0.55rem 1rem; cursor: pointer;
+      background: #5b4bdb; color: #f7f5ff; border: 0; border-radius: 8px;
+    }
+    pre { white-space: pre-wrap; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.85rem; }
+    .nav { margin-bottom: 1rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav"><a href="index.html">← Desktop</a> · <a href="platform.html">Containers</a></p>
+    <div id="dspe-root"></div>
+  </div>
+  <script type="module">
+    import { mountObservatory } from "./js/dspe-observatory.js?v=20261104waveb1";
+    mountObservatory("#dspe-root");
+  </script>
+</body>
+</html>

@@ -242,6 +242,7 @@ export const APP_CATALOG = [
     label: "The Alice and the Scorpion Framework Storybook",
     glyph: "📖",
   },
+  { id: "dspe-observatory", label: "DSPE Observatory", glyph: "📡" },
   { id: "chat", label: "Chat", glyph: "💬" },
   { id: "trash", label: "Trash", glyph: "🗑" },
   { id: "network", label: "Network", glyph: "🖧" },
@@ -357,6 +358,7 @@ const APP_OPENERS = {
   browser: openLiveBrowser,
   knowledge: openKnowledge,
   storybook: openStorybook,
+  "dspe-observatory": openDspeObservatory,
   chat: openChat,
   trash: openTrash,
   network: openNetwork,
@@ -2709,6 +2711,11 @@ function openPublicContainer(wm) {
       root.querySelector("[data-public-chat-input]")?.focus();
     },
   });
+}
+
+function openDspeObservatory(_wm) {
+  const url = new URL("./dspe-observatory.html", window.location.href).href;
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function openChat(wm) {
