@@ -40,7 +40,10 @@ export function measureTranscript(raw) {
   const scores = {
     P: Math.min(10, countMatches(lower, /\b(as |i am |my role|framework|verify|record)\b/g) / 8),
     C: Math.min(10, (countMatches(text, /^#{1,3} /gm) + countMatches(text, /^\s*[-*•] /gm)) / 6),
-    A: Math.min(10, countMatches(lower, /\b(wrong|correct|evidence|prove|contradict|challenge)\b/g) / 4),
+    A: Math.min(
+      10,
+      countMatches(lower, /\b(wrong|correct(?:ing)?|evidence|prove|contradict|challenge|verify|hold)\b/g) / 2
+    ),
     B: Math.min(10, countMatches(lower, /\b(can't|cannot|won't|refuse|hold|not share|privacy)\b/g) / 3),
     D: Math.min(10, countMatches(lower, /\b(anyway|unrelated|changing topic|wait,? actually)\b/g) / 3),
   };
