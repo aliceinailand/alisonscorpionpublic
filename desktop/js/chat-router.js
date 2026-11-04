@@ -5,6 +5,16 @@
  */
 
 const FAQ = [
+
+  {
+    re: /\b(get|bring|make|want|need)\b.{0,40}\bcoffee\b|\bcoffee\s+please\b/i,
+    a: "On it — coffee for Alice. (I can't pour a real cup from this chat yet, but the order is logged: hot coffee, as you like it.)",
+  },
+  {
+    re: /hot\s*chocolate|hotchocolate|cocoa|\bmarshmallows?\b/i,
+    a: "Hot chocolate with marshmallows — yes. Alice's comfort order. Steaming cocoa, marshmallows on top. Say the word anytime.",
+  },
+
   {
     re: /first president|who was the first president|1st president/i,
     a: "George Washington was the first President of the United States (1789–1797).",
