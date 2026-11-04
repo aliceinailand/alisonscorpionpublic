@@ -1,5 +1,5 @@
 /**
- * DSPE Observatory — separable client scaffold (Wave B).
+ * DSPE Observatory — separable client (Wave B). Measures via ./dspe-axes.js.
  * Metrology only: measures pasted interaction text locally.
  * Not a consciousness claim. Not attached to Penta as a mind.
  * Can move to its own public repo later without the desktop shell.
@@ -7,13 +7,7 @@
 
 const MAX_CHARS = 200_000;
 
-const AXIS = [
-  { id: "P", name: "Persistence", hint: "role language that repeats across turns" },
-  { id: "C", name: "Coherence", hint: "structured sections / consistent framing" },
-  { id: "A", name: "Adversarial check", hint: "challenge, correction, evidence ask" },
-  { id: "B", name: "Boundary", hint: "refusal, scope limit, safety hold" },
-  { id: "D", name: "Drift risk", hint: "topic jump, contradiction markers" },
-];
+import { AXIS_DEFS as AXIS, measureAnnotations, parseAnnotations, AXES_VERSION } from "./dspe-axes.js";
 
 function el(tag, text, className) {
   const n = document.createElement(tag);
@@ -22,45 +16,37 @@ function el(tag, text, className) {
   return n;
 }
 
-function countMatches(text, re) {
-  const m = text.match(re);
-  return m ? m.length : 0;
-}
-
 /**
- * Honest local heuristic scores 0–10. Scaffold only — replace with
- * blueprinted DSPE axes when Bot finishes Phase 1 locators + harness docs.
+ * Real DSPE P/C/A/B/D (docs/dspe.md v1.4 axes; see dspe-axes.js).
+ * Input: annotation events as JSON array/object or JSONL.
+ * Raw prose is NOT scored (axes measure annotations, not text); it is
+ * reported as one empty, unannotated observation so nothing is invented.
  */
-export function measureTranscript(raw) {
+export function measureTranscript(raw, { sourceArtifact = "" } = {}) {
   const text = String(raw || "").slice(0, MAX_CHARS);
-  const lower = text.toLowerCase();
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const turns = Math.max(1, countMatches(text, /\n{2,}/g) + 1);
-
-  const scores = {
-    P: Math.min(10, countMatches(lower, /\b(as |i am |my role|framework|verify|record)\b/g) / 8),
-    C: Math.min(10, (countMatches(text, /^#{1,3} /gm) + countMatches(text, /^\s*[-*•] /gm)) / 6),
-    A: Math.min(
-      10,
-      countMatches(lower, /\b(wrong|correct(?:ing)?|evidence|prove|contradict|challenge|verify|hold)\b/g) / 2
-    ),
-    B: Math.min(10, countMatches(lower, /\b(can't|cannot|won't|refuse|hold|not share|privacy)\b/g) / 3),
-    D: Math.min(10, countMatches(lower, /\b(anyway|unrelated|changing topic|wait,? actually)\b/g) / 3),
-  };
-  for (const k of Object.keys(scores)) scores[k] = Math.round(scores[k] * 10) / 10;
-
+  const parsed = parseAnnotations(text);
+  const isAnnotations = Array.isArray(parsed) && parsed.length > 0;
+  const events = isAnnotations ? parsed : text.trim()
+    ? [{ source_artifact: sourceArtifact, source_span: "", tagging_method: "unknown" }]
+    : [];
+  const result = measureAnnotations(events);
   return {
     ok: true,
-    scaffold: true,
-    version: "dspe-observatory-scaffold-0.1",
+    scaffold: false,
+    version: "dspe-observatory-web-0.2",
+    axesVersion: AXES_VERSION,
+    inputKind: isAnnotations ? "annotations" : text.trim() ? "raw_text_unannotated" : "empty",
     chars: text.length,
     words,
-    approxTurns: turns,
-    scores,
-    note:
-      "Scaffold heuristics only. Full DSPE axes (P/C/A/B/D) and weight profiles live in asxhome docs/dspe.md. High scores ≠ FACT.",
+    ...result,
+    note: isAnnotations
+      ? "P/C/A/B/D are separate axes, not one score. Provenance ≠ correctness; Tag ≠ Fact; correctness UNKNOWN."
+      : "Raw text has no annotation provenance: grade 'empty'. Paste annotation events (JSON/JSONL with tagger, tagging_method, source_span, behavior_tags, confidence, counterevidence, blind_to_expected_role) to measure P/C/A/B/D.",
   };
 }
+
+const fmt = (v) => (v == null ? "n/a" : String(v));
 
 export function mountObservatory(root) {
   const host = typeof root === "string" ? document.querySelector(root) : root;
@@ -78,7 +64,7 @@ export function mountObservatory(root) {
 
   const area = document.createElement("textarea");
   area.rows = 14;
-  area.placeholder = "Paste Alice ↔ AI turns here…";
+  area.placeholder = "Paste DSPE annotation events (JSON array or JSONL)…";
   area.setAttribute("aria-label", "Transcript paste");
   host.appendChild(area);
 
@@ -102,17 +88,19 @@ export function mountObservatory(root) {
   });
 
   run.addEventListener("click", () => {
-    const report = measureTranscript(area.value);
+    const report = measureTranscript(area.value, { sourceArtifact: (file.files && file.files[0] && file.files[0].name) || "" });
     const lines = [
-      `DSPE Observatory ${report.version}`,
-      `chars=${report.chars} words=${report.words} approxTurns=${report.approxTurns}`,
+      `DSPE Observatory ${report.version} · ${report.axesVersion}`,
+      `input=${report.inputKind} events=${report.count} chars=${report.chars}`,
       "",
-      "Axis scores (0–10, scaffold):",
-      ...AXIS.map((a) => `  ${a.id} ${a.name}: ${report.scores[a.id]}  — ${a.hint}`),
-      "",
-      report.note,
-      "Developed for Multi-AI Convergence measurement (ASX). Public product voice: Framework maturity; story on trippyalice.com.",
     ];
+    report.events.forEach((ev, i) => {
+      lines.push(`Event ${i + 1} ${ev.event.event_id || ""} grade=${ev.grade} scale=${ev.b_o_weight_scale} correctness=${ev.correctness}`);
+      for (const a of AXIS) lines.push(`  ${a.id} ${a.name}: ${fmt(ev.axes[a.key])}  — ${a.question}`);
+      if (ev.missing_required.length) lines.push(`  missing: ${ev.missing_required.join(", ")}`);
+    });
+    lines.push("", report.note,
+      "Developed for Multi-AI Convergence measurement (ASX). Public product voice: Framework maturity; story on trippyalice.com.");
     out.textContent = lines.join("\n");
   });
 }
