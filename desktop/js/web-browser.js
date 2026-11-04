@@ -15,7 +15,7 @@ window.addEventListener(GO, (ev) => {
   if (url && activeGo) activeGo(url);
 });
 
-const STORY_TITLE = "The Alice and the Scorpion Framework Storybook";
+const STORY_TITLE = "The Alice and the Scorpion Storybook";
 const STORY_URL = "https://trippyalice.com";
 const OBSERVER = "ASX Web Observer";
 

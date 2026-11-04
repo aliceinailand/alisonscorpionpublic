@@ -12,7 +12,7 @@ if (!penta.some((article) => article.id === "penta")) {
 
 const story = KB_ARTICLES.find((article) => article.id === "storybook");
 if (!story) throw new Error("storybook article missing");
-if (!story.title.includes("The Alice and the Scorpion Framework Storybook")) {
+if (!story.title.includes("The Alice and the Scorpion Storybook")) {
   throw new Error("storybook title drifted");
 }
 if (!story.body.includes("trippyalice.com")) throw new Error("storybook site missing");

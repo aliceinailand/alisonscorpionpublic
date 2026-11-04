@@ -126,7 +126,7 @@ const DESKTOP_ICONS = [
   { id: "camera", label: "Camera", glyph: "📷", x: 110, y: 384 },
   {
     id: "storybook",
-    label: "The Alice and the Scorpion Framework Storybook",
+    label: "The Alice and the Scorpion Storybook",
     glyph: "📖",
     x: 206,
     y: 16,

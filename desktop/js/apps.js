@@ -278,7 +278,7 @@ export const APP_CATALOG = [
   { id: "knowledge", label: "Knowledge Base", glyph: "📚" },
   {
     id: "storybook",
-    label: "The Alice and the Scorpion Framework Storybook",
+    label: "The Alice and the Scorpion Storybook",
     glyph: "📖",
   },
   { id: "dspe-observatory", label: "DSPE Observatory", glyph: "📡" },

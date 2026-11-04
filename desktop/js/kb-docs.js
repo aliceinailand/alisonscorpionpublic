@@ -92,8 +92,8 @@ The order of the checks is ethical, then logical, then historical. An ouroboros 
   },
   {
     id: "storybook",
-    title: "The Alice and the Scorpion Framework Storybook",
-    body: `The Alice and the Scorpion Framework Storybook is the story and metaphor side of this work. It lives at trippyalice.com.
+    title: "The Alice and the Scorpion Storybook",
+    body: `The Alice and the Scorpion Storybook is the story and metaphor side of this work. It lives at trippyalice.com.
 
 The desktop icon with that name opens trippyalice.com in ASX Web Observer. This Knowledge Base holds the doctrine. The story stays on that site.
 
