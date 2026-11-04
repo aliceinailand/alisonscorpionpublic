@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Containers — Alison Scorpion</title>
-  <meta name="description" content="Paid Container area. A flat screen that skips the Alison Scorpion desktop. Sign-in is not finished." />
+  <meta name="description" content="Paid Container area. A flat screen that skips the Alison Scorpion desktop. Device-local sign-up and log-in are live; server accounts next." />
   <meta name="robots" content="noindex,nofollow" />
   <link rel="stylesheet" href="platform/platform.css" />
 </head>
@@ -44,31 +44,35 @@
         <section id="account" class="view">
           <h2>Account</h2>
           <div class="stage">
-            <p>You are a guest.</p>
-            <p>An account, when sign-in is finished, is an email link. There is no password.</p>
+            <p id="account-who">Guest until you Sign up or Log in on this device.</p>
+            <p>Accounts are device-local for now (hashed password in this browser). Server accounts and Poe-linked identity ship next.</p>
             <p><a href="#signup">Sign up</a> · <a href="#login">Log in</a></p>
           </div>
         </section>
         <section id="signup" class="view">
           <h2>Sign up</h2>
           <div class="stage">
-            <p>An account is an email link. There is no password.</p>
-            <p>Sign-in is not finished. The address stays in this box until you leave the page. It is not sent, not stored, and no account is created.</p>
+            <p>Create a device-local account (same store as the desktop Users app). Password is hashed in this browser. A server account and Poe-linked identity ship next.</p>
+            <label for="signup-user">Username</label>
+            <input id="signup-user" type="text" autocomplete="username" spellcheck="false" />
             <label for="signup-email">Email</label>
-            <input id="signup-email" type="email" autocomplete="off" spellcheck="false" />
-            <button type="button" class="continue" id="signup-continue">Continue</button>
-            <p id="signup-result" class="confirm" hidden>Nothing was sent. No account was created.</p>
+            <input id="signup-email" type="email" autocomplete="email" spellcheck="false" />
+            <label for="signup-pass">Password</label>
+            <input id="signup-pass" type="password" autocomplete="new-password" />
+            <button type="button" class="continue" id="signup-continue">Create account</button>
+            <p id="signup-result" class="confirm" hidden></p>
           </div>
         </section>
         <section id="login" class="view">
           <h2>Log in</h2>
           <div class="stage">
-            <p>Log in with the email link for the account. There is no password.</p>
-            <p>Sign-in is not finished. The address stays in this box until you leave the page. It is not sent, not stored, and you are not signed in.</p>
-            <label for="login-email">Email</label>
-            <input id="login-email" type="email" autocomplete="off" spellcheck="false" />
-            <button type="button" class="continue" id="login-continue">Continue</button>
-            <p id="login-result" class="confirm" hidden>Nothing was sent. You are still a guest.</p>
+            <p>Log in with an account already created on this browser (email or username + password).</p>
+            <label for="login-email">Email or username</label>
+            <input id="login-email" type="text" autocomplete="username" spellcheck="false" />
+            <label for="login-pass">Password</label>
+            <input id="login-pass" type="password" autocomplete="current-password" />
+            <button type="button" class="continue" id="login-continue">Log in</button>
+            <p id="login-result" class="confirm" hidden></p>
           </div>
         </section>
         <section id="new" class="view">
@@ -97,7 +101,23 @@
         <section id="plans" class="view">
           <h2>Plans</h2>
           <div class="stage">
-            <p>This screen does not include the captured plan tables, so it does not link to a missing catalog. Checkout is off. No price is charged here.</p>
+            <p>Checkout is off. No card is taken. These are proposed operations tiers ($0–$99).</p>
+            <ul class="plan-ladder" id="plan-ladder">
+              <li><strong>Free</strong> — $0 · 1 container / month</li>
+              <li><strong>Starter</strong> — $5 · 2 containers</li>
+              <li><strong>Basic</strong> — $9 · 5 containers</li>
+              <li><strong>Plus</strong> — $19 · 8 containers</li>
+              <li><strong>Standard</strong> — $29 · 12 containers</li>
+              <li><strong>Pro</strong> — $49 · 20 containers</li>
+              <li><strong>Advanced</strong> — $69 · 30 containers</li>
+              <li><strong>Premium</strong> — $99 · 40 containers</li>
+            </ul>
+            <p class="plan-addon" id="plan-api-addon">
+              <strong>API access</strong> — optional add-on on the same operations meter
+              (not a separate token bill). Poe.com is the initial external API test surface.
+              Key generation is not live yet. Checkout remains off.
+            </p>
+            <p>Canonical ladder: <code>desktop/js/pricing-tiers.mjs</code>.</p>
           </div>
         </section>
         <section id="billing" class="view">
@@ -133,6 +153,7 @@
       </div>
     </main>
   </div>
-  <script src="platform/platform.js"></script>
+  <p id="session-who" class="session-who" aria-live="polite"></p>
+  <script type="module" src="platform/platform.js?v=20261103auth1"></script>
 </body>
 </html>
