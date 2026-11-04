@@ -25,4 +25,18 @@ if (!KB_ARTICLES.some((article) => article.title === "ASX Web Observer")) {
   throw new Error("observer name missing");
 }
 
+const identity = KB_ARTICLES.find((article) => article.id === "identity");
+if (!identity) throw new Error("identity article missing");
+if (!identity.title.includes("Alison Scorpion Framework")) {
+  throw new Error("identity title should name the Framework");
+}
+if (!identity.body.includes("trippyalice.com")) {
+  throw new Error("identity should point story to trippyalice.com");
+}
+for (const banned of ["Lady Alpha", "Scorpus", "Aletheia", "QLA", "Queen Lady Alpha"]) {
+  if (joined.includes(banned)) {
+    throw new Error(`public KB must not name ${banned}`);
+  }
+}
+
 console.log("knowledge base tests passed");
