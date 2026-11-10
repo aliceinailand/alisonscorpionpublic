@@ -229,7 +229,7 @@ export const PATTERN_CATALOG = [
       "assets seizure",
       "working on vehicles",
     ],
-    note: "Institutional HOA manager pattern from VEHA comms; last name Borders. Channel often manager@veha.us.",
+    note: "Institutional HOA manager pattern from VEHA comms; last name Borders. Prefer role/channel labels over personal emails in UI.",
   },
 
   // —— Monell / policy-process-procedure probe (active defense prep) ——
