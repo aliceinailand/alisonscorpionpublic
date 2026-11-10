@@ -11,7 +11,7 @@
  * Catalog is append-only: add entries; do not invent facts from a hit.
  */
 
-export const CATALOG_VERSION = "dspe-pattern-catalog-v0.2";
+export const CATALOG_VERSION = "dspe-pattern-catalog-v0.3";
 
 /** @typedef {{ id: string, domain: string, label: string, markers: string[], note?: string }} PatternEntry */
 
@@ -250,6 +250,51 @@ export const PATTERN_CATALOG = [
       "pursuant to policy",
     ],
     note: "Active-defense record-building. Response or silence can still be evidentiary later; not a finding by itself.",
+  },
+
+  // —— CABQ / IPRA institutional (append-only; statute + custodian boilerplate) ——
+  {
+    id: "org:cabq-ipra-custodian",
+    domain: "org_industrial",
+    label: "CABQ / IPRA records-custodian process",
+    markers: [
+      "inspection of public records",
+      "records custodian",
+      "nmsa 1978",
+      "section 14-2",
+      "14-2-1",
+      "14-2-8",
+      "14-2-11",
+      "extension of time",
+      "no responsive records",
+      "unduly burdensome",
+      "three-day letter",
+      "3-day letter",
+      "city clerk",
+      "office of the city clerk",
+      "ipra request",
+      "public records act",
+    ],
+    note: "Institutional NM IPRA / CABQ custodian language. Measurement claim only. Prefer role labels (clerk, custodian); no requester PII in UI.",
+  },
+  {
+    id: "org:cabq-agency-units",
+    domain: "org_industrial",
+    label: "CABQ unit / process nouns",
+    markers: [
+      "code enforcement",
+      "animal welfare",
+      "cpoa",
+      "civilian police oversight",
+      "apd",
+      "albuquerque police",
+      "independent hearing officer",
+      "iho",
+      "office of equity",
+      "risk management",
+      "city attorney",
+    ],
+    note: "Org-unit nouns as process context, not actor findings. Last-name discipline for people remains separate.",
   },
 ];
 

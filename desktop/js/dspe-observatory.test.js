@@ -37,5 +37,13 @@ if (!grokish.datasetThemes.top.some((t) => t.id.startsWith("grok_"))) {
 const w = measureDatasetThemeWeights("Monell failure to train official policy custom or practice");
 if (!w.themes.some((t) => t.id === "monell_1983")) throw new Error("Monell theme missed");
 
-if (PATTERN_CATALOG.length < 12) throw new Error("catalog too small");
+const ipra = detectExtendedPatterns(
+  "The records custodian cites NMSA 1978 Section 14-2 and requests an extension of time. " +
+    "No responsive records for this IPRA request. Office of the City Clerk three-day letter."
+);
+if (!ipra.hits.some((h) => h.id === "org:cabq-ipra-custodian")) {
+  throw new Error("CABQ/IPRA custodian pattern missed");
+}
+
+if (PATTERN_CATALOG.length < 14) throw new Error("catalog too small");
 console.log("dspe-observatory tests passed");
