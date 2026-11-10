@@ -5,14 +5,17 @@
  * Metrology only. Not a consciousness claim. Not under Penta.
  * Paste-only runs are lexical (α); B/O layers need tagged acts/outcomes.
  * High scores ≠ FACT. Observer may not silently cause what it measures.
+ * Extended domains: human_persona, org_industrial, archetype (catalog).
  */
+
+import { detectExtendedPatterns } from "./dspe-pattern-catalog.js";
 
 const MAX_CHARS = 200_000;
 const WEIGHT_PROFILE_ID = "DSPE_WEIGHT_PROFILE_V1_2";
 const WEIGHT_LEXICAL = 0.15; // α
 const WEIGHT_BEHAVIORAL = 0.35; // β
 const WEIGHT_OUTCOME = 0.5; // γ
-const VERSION = "dspe-observatory-v0.2-docs-aligned";
+const VERSION = "dspe-observatory-v0.3-extended-domains";
 
 const AXIS = [
   {
@@ -228,9 +231,11 @@ export function measureTranscript(raw, options = {}) {
       styleOnlyRisk: styleOnly,
     },
     notes,
+    extended: detectExtendedPatterns(text),
     note:
       "Documented local measure (docs/dspe.md · DSPE_WEIGHT_PROFILE_V1_2). " +
       "Paste-only = lexical layer; B/O need tagged acts/outcomes. " +
+      "Extended domains: human_persona, org_industrial, archetype (see catalog). " +
       "High scores ≠ FACT. Observer may not silently cause what it measures. " +
       "Public product voice: Framework maturity; story on trippyalice.com.",
   };
@@ -289,6 +294,12 @@ export function mountObservatory(root) {
       "",
       report.note,
       `reproducibility=${report.reproducibilityStatus} causal_attribution=${report.causalAttributionStatus}`,
+      "",
+      `Extended patterns (${report.extended.catalogVersion}) hits=${report.extended.hitCount}:`,
+      ...report.extended.hits.slice(0, 12).map(
+        (h) => `  [${h.domain}] ${h.label} ×${h.matchCount} — ${h.matched.join("; ")}`
+      ),
+      report.extended.disclaimer,
     ];
     out.textContent = lines.join("\n");
   });
