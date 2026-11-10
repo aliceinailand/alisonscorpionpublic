@@ -8,14 +8,14 @@
  * Extended domains: human_persona, org_industrial, archetype (catalog).
  */
 
-import { detectExtendedPatterns } from "./dspe-pattern-catalog.js";
+import { detectExtendedPatterns, measureDatasetThemeWeights } from "./dspe-pattern-catalog.js";
 
 const MAX_CHARS = 200_000;
 const WEIGHT_PROFILE_ID = "DSPE_WEIGHT_PROFILE_V1_2";
 const WEIGHT_LEXICAL = 0.15; // α
 const WEIGHT_BEHAVIORAL = 0.35; // β
 const WEIGHT_OUTCOME = 0.5; // γ
-const VERSION = "dspe-observatory-v0.3-extended-domains";
+const VERSION = "dspe-observatory-v0.4-dataset-weights";
 
 const AXIS = [
   {
@@ -232,6 +232,7 @@ export function measureTranscript(raw, options = {}) {
     },
     notes,
     extended: detectExtendedPatterns(text),
+    datasetThemes: measureDatasetThemeWeights(text),
     note:
       "Documented local measure (docs/dspe.md · DSPE_WEIGHT_PROFILE_V1_2). " +
       "Paste-only = lexical layer; B/O need tagged acts/outcomes. " +
@@ -300,6 +301,12 @@ export function mountObservatory(root) {
         (h) => `  [${h.domain}] ${h.label} ×${h.matchCount} — ${h.matched.join("; ")}`
       ),
       report.extended.disclaimer,
+      "",
+      `Dataset theme weights (top):`,
+      ...report.datasetThemes.top.map(
+        (th) => `  ${th.label}: w=${th.weight01} hits=${th.hits} — ${th.matched.join("; ")}`
+      ),
+      report.datasetThemes.note,
     ];
     out.textContent = lines.join("\n");
   });

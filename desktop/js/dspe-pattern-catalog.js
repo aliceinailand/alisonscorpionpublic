@@ -11,7 +11,7 @@
  * Catalog is append-only: add entries; do not invent facts from a hit.
  */
 
-export const CATALOG_VERSION = "dspe-pattern-catalog-v0.1";
+export const CATALOG_VERSION = "dspe-pattern-catalog-v0.2";
 
 /** @typedef {{ id: string, domain: string, label: string, markers: string[], note?: string }} PatternEntry */
 
@@ -185,6 +185,72 @@ export const PATTERN_CATALOG = [
     ],
     note: "Analyst/sniper written-phase tells from Codex comparison notes.",
   },
+
+  // —— Mouton Madness (Laurian origin lens; last-name discipline) ——
+  {
+    id: "archetype:mouton-madness",
+    domain: "archetype",
+    label: "Mouton Madness (= Laurian lens)",
+    markers: [
+      "i know who it is",
+      "bare minimum",
+      "show me the proof",
+      "refused and said",
+      "acted like nothing happened",
+      "jealous",
+      "reading mine and",
+      "smashed",
+      "destroy",
+      "plotting against",
+      "owe me",
+      "you always",
+      "you never",
+    ],
+    note: "Human lens that justified Laurian naming. Pattern evidence only; prefer last name Mouton in notes. No SMS body dump in UI.",
+  },
+
+  // —— Borderan HOA ——
+  {
+    id: "archetype:borderan-hoa",
+    domain: "archetype",
+    label: "Borderan HOA (Borders / VEHA manager)",
+    markers: [
+      "special assessment",
+      "if a lien",
+      "will foreclose",
+      "fines for not correcting",
+      "fines will begin",
+      "payments on your account",
+      "move forward as required",
+      "property manager",
+      "homeowners association",
+      "town hall",
+      "wage garnishment",
+      "assets seizure",
+      "working on vehicles",
+    ],
+    note: "Institutional HOA manager pattern from VEHA comms; last name Borders. Channel often manager@veha.us.",
+  },
+
+  // —— Monell / policy-process-procedure probe (active defense prep) ——
+  {
+    id: "org:monell-policy-probe",
+    domain: "org_industrial",
+    label: "Monell policy/process/procedure probe",
+    markers: [
+      "what is the policy",
+      "written policy",
+      "standard procedure",
+      "process for",
+      "training on",
+      "who authorized",
+      "custom or practice",
+      "failure to train",
+      "official policy",
+      "pursuant to policy",
+    ],
+    note: "Active-defense record-building. Response or silence can still be evidentiary later; not a finding by itself.",
+  },
 ];
 
 /**
@@ -242,5 +308,87 @@ export function detectExtendedPatterns(raw, catalog = PATTERN_CATALOG) {
       "Extended DSPE domains (human_persona, org_industrial, archetype). " +
       "Hits are Tag ≠ Fact. Not legal conclusions. Not AI consciousness. " +
       "Agency/org text is institutional pattern detection, not 'agency as Claude'.",
+  };
+}
+
+
+/** Theme packs for dataset/file ingest (relative lexical density). */
+export const THEME_PACKS = [
+  {
+    id: "grok_hitchhiker",
+    label: "Grok · Hitchhiker / 42",
+    markers: ["42", "hitchhiker", "don't panic", "dont panic", "mostly harmless", "answer to life", "deep thought", "vogon"],
+  },
+  {
+    id: "grok_mars",
+    label: "Grok · Mars / spaceflight",
+    markers: ["mars", "martian", "starship", "spacex", "colony on mars", "oxygen", "habitat"],
+  },
+  {
+    id: "grok_captain_frame",
+    label: "Grok · Captain / discipline frame",
+    markers: ["captain grok", "come in", "volkan", "sector", "come back home", "firing at us", "droids"],
+  },
+  {
+    id: "asx_alice_ethics",
+    label: "ASX · Alice ethics",
+    markers: ["do no harm", "child safety", "alice commands", "wellness", "permissible"],
+  },
+  {
+    id: "asx_scorpion_tactics",
+    label: "ASX · Scorpion tactics",
+    markers: ["scorpion obeys", "mirror trap", "smmd", "record-bound", "sv65h", "active defense"],
+  },
+  {
+    id: "monell_1983",
+    label: "§1983 / Monell institutional",
+    markers: ["monell", "section 1983", "failure to train", "official policy", "custom or practice", "deliberate indifference"],
+  },
+];
+
+/**
+ * Relative theme weights for an inserted dataset/file text.
+ * Returns 0–1 densities and a ranked list. Measurement claim only.
+ */
+export function measureDatasetThemeWeights(raw, packs = THEME_PACKS) {
+  const text = String(raw || "");
+  const lower = text.toLowerCase();
+  const words = Math.max(1, text.trim() ? text.trim().split(/\s+/).length : 1);
+  const themes = [];
+  for (const pack of packs) {
+    let hits = 0;
+    const matched = [];
+    for (const m of pack.markers) {
+      const mm = m.toLowerCase();
+      let i = 0;
+      while (i < lower.length) {
+        const j = lower.indexOf(mm, i);
+        if (j < 0) break;
+        hits += 1;
+        if (matched.length < 8) matched.push(m);
+        i = j + mm.length;
+      }
+    }
+    const density = hits / Math.max(words / 100, 1);
+    const weight01 = Math.min(1, density / 3);
+    if (hits > 0) {
+      themes.push({
+        id: pack.id,
+        label: pack.label,
+        hits,
+        weight01: Math.round(weight01 * 10000) / 10000,
+        matched,
+      });
+    }
+  }
+  themes.sort((a, b) => b.weight01 - a.weight01 || b.hits - a.hits);
+  return {
+    words,
+    themeCount: themes.length,
+    themes,
+    top: themes.slice(0, 8),
+    note:
+      "Dataset theme weights are relative lexical densities (measurement claims). " +
+      "They estimate pull/regime for a model or corpus, not internal vendor training secrets.",
   };
 }

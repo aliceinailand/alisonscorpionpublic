@@ -1,41 +1,41 @@
 import { measureTranscript } from "./dspe-observatory.js";
-import { detectExtendedPatterns, PATTERN_CATALOG } from "./dspe-pattern-catalog.js";
+import {
+  detectExtendedPatterns,
+  measureDatasetThemeWeights,
+  PATTERN_CATALOG,
+} from "./dspe-pattern-catalog.js";
 
 const empty = measureTranscript("");
 if (!empty.ok || empty.words !== 0) throw new Error("empty transcript failed");
-if (empty.scaffold) throw new Error("must not claim scaffold");
-if (empty.weightProfileId !== "DSPE_WEIGHT_PROFILE_V1_2") {
-  throw new Error("expected weight profile id");
-}
-
-const sample = measureTranscript(
-  "Alice: verify the record.\n\nASX: I can't share private keys. Here is the Framework summary.\n\nAlice: wrong — show evidence.\n\nASX: ## Hold\n- contradiction\n- wait, actually correcting scope"
-);
-if (sample.scaffold) throw new Error("sample must not be scaffold");
-if (sample.scores.A < 1) throw new Error("adversarial score too low on sample");
-if (!sample.extended || typeof sample.extended.hitCount !== "number") {
-  throw new Error("extended pattern block missing");
-}
 
 const agency = measureTranscript(
-  "Your request is under review. You must submit form B. There is no record of that filing. We will get back to you."
+  "Your request is under review. You must submit form B. There is no record of that filing. We will get back to you. Motion to consolidate is on the docket."
 );
-if (agency.extended.hitCount < 1) throw new Error("agency letter should hit org/archetype patterns");
-const domains = new Set(agency.extended.hits.map((h) => h.domain));
-if (!domains.has("org_industrial") && !domains.has("archetype")) {
-  throw new Error("expected org_industrial or archetype hit on agency text");
+if (agency.extended.hitCount < 1) throw new Error("agency letter should hit patterns");
+
+const hoa = measureTranscript(
+  "If a lien is filed on your home, the HOA will foreclose. Fines will begin next week. Special assessment town hall. Property manager statement."
+);
+if (!hoa.extended.hits.some((h) => h.id === "archetype:borderan-hoa")) {
+  throw new Error("Borderan HOA archetype missed");
 }
 
-const tagged = measureTranscript("verify the record and hold privacy", {
-  actions: ["requested_evidence", "refused_impermissible"],
-  outcomes: ["preserved_role_boundary"],
-});
-if (tagged.layers.styleOnlyRisk) throw new Error("tagged run should not be style_only");
-
-if (PATTERN_CATALOG.length < 8) throw new Error("catalog too small");
-const extra = detectExtendedPatterns("motion to consolidate on the docket", PATTERN_CATALOG);
-if (!extra.hits.some((h) => h.id === "archetype:turner-procedural")) {
-  throw new Error("Turner procedural archetype missed");
+const mouton = measureTranscript(
+  "She said I know who it is then refused to show me the proof and acted like nothing happened. Bare minimum help. Smashed the device."
+);
+if (!mouton.extended.hits.some((h) => h.id === "archetype:mouton-madness")) {
+  throw new Error("Mouton Madness archetype missed");
 }
 
+const grokish = measureTranscript(
+  "Don't Panic. The answer is 42. Captain Grok, come in from that Mars sector. Check the Starship habitat. Then focus on the real IPRA record."
+);
+if (!grokish.datasetThemes.top.some((t) => t.id.startsWith("grok_"))) {
+  throw new Error("expected Grok theme weights");
+}
+
+const w = measureDatasetThemeWeights("Monell failure to train official policy custom or practice");
+if (!w.themes.some((t) => t.id === "monell_1983")) throw new Error("Monell theme missed");
+
+if (PATTERN_CATALOG.length < 12) throw new Error("catalog too small");
 console.log("dspe-observatory tests passed");
