@@ -246,42 +246,77 @@ export function mountObservatory(root) {
   const host = typeof root === "string" ? document.querySelector(root) : root;
   if (!host) return;
 
+  const uid = `dspe-${Math.random().toString(36).slice(2, 9)}`;
+  const titleId = `${uid}-title`;
+  const areaId = `${uid}-transcript`;
+  const fileId = `${uid}-file`;
+  const helpId = `${uid}-help`;
+  const outId = `${uid}-report`;
+
   host.replaceChildren();
-  host.appendChild(el("h1", "DSPE Observatory"));
+  const title = el("h1", "DSPE Observatory");
+  title.id = titleId;
+  host.appendChild(title);
   host.appendChild(
     el(
       "p",
-      "Paste a chat transcript (or drop a .txt / .md / .jsonl). Measurement runs in this browser. Nothing is uploaded. Separable module — not required for Alison Scorpion core.",
+      "Paste a chat transcript (or choose a .txt / .md / .jsonl). Measurement runs in this browser. Nothing is uploaded. Separable module — not required for Alison Scorpion core.",
       "lede"
     )
   );
 
-  const area = document.createElement("textarea");
-  area.rows = 14;
-  area.placeholder = "Paste Alice ↔ AI turns here…";
-  area.setAttribute("aria-label", "Transcript paste");
-  host.appendChild(area);
+  const form = document.createElement("form");
+  form.setAttribute("aria-labelledby", titleId);
+  form.noValidate = true;
 
+  const areaField = document.createElement("div");
+  areaField.className = "field";
+  const areaLabel = document.createElement("label");
+  areaLabel.htmlFor = areaId;
+  areaLabel.textContent = "Transcript paste";
+  const area = document.createElement("textarea");
+  area.id = areaId;
+  area.name = "transcript";
+  area.rows = 14;
+  area.maxLength = MAX_CHARS;
+  area.placeholder = "Paste Alice ↔ AI turns here…";
+  area.setAttribute("aria-describedby", helpId);
+  area.enterKeyHint = "enter";
+  area.spellcheck = true;
+  const help = el(
+    "p",
+    `Max ${MAX_CHARS.toLocaleString()} characters. Ctrl/Cmd+Enter measures without leaving the textarea.`,
+    "hint"
+  );
+  help.id = helpId;
+  areaField.append(areaLabel, area, help);
+
+  const fileField = document.createElement("div");
+  fileField.className = "field";
+  const fileLabel = document.createElement("label");
+  fileLabel.htmlFor = fileId;
+  fileLabel.textContent = "Or load a local file";
   const file = document.createElement("input");
+  file.id = fileId;
+  file.name = "transcript_file";
   file.type = "file";
-  file.accept = ".txt,.md,.jsonl,.json,.csv";
-  host.appendChild(file);
+  file.accept = ".txt,.md,.jsonl,.json,.csv,text/plain,text/markdown,application/json";
+  fileField.append(fileLabel, file);
 
   const run = el("button", "Measure locally");
-  run.type = "button";
-  host.appendChild(run);
+  run.type = "submit";
+
+  form.append(areaField, fileField, run);
+  host.appendChild(form);
 
   const out = el("pre", "", "report");
+  out.id = outId;
+  out.setAttribute("role", "status");
   out.setAttribute("aria-live", "polite");
+  out.setAttribute("aria-atomic", "true");
   host.appendChild(out);
 
-  file.addEventListener("change", async () => {
-    const f = file.files && file.files[0];
-    if (!f) return;
-    area.value = (await f.text()).slice(0, MAX_CHARS);
-  });
-
-  run.addEventListener("click", () => {
+  const renderReport = () => {
     const report = measureTranscript(area.value);
     const lines = [
       `DSPE Observatory ${report.version}`,
@@ -308,7 +343,26 @@ export function mountObservatory(root) {
       ),
       report.datasetThemes.note,
     ];
+    // textContent only — never innerHTML for measurement output
     out.textContent = lines.join("\n");
+  };
+
+  file.addEventListener("change", async () => {
+    const f = file.files && file.files[0];
+    if (!f) return;
+    area.value = (await f.text()).slice(0, MAX_CHARS);
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    renderReport();
+  });
+
+  // Modifier+Enter is IME-safe (confirming Enter never carries Ctrl/Cmd).
+  area.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    form.requestSubmit();
   });
 }
 

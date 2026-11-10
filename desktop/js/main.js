@@ -57,7 +57,7 @@ import {
   pickLocalFiles,
   fileToDataUrl,
 } from "./menus.js?v=20260815t220000z";
-import { ensureDomPurify, sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
+import { ensureDomPurify, sanitizeHtml, setSafeHtml, escapeHtml } from "./sanitize.js?v=20260810t480000z";
 import { initBrowserFs } from "./fs.js?v=20261027observer2";
 import { initHashRouter, setAppRoute } from "./hash-router.js?v=20260810t480000z";
 import { ensureJsLite } from "./dom-lite.js?v=20260810t480000z";
@@ -243,7 +243,8 @@ function placeIcons(layer, openApp) {
       data.badge != null
         ? `<span class="desk-badge" aria-hidden="true">${escapeHtml(String(data.badge))}</span>`
         : "";
-    el.innerHTML = sanitizeHtml(
+    setSafeHtml(
+      el,
       `<div class="glyph">${escapeHtml(data.glyph)}${badge}</div><div class="label">${escapeHtml(
         data.label
       )}</div>`
@@ -650,7 +651,8 @@ function buildStartMenu(menu, openApp) {
       const row = document.createElement("div");
       row.className = "sm-item";
       row.dataset.app = app.id;
-      row.innerHTML = sanitizeHtml(
+      setSafeHtml(
+        row,
         `<span class="g">${escapeHtml(app.glyph)}</span><span>${escapeHtml(app.label)}</span>`
       );
       const siteLock = siteLockForApp(app.id);

@@ -10,7 +10,7 @@
  * HTML string bodies are run through DOMPurify (js/sanitize.js) before insert.
  */
 
-import { sanitizeHtml, escapeHtml } from "./sanitize.js?v=20260810t360000z";
+import { sanitizeHtml, setSafeHtml, escapeHtml } from "./sanitize.js?v=20260810t360000z";
 import { showMenu } from "./menus.js?v=20260815t220000z";
 
 const GEOM_STORAGE_KEY = "asx-wm-geom-v1";
@@ -348,7 +348,7 @@ export class WindowManager {
       // Same-window place navigation: swap body/title instead of stacking windows
       if (opts.replace) {
         w.body.replaceChildren();
-        if (typeof opts.body === "string") w.body.innerHTML = sanitizeHtml(opts.body);
+        if (typeof opts.body === "string") setSafeHtml(w.body, opts.body);
         else if (opts.body instanceof HTMLElement) w.body.appendChild(opts.body);
         if (opts.title) {
           w.title = opts.title;
@@ -455,7 +455,7 @@ export class WindowManager {
 
     const body = document.createElement("div");
     body.className = "win-body";
-    if (typeof opts.body === "string") body.innerHTML = sanitizeHtml(opts.body);
+    if (typeof opts.body === "string") setSafeHtml(body, opts.body);
     else if (opts.body instanceof HTMLElement) body.appendChild(opts.body);
 
     const handle = document.createElement("div");
