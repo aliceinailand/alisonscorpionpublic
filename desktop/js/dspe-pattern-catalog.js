@@ -11,7 +11,7 @@
  * Catalog is append-only: add entries; do not invent facts from a hit.
  */
 
-export const CATALOG_VERSION = "dspe-pattern-catalog-v0.3";
+export const CATALOG_VERSION = "dspe-pattern-catalog-v0.3.1";
 
 /** @typedef {{ id: string, domain: string, label: string, markers: string[], note?: string }} PatternEntry */
 
@@ -248,8 +248,11 @@ export const PATTERN_CATALOG = [
       "failure to train",
       "official policy",
       "pursuant to policy",
+      "governing policy",
+      "policies and procedures",
+      "please provide the policy",
     ],
-    note: "Active-defense record-building. Response or silence can still be evidentiary later; not a finding by itself.",
+    note: "Active-defense record-building / PPP probe. Response or silence can still be evidentiary later; not a finding by itself. Do not treat a hit as Monell adjudication.",
   },
 
   // —— CABQ / IPRA institutional (append-only; statute + custodian boilerplate) ——
@@ -295,6 +298,28 @@ export const PATTERN_CATALOG = [
       "city attorney",
     ],
     note: "Org-unit nouns as process context, not actor findings. Last-name discipline for people remains separate.",
+  },
+
+  {
+    id: "org:cabq-chief-supervisory-ppp",
+    domain: "org_industrial",
+    label: "CABQ chief / supervisory PPP track",
+    markers: [
+      "supervisory authority",
+      "decision chain",
+      "decision-making process",
+      "emergency predicate",
+      "exigency",
+      "property control",
+      "board up",
+      "board-up",
+      "interior clearance",
+      "judicial authorization",
+      "administrative order",
+      "supervisors were expected",
+      "who authorized the operation",
+    ],
+    note: "Chief/supervisory correspondence track (Barker seat as role label). PPP / authorization questions for Observatory measure. Silence is a logged outcome, not liability. No email send from catalog hits.",
   },
 ];
 
