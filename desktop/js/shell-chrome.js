@@ -299,7 +299,10 @@ export function showLockOverlay() {
     };
     el.querySelector("#asx-lock-unlock").addEventListener("click", unlock);
     el.querySelector("#asx-lock-pass").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") unlock();
+      if (e.key === "Enter") {
+        if (e.isComposing || e.keyCode === 229) return;
+        unlock();
+      }
     });
   }
   el.classList.add("show");

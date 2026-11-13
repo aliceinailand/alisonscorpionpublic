@@ -265,7 +265,10 @@ export function openLiveBrowser(wm, opts = {}) {
     ev.preventDefault();
   });
   urlIn.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter") go(urlIn.value);
+    if (ev.key === "Enter") {
+      if (ev.isComposing || ev.keyCode === 229) return;
+      go(urlIn.value);
+    }
   });
 
   function connect() {

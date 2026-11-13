@@ -242,6 +242,7 @@ export const APP_CATALOG = [
     label: "The Alice and the Scorpion Framework Storybook",
     glyph: "📖",
   },
+  { id: "dspe-observatory", label: "DSPE Observatory", glyph: "📡" },
   { id: "chat", label: "Chat", glyph: "💬" },
   { id: "trash", label: "Trash", glyph: "🗑" },
   { id: "network", label: "Network", glyph: "🖧" },
@@ -357,6 +358,7 @@ const APP_OPENERS = {
   browser: openLiveBrowser,
   knowledge: openKnowledge,
   storybook: openStorybook,
+  "dspe-observatory": openDspeObservatory,
   chat: openChat,
   trash: openTrash,
   network: openNetwork,
@@ -782,6 +784,7 @@ function openTerminal(wm, opts = {}) {
       body.addEventListener("pointerdown", focusIn, { passive: true });
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
+          if (e.isComposing || e.keyCode === 229) return;
           run(input.value);
           input.value = "";
         }
@@ -1074,6 +1077,7 @@ function openAgentAsx(wm) {
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
+          if (e.isComposing || e.keyCode === 229) return;
           runAgentMessage(input.value);
         }
       });
@@ -2599,7 +2603,10 @@ function openFramedBrowserUnused(wm, opts = {}) {
   root.querySelector('[data-act="home"]').addEventListener("click", () => navigate(ASX_HOME));
   root.querySelector('[data-act="out"]').addEventListener("click", () => openOutside(urlIn.value));
   urlIn.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") navigate(urlIn.value);
+    if (e.key === "Enter") {
+      if (e.isComposing || e.keyCode === 229) return;
+      navigate(urlIn.value);
+    }
   });
   root.querySelector('[data-act="reload"]').addEventListener("click", () => {
     if (hi >= 0) navigate(history[hi], false);
@@ -2647,7 +2654,10 @@ function openFramedBrowserUnused(wm, opts = {}) {
   };
   root.querySelector(".chat-send").addEventListener("click", sendChat);
   root.querySelector(".chat-in").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendChat();
+    if (e.key === "Enter") {
+      if (e.isComposing || e.keyCode === 229) return;
+      sendChat();
+    }
   });
 
   wm.open({
@@ -2709,6 +2719,11 @@ function openPublicContainer(wm) {
       root.querySelector("[data-public-chat-input]")?.focus();
     },
   });
+}
+
+function openDspeObservatory(_wm) {
+  const url = new URL("./dspe-observatory.html", window.location.href).href;
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function openChat(wm) {
@@ -3435,6 +3450,7 @@ function openQuill(wm, opts = {}) {
         findIn.addEventListener("keydown", (e) => {
           if (e.key === "Enter") {
             e.preventDefault();
+            if (e.isComposing || e.keyCode === 229) return;
             findNext(e.shiftKey);
           }
         });
@@ -4109,6 +4125,7 @@ function openSheet(wm) {
   fx.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
+      if (e.isComposing || e.keyCode === 229) return;
       focusCell(active.r + 1, active.c)?.focus();
     }
   });
@@ -4512,7 +4529,7 @@ function openImpress(wm, opts = {}) {
       if (s.rotate != null) step.dataset.rotate = String(s.rotate);
       if (s.rotateX != null) step.dataset.rotateX = String(s.rotateX);
       if (s.rotateY != null) step.dataset.rotateY = String(s.rotateY);
-      step.innerHTML = sanitizeHtml(s.html || `<p>Slide ${i + 1}</p>`);
+      setSafeHtml(step, s.html || `<p>Slide ${i + 1}</p>`);
       rootEl.appendChild(step);
     });
     try {

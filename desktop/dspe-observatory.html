@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DSPE Observatory — Alison Scorpion</title>
+  <meta name="description" content="Local-only Dyarchic Synthetic Persona Emergence measurement scaffold. Separable from the Alison Scorpion desktop." />
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root { color-scheme: dark; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+    body { margin: 0; background: #0f1115; color: #e8eaed; line-height: 1.45; }
+    .wrap { max-width: 880px; margin-inline: auto; padding: 1.5rem; }
+    a { color: #9bbcff; }
+    h1 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+    .lede { color: #b0b6c0; }
+    .field {
+      display: flex; flex-direction: column; align-items: flex-start;
+      gap: 0.25rem; margin-block-end: 1.25rem;
+    }
+    label { font-size: 0.95rem; }
+    .hint { margin: 0; color: #8b93a3; font-size: 0.85rem; }
+    textarea, input[type="file"], button, pre {
+      display: block; width: 100%; box-sizing: border-box;
+      font: inherit; font-size: max(1rem, 1em);
+    }
+    textarea, pre {
+      background: #171a21; border: 1px solid #2a3140; border-radius: 8px;
+      padding: 0.75rem; color: inherit;
+    }
+    textarea:focus-visible, input[type="file"]:focus-visible, button:focus-visible {
+      outline: 3px solid #9bbcff; outline-offset: 2px;
+    }
+    button {
+      width: auto; min-height: 48px; padding: 0.55rem 1rem; cursor: pointer;
+      background: #5b4bdb; color: #f7f5ff; border: 0; border-radius: 8px;
+    }
+    pre {
+      white-space: pre-wrap;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.85rem; margin-block-start: 1rem;
+    }
+    .nav { margin-block-end: 1rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="nav"><a href="index.html">← Desktop</a> · <a href="platform.html">Containers</a></p>
+    <div id="dspe-root"></div>
+  </main>
+  <script type="module">
+    import { mountObservatory } from "./js/dspe-observatory.js?v=20261110v04mwg";
+    mountObservatory("#dspe-root");
+  </script>
+</body>
+</html>
