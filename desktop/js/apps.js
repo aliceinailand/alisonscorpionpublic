@@ -112,6 +112,7 @@ import {
   sheetPrintHtml,
 } from "./office-doc.js?v=20261027office1";
 import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
+import { mountObservatory } from "./dspe-observatory.js?v=20261114dspe2";
 import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261028wiki1";
 import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
 import {
@@ -2721,36 +2722,58 @@ function openPublicContainer(wm) {
   });
 }
 
+function ensureDspeObservatoryStyles() {
+  const href = new URL("../css/dspe-observatory.css?v=20261114dspe2a", import.meta.url).href;
+  if (document.querySelector(`link[data-dspe-obs-css="1"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.dataset.dspeObsCss = "1";
+  document.head.appendChild(link);
+}
+
 function openDspeObservatory(wm) {
-  const url = new URL("./dspe-observatory.html", window.location.href).href;
+  ensureDspeObservatoryStyles();
+  const separateUrl = new URL("./dspe-observatory.html", window.location.href).href;
   const root = document.createElement("div");
   root.className = "app-pad dspe-window";
   root.style.cssText =
-    "display:flex;flex-direction:column;height:100%;gap:8px;padding:8px;box-sizing:border-box;";
-  root.innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-      <p style="margin:0;flex:1;min-width:12rem;color:var(--muted);font-size:13px;line-height:1.4">
-        DSPE Observatory — measure persona signatures on this device. Same tool as the separate page.
-      </p>
-      <a class="primary" href="${url}" target="_blank" rel="noopener noreferrer"
-         style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;text-decoration:none">
-        Open separate Observatory
-      </a>
-    </div>
-    <iframe
-      title="DSPE Observatory"
-      src="${url}"
-      style="flex:1;min-height:0;width:100%;border:1px solid var(--border);border-radius:8px;background:#0b0f1a"
-    ></iframe>
-  `;
+    "display:flex;flex-direction:column;height:100%;min-height:0;gap:0.5rem;padding:0.55rem 0.65rem 0.75rem;box-sizing:border-box;overflow:auto;";
+
+  const chrome = document.createElement("div");
+  chrome.style.cssText =
+    "display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex:0 0 auto;";
+  const note = document.createElement("p");
+  note.style.cssText =
+    "margin:0;flex:1;min-width:12rem;color:var(--muted);font-size:13px;line-height:1.4;";
+  note.textContent =
+    "Desktop app — same Observatory as the separate page. Measure stays on this device.";
+  const openSep = document.createElement("a");
+  openSep.className = "primary";
+  openSep.href = separateUrl;
+  openSep.target = "_blank";
+  openSep.rel = "noopener noreferrer";
+  openSep.textContent = "Open separate page";
+  openSep.style.cssText =
+    "display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;text-decoration:none";
+  chrome.append(note, openSep);
+
+  const mount = document.createElement("div");
+  mount.id = `dspe-desktop-${Math.random().toString(36).slice(2, 8)}`;
+  mount.style.cssText = "flex:1;min-height:0;";
+
+  root.append(chrome, mount);
   wm.open({
     id: "dspe-observatory",
     title: "DSPE Observatory",
-    w: 960,
-    h: 640,
-    x: 72,
-    y: 36,
+    w: 980,
+    h: 680,
+    x: 64,
+    y: 28,
     body: root,
+    onMount: () => {
+      mountObservatory(mount);
+    },
   });
 }
 

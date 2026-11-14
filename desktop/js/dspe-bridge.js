@@ -2,7 +2,7 @@
  * Product bridge: DSPE measure available to desktop/platform surfaces
  * without opening the Observatory UI. Same Tag≠Fact contract.
  */
-import { measureTranscript, SUBJECT_KINDS } from "./dspe-observatory.js?v=20261114obs1";
+import { measureTranscript, SUBJECT_KINDS } from "./dspe-observatory.js?v=20261114dspe2";
 
 const ASX_DSPE = Object.freeze({
   version: "dspe-bridge-v1",

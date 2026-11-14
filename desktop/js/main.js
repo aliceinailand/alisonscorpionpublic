@@ -20,8 +20,8 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261114dspe1";
-import { ASX_DSPE } from "./dspe-bridge.js?v=20261114dspe1";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261114dspe2";
+import { ASX_DSPE } from "./dspe-bridge.js?v=20261114dspe2";
 import { bindSiteIcon, siteLockForApp } from "./sandbox-browser.js?v=20261028wiki1";
 void ASX_DSPE; // side-effect: window.ASX_DSPE for product measure path
 import { recentActions } from "./local-memory.js?v=20261028mem1";
