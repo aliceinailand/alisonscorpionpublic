@@ -20,7 +20,7 @@ import {
   watchCapabilityResize,
   isMobileUi as isMobileUiCap,
 } from "./browser-capability.js?v=20260811t010000z";
-import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261114dspe2";
+import { registerApps, APP_CATALOG, APP_CATEGORIES } from "./apps.js?v=20261114start1";
 import { ASX_DSPE } from "./dspe-bridge.js?v=20261114dspe2";
 import { bindSiteIcon, siteLockForApp } from "./sandbox-browser.js?v=20261028wiki1";
 void ASX_DSPE; // side-effect: window.ASX_DSPE for product measure path
@@ -616,71 +616,118 @@ function showTaskbarMenu(e, openApp) {
   });
 }
 
+function closeStartMenu(menu) {
+  menu.classList.remove("open");
+  document.body.classList.remove("start-open");
+}
+
+function appendStartAppRow(parent, app, openApp, menu) {
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = "sm-item";
+  row.dataset.app = app.id;
+  setSafeHtml(
+    row,
+    `<span class="g">${escapeHtml(app.glyph)}</span><span>${escapeHtml(app.label)}</span>`
+  );
+  const siteLock = siteLockForApp(app.id);
+  const mark = row.querySelector(".g");
+  if (siteLock && mark) bindSiteIcon(mark, siteLock);
+  row.addEventListener("click", () => {
+    openApp(app.id);
+    closeStartMenu(menu);
+  });
+  parent.appendChild(row);
+}
+
 function buildStartMenu(menu, openApp) {
-  menu.innerHTML = `<h3>◆ Alison's desktop</h3>
-    <div class="sm-item" data-go="settings"><span class="g">⚙</span><span>Settings</span></div>
-    <div class="sm-item" data-go="applications"><span class="g">📦</span><span>Applications</span></div>
-    <div class="sm-sep"></div>`;
+  menu.innerHTML = "";
+  menu.classList.add("sm-shell");
+
+  const head = document.createElement("div");
+  head.className = "sm-head";
+  head.innerHTML = `<h3>◆ Alison's desktop</h3>
+    <button type="button" class="sm-item" data-go="settings"><span class="g">⚙</span><span>Settings</span></button>
+    <button type="button" class="sm-item" data-go="applications"><span class="g">📦</span><span>All Applications</span></button>`;
+  menu.appendChild(head);
+
   const recent = recentActions(6).filter((row) => row.kind === "open");
   if (recent.length) {
-    const heading = document.createElement("div");
-    heading.className = "sm-cat";
-    heading.textContent = "Recent";
-    menu.appendChild(heading);
+    const recentFold = document.createElement("details");
+    recentFold.className = "sm-folder";
+    recentFold.name = "asx-start-cat";
+    const sum = document.createElement("summary");
+    sum.className = "sm-folder-sum";
+    setSafeHtml(
+      sum,
+      `<span class="g">⏱</span><span class="sm-folder-label">Recent</span><span class="sm-folder-count">${recent.length}</span>`
+    );
+    recentFold.appendChild(sum);
+    const body = document.createElement("div");
+    body.className = "sm-folder-body";
+    body.setAttribute("role", "group");
+    body.setAttribute("aria-label", "Recent");
     recent.forEach((row) => {
-      const item = document.createElement("div");
+      const item = document.createElement("button");
+      item.type = "button";
       item.className = "sm-item";
       item.textContent = row.name;
       item.addEventListener("click", () => {
         openApp(row.ref);
-        menu.classList.remove("open");
-        document.body.classList.remove("start-open");
+        closeStartMenu(menu);
       });
-      menu.appendChild(item);
+      body.appendChild(item);
     });
-    const sep = document.createElement("div");
-    sep.className = "sm-sep";
-    menu.appendChild(sep);
+    recentFold.appendChild(body);
+    head.appendChild(recentFold);
   }
-  // Categorized (same as Applications folder)
+
+  const folders = document.createElement("div");
+  folders.className = "sm-folders";
+  folders.setAttribute("aria-label", "Application folders");
+  menu.appendChild(folders);
+
+  // Category folders (collapsed by default — Games ▶ Pac-Man, etc.)
   (APP_CATEGORIES || []).forEach((cat) => {
-    const h = document.createElement("div");
-    h.className = "sm-cat";
-    h.textContent = cat.label;
-    menu.appendChild(h);
-    (cat.apps || []).forEach((id) => {
+    const ids = (cat.apps || []).filter((id) => id !== cat.id);
+    const fold = document.createElement("details");
+    fold.className = "sm-folder";
+    fold.name = "asx-start-cat";
+    fold.dataset.cat = cat.id;
+
+    const sum = document.createElement("summary");
+    sum.className = "sm-folder-sum";
+    setSafeHtml(
+      sum,
+      `<span class="g">${escapeHtml(cat.glyph || "📁")}</span>` +
+        `<span class="sm-folder-label">${escapeHtml(cat.label)}</span>` +
+        `<span class="sm-folder-count">${ids.length}</span>`
+    );
+    fold.appendChild(sum);
+
+    const body = document.createElement("div");
+    body.className = "sm-folder-body";
+    body.setAttribute("role", "group");
+    body.setAttribute("aria-label", cat.label);
+    ids.forEach((id) => {
       const app = APP_CATALOG.find((a) => a.id === id);
       if (!app) return;
-      const row = document.createElement("div");
-      row.className = "sm-item";
-      row.dataset.app = app.id;
-      setSafeHtml(
-        row,
-        `<span class="g">${escapeHtml(app.glyph)}</span><span>${escapeHtml(app.label)}</span>`
-      );
-      const siteLock = siteLockForApp(app.id);
-      const mark = row.querySelector(".g");
-      if (siteLock && mark) bindSiteIcon(mark, siteLock);
-      row.addEventListener("click", () => {
-        openApp(app.id);
-        menu.classList.remove("open");
-        document.body.classList.remove("start-open");
-      });
-      menu.appendChild(row);
+      appendStartAppRow(body, app, openApp, menu);
     });
-  });
-  menu.querySelector('[data-go="applications"]')?.addEventListener("click", () => {
-    openApp("applications");
-    menu.classList.remove("open");
-    document.body.classList.remove("start-open");
-  });
-  menu.querySelector('[data-go="settings"]')?.addEventListener("click", () => {
-    openApp("settings");
-    menu.classList.remove("open");
-    document.body.classList.remove("start-open");
+    fold.appendChild(body);
+    folders.appendChild(fold);
   });
 
-  // Linux-style power bar (buttons only)
+  head.querySelector('[data-go="applications"]')?.addEventListener("click", () => {
+    openApp("applications");
+    closeStartMenu(menu);
+  });
+  head.querySelector('[data-go="settings"]')?.addEventListener("click", () => {
+    openApp("settings");
+    closeStartMenu(menu);
+  });
+
+  // Linux-style power bar pinned under the folder list
   const power = document.createElement("div");
   power.className = "sm-power";
   power.setAttribute("role", "group");
@@ -693,8 +740,7 @@ function buildStartMenu(menu, openApp) {
   power.querySelectorAll("[data-power]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      menu.classList.remove("open");
-      document.body.classList.remove("start-open");
+      closeStartMenu(menu);
       const act = btn.getAttribute("data-power");
       if (act === "shutdown") showShutdownScreen();
       else if (act === "reboot") showRebootScreen();

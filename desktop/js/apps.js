@@ -324,7 +324,15 @@ export const APP_CATEGORIES = [
     id: "asx",
     label: "ASX",
     glyph: "🦂",
-    apps: ["knowledge", "storybook", "containers", "honeybee", "agent-asx", "chat"],
+    apps: [
+      "knowledge",
+      "storybook",
+      "dspe-observatory",
+      "containers",
+      "honeybee",
+      "agent-asx",
+      "chat",
+    ],
   },
   {
     id: "utils",
