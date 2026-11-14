@@ -111,7 +111,7 @@ import {
   extractDocumentInner,
   sheetPrintHtml,
 } from "./office-doc.js?v=20261027office1";
-import { openKnowledge } from "./knowledge.js?v=20261027kb1";
+import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
 import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261028wiki1";
 import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
 import {
@@ -2721,9 +2721,37 @@ function openPublicContainer(wm) {
   });
 }
 
-function openDspeObservatory(_wm) {
+function openDspeObservatory(wm) {
   const url = new URL("./dspe-observatory.html", window.location.href).href;
-  window.open(url, "_blank", "noopener,noreferrer");
+  const root = document.createElement("div");
+  root.className = "app-pad dspe-window";
+  root.style.cssText =
+    "display:flex;flex-direction:column;height:100%;gap:8px;padding:8px;box-sizing:border-box;";
+  root.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <p style="margin:0;flex:1;min-width:12rem;color:var(--muted);font-size:13px;line-height:1.4">
+        DSPE Observatory — measure persona signatures on this device. Same tool as the separate page.
+      </p>
+      <a class="primary" href="${url}" target="_blank" rel="noopener noreferrer"
+         style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;text-decoration:none">
+        Open separate Observatory
+      </a>
+    </div>
+    <iframe
+      title="DSPE Observatory"
+      src="${url}"
+      style="flex:1;min-height:0;width:100%;border:1px solid var(--border);border-radius:8px;background:#0b0f1a"
+    ></iframe>
+  `;
+  wm.open({
+    id: "dspe-observatory",
+    title: "DSPE Observatory",
+    w: 960,
+    h: 640,
+    x: 72,
+    y: 36,
+    body: root,
+  });
 }
 
 function openChat(wm) {

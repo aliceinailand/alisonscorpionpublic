@@ -1,7 +1,7 @@
 /**
  * Knowledge Base window. Articles are local. The search box never leaves the page.
  */
-import { KB_ARTICLES, searchArticles } from "./kb-docs.js?v=20261027observer1";
+import { KB_ARTICLES, searchArticles } from "./kb-docs.js?v=20261114dspe1";
 
 export function openKnowledge(wm) {
   const root = document.createElement("div");
