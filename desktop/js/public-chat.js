@@ -135,6 +135,8 @@ export function mountPublicChat(root, opts = {}) {
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
+      // Block IME composition confirm (CJK) and Safari keyCode 229 quirk
+      if (event.isComposing || event.keyCode === 229) return;
       bar.requestSubmit();
     }
   });

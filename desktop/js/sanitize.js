@@ -231,10 +231,65 @@ export function sanitizeHtml(dirty, config = ASX_UI_PURIFY) {
   return escapeText(str.replace(/<[^>]*>/g, ""));
 }
 
-/** Sanitize then assign el.innerHTML. */
+/** Tags/attrs that stay inside the native Sanitizer XSS-safe envelope (no style/form). */
+const NATIVE_SAFE_TAGS = new Set([
+  "a",
+  "b",
+  "br",
+  "code",
+  "em",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "i",
+  "li",
+  "ol",
+  "p",
+  "pre",
+  "small",
+  "span",
+  "strong",
+  "ul",
+]);
+const NATIVE_SAFE_ATTRS = new Set(["class", "href", "id", "rel", "target", "title", "alt"]);
+
+function configFitsNativeSanitizer(config) {
+  const tags = config?.ALLOWED_TAGS;
+  const attrs = config?.ALLOWED_ATTR;
+  if (!Array.isArray(tags) || !tags.length) return false;
+  if (!tags.every((t) => t === "#text" || NATIVE_SAFE_TAGS.has(t))) return false;
+  if (Array.isArray(attrs) && attrs.length && !attrs.every((a) => NATIVE_SAFE_ATTRS.has(a))) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Sanitize then insert HTML.
+ * Prefer native Element.setHTML() when the allowlist fits the Sanitizer XSS-safe
+ * envelope; otherwise keep DOMPurify + innerHTML (ASX_UI_PURIFY needs style/form).
+ */
 export function setSafeHtml(el, html, config = ASX_UI_PURIFY) {
   if (!el) return;
-  el.innerHTML = sanitizeHtml(html, config);
+  const str = html == null ? "" : String(html);
+  if (!str) {
+    el.replaceChildren();
+    return;
+  }
+  if ("setHTML" in Element.prototype && configFitsNativeSanitizer(config)) {
+    try {
+      const elements = config.ALLOWED_TAGS.filter((t) => t && t !== "#text");
+      const attributes = Array.isArray(config.ALLOWED_ATTR)
+        ? config.ALLOWED_ATTR.filter((a) => NATIVE_SAFE_ATTRS.has(a))
+        : ["class"];
+      el.setHTML(str, { sanitizer: { elements, attributes } });
+      return;
+    } catch (e) {
+      console.warn("[asx-purify] setHTML failed; falling back", e);
+    }
+  }
+  el.innerHTML = sanitizeHtml(str, config);
 }
 
 /** Alias used across apps (text context). */

@@ -133,6 +133,16 @@ button.continue {
   border-radius: 8px;
   padding: 10px 12px;
 }
+.confirm.err {
+  color: #f0b4b4;
+  border-color: #8a3a3a;
+}
+.session-who {
+  margin: 0;
+  padding: 8px 16px 16px;
+  color: var(--dim);
+  font-size: 0.9rem;
+}
 .empty { margin-bottom: 0; }
 .noscript {
   margin: 0;
