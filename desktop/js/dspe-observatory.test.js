@@ -1,4 +1,13 @@
-import { measureTranscript } from "./dspe-observatory.js";
+import {
+  measureTranscript,
+  formatReportLines,
+  reportToMarkdown,
+  reportToJsonl,
+  reportToPdfBytes,
+  SUBJECT_KINDS,
+  EXPORT_FORMATS,
+  IMPORT_ACCEPT,
+} from "./dspe-observatory.js";
 import {
   detectExtendedPatterns,
   measureDatasetThemeWeights,
@@ -7,6 +16,17 @@ import {
 
 const empty = measureTranscript("");
 if (!empty.ok || empty.words !== 0) throw new Error("empty transcript failed");
+
+if (!SUBJECT_KINDS.some((s) => s.id === "ai") || !SUBJECT_KINDS.some((s) => s.id === "human")) {
+  throw new Error("subject kinds must include ai and human");
+}
+if (!SUBJECT_KINDS.some((s) => s.id === "animal")) {
+  throw new Error("animal subject reserved");
+}
+if (!IMPORT_ACCEPT.includes(".pdf")) throw new Error("import must accept pdf");
+for (const fmt of ["txt", "md", "jsonl", "pdf"]) {
+  if (!EXPORT_FORMATS.includes(fmt)) throw new Error(`missing export ${fmt}`);
+}
 
 const agency = measureTranscript(
   "Your request is under review. You must submit form B. There is no record of that filing. We will get back to you. Motion to consolidate is on the docket."
@@ -47,3 +67,20 @@ if (!ipra.hits.some((h) => h.id === "org:cabq-ipra-custodian")) {
 
 if (PATTERN_CATALOG.length < 14) throw new Error("catalog too small");
 console.log("dspe-observatory tests passed");
+
+const sample = measureTranscript(
+  "Framework verify record. Evidence is insufficient. HOLD. Alice gate. Scorpion doctrine.\n\n## Section\n- item"
+);
+const meta = { subject: "human", sources: [{ name: "demo.txt", chars: 40 }] };
+const lines = formatReportLines(sample, meta);
+if (!lines.some((l) => l.startsWith("subject=human"))) throw new Error("report missing subject");
+const md = reportToMarkdown(sample, meta);
+if (!md.includes("# DSPE Observatory report")) throw new Error("md export broken");
+const jsonl = reportToJsonl(sample, meta);
+const parsed = JSON.parse(jsonl.trim());
+if (parsed.type !== "dspe_observatory_report" || parsed.subject !== "human") {
+  throw new Error("jsonl export broken");
+}
+const pdf = reportToPdfBytes(sample, meta);
+const pdfHead = new TextDecoder().decode(pdf.slice(0, 8));
+if (!pdfHead.startsWith("%PDF-")) throw new Error("pdf export missing header");
