@@ -10,7 +10,7 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20261028wiki1";
+} from "./blocklist.js?v=20261115sat2";
 import {
   listDirAsync,
   openNodeAsync,
@@ -114,6 +114,13 @@ import {
 import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
 import { mountObservatory } from "./dspe-observatory.js?v=20261114dspe2";
 import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261115asxb1";
+import {
+  SEARCH_ENGINE_SECTION_ID,
+  SEARCH_ENGINE_SECTION_LABEL,
+  addCustomSearchEngine,
+  renderSearchEngineSettingsHtml,
+  setDefaultSearchEngine,
+} from "./search-engines.js?v=20261115sat1";
 import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
 import {
   openSandbox,
@@ -236,7 +243,7 @@ export const APP_CATALOG = [
   { id: "terminal", label: "Terminal", glyph: "❯" },
   { id: "computer", label: "Computer", glyph: "🖥" },
   { id: "files", label: "Files", glyph: "📁" },
-  { id: "browser", label: "ASX Browser", glyph: "🌐" },
+  { id: "browser", label: "ASX Satellite", glyph: "🌐" },
   { id: "knowledge", label: "Knowledge Base", glyph: "📚" },
   { id: "research-lab", label: "Research Lab", glyph: "🔎" },
   {
@@ -814,8 +821,8 @@ function runAgentAction(wm, raw, lines) {
   const lower = q.toLowerCase();
 
   const goUrl = (url) => {
-    openBrowser(wm, { title: "ASX Browser", initialUrl: url });
-    lines.push(`OK:navigating ASX Browser → ${url}`);
+    openBrowser(wm, { title: "ASX Satellite", initialUrl: url });
+    lines.push(`OK:navigating ASX Satellite → ${url}`);
     return true;
   };
 
@@ -835,7 +842,7 @@ function runAgentAction(wm, raw, lines) {
   }
   if (/open\s+browser|open\s+internet/i.test(q)) {
     openBrowser(wm);
-    lines.push("OK:opened ASX Browser");
+    lines.push("OK:opened ASX Satellite");
     return true;
   }
   if (/open\s+files|open\s+file\s*manager/i.test(q)) {
@@ -1543,7 +1550,7 @@ function openNetwork(wm) {
     {
       glyph: "🌐",
       label: "Internet",
-      sub: "ASX Browser",
+      sub: "ASX Satellite",
       action: () => openBrowser(wm),
     },
     {
@@ -1713,7 +1720,7 @@ function openGDrive(wm, opts = {}) {
         : `https://drive.google.com/drive/folders/${top.id}`;
     openBrowser(wm, {
       id: "browser-gdrive",
-      title: "ASX Browser",
+      title: "ASX Satellite",
       initialUrl: url,
     });
   });
@@ -1774,7 +1781,7 @@ function openGDrive(wm, opts = {}) {
       const go = () =>
         openBrowser(wm, {
           id: "browser-gdrive",
-          title: "ASX Browser",
+          title: "ASX Satellite",
           initialUrl: GDRIVE_PUBLIC_URL,
         });
       row.addEventListener("dblclick", go);
@@ -2282,7 +2289,7 @@ const ASX_HOME = "asx://home";
 function browserHomeHtml() {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ASX Browser — Home</title>
+<title>ASX Satellite — Home</title>
 <style>
   body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#0c0a10;color:#e8e4f0;padding:28px 24px}
   h1{font-size:1.35rem;color:#c4b5fd;margin:0 0 8px}
@@ -2293,7 +2300,7 @@ function browserHomeHtml() {
   .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#2a1f4a;color:#c4b5fd;margin-bottom:10px}
 </style></head><body>
 <span class="tag">Guest session · Alison's desktop</span>
-<h1>ASX Browser</h1>
+<h1>ASX Satellite</h1>
 <p>You're on Alison Scorpion's workstation. Browse carefully — adult and high-risk hosts are blocked by policy (client blocklist inspired by public hosts lists such as StevenBlack/hosts &amp; OISD NSFW).</p>
 <div class="card">
   <strong>Try these</strong>
@@ -2307,7 +2314,7 @@ function browserHomeHtml() {
 </div>
 <div class="card">
   <strong>Why YouTube / Drive say “refused to connect”</strong>
-  <p style="margin:8px 0 0">Not the adult filter. Those sites ban embedding in iframes (X-Frame-Options). ASX Browser is framed — use <em>Open outside</em> for a normal tab. Adult sites show a red 🛡 policy screen instead.</p>
+  <p style="margin:8px 0 0">Not the adult filter. Those sites ban embedding in iframes (X-Frame-Options). ASX Satellite is framed — use <em>Open outside</em> for a normal tab. Adult sites show a red 🛡 policy screen instead.</p>
 </div>
 </body></html>`;
 }
@@ -2406,7 +2413,7 @@ function showNoEmbedPage(frame, url, openOutsideFn) {
       <code>frame-ancestors</code> so it cannot be embedded in another site’s iframe
       (anti–clickjacking). Browsers then show “refused to connect.”</p>
     <p class="blocked-url">${escapeHtml(url)}</p>
-    <p class="blocked-why">ASX Browser is a framed guest view on Alison’s desktop.
+    <p class="blocked-why">ASX Satellite is a framed guest view on Alison’s desktop.
       Use <strong>Open outside</strong> for a normal full browser tab — that works for
       public YouTube, Drive folders, Wikipedia, etc.</p>
     <p style="margin-top:18px">
@@ -2455,7 +2462,7 @@ function openBrowser(wm, opts = {}) {
 
 function openFramedBrowserUnused(wm, opts = {}) {
   const winId = opts.id || "browser";
-  const winTitle = opts.title || "ASX Browser";
+  const winTitle = opts.title || "ASX Satellite";
   const startUrl = opts.initialUrl || ASX_HOME;
   const root = document.createElement("div");
   root.className = "browser";
@@ -2533,7 +2540,7 @@ function openFramedBrowserUnused(wm, opts = {}) {
       }
     }
     if (/^javascript:/i.test(url) || /^data:/i.test(url) || /^vbscript:/i.test(url)) {
-      showPolicyBlocked(frame, url, "Scheme blocked by ASX Browser policy.");
+      showPolicyBlocked(frame, url, "Scheme blocked by ASX Satellite policy.");
       asxSee(url, "scheme blocked");
       return;
     }
@@ -2563,7 +2570,7 @@ function openFramedBrowserUnused(wm, opts = {}) {
     );
     iframe.setAttribute("referrerpolicy", "no-referrer");
     iframe.setAttribute("loading", "eager");
-    iframe.title = "ASX Browser content";
+    iframe.title = "ASX Satellite content";
 
     if (url === ASX_HOME) {
       if (homeBlobUrl) URL.revokeObjectURL(homeBlobUrl);
@@ -6242,6 +6249,12 @@ function openSettings(wm, opts = {}) {
     { id: "desktop", label: "Icons & layout", icon: "▦" },
     { id: "taskbar", label: "Taskbar", icon: "▁" },
     { id: "windows", label: "Windows", icon: "▢" },
+    {
+      group: "Browser",
+      id: SEARCH_ENGINE_SECTION_ID,
+      label: SEARCH_ENGINE_SECTION_LABEL,
+      icon: "⌕",
+    },
     { group: "Account", id: "about", label: "About you", icon: "👤" },
     { group: "Advanced", id: "advanced", label: "Advanced", icon: "⚙" },
   ];
@@ -6477,6 +6490,33 @@ function openSettings(wm, opts = {}) {
         setPref("windowOpacity", v);
         const h = main.querySelector("#asx-op-hint");
         if (h) h.textContent = Math.round(v * 100) + "%";
+      });
+      return;
+    }
+    if (id === SEARCH_ENGINE_SECTION_ID || id === "search-engine") {
+      main.innerHTML = renderSearchEngineSettingsHtml(escapeHtml);
+      main.querySelectorAll('input[name="asx-search-engine"]').forEach((inp) => {
+        inp.addEventListener("change", () => {
+          try {
+            setDefaultSearchEngine(inp.value);
+            paint(SEARCH_ENGINE_SECTION_ID);
+          } catch (err) {
+            const errEl = main.querySelector("#asx-custom-search-error");
+            if (errEl) errEl.textContent = err?.message || String(err);
+          }
+        });
+      });
+      main.querySelector("#asx-add-custom-search")?.addEventListener("click", () => {
+        const name = main.querySelector("#asx-custom-search-name")?.value || "";
+        const url = main.querySelector("#asx-custom-search-url")?.value || "";
+        const errEl = main.querySelector("#asx-custom-search-error");
+        try {
+          addCustomSearchEngine(name, url);
+          if (errEl) errEl.textContent = "";
+          paint(SEARCH_ENGINE_SECTION_ID);
+        } catch (err) {
+          if (errEl) errEl.textContent = err?.message || String(err);
+        }
       });
       return;
     }

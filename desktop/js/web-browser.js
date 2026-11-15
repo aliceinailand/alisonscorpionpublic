@@ -2,7 +2,7 @@
  * Desktop Browser — primary: ASX / Alison Scorpion Browser (Copper-class WebKit
  * via localhost bridge). Legacy Chromium Web Observer remains a secondary path.
  */
-import { isBlockedUrlAsync, normalizeNavUrl } from "./blocklist.js?v=20261028wiki1";
+import { isBlockedUrlAsync, normalizeNavUrl } from "./blocklist.js?v=20261115sat2";
 
 const ASX_BRIDGE = "http://127.0.0.1:4124";
 const BRIDGE_HTTP = "http://127.0.0.1:8791";
@@ -18,7 +18,7 @@ window.addEventListener(GO, (ev) => {
 
 const STORY_TITLE = "The Alice and the Scorpion Framework Storybook";
 const STORY_URL = "https://trippyalice.com";
-const ASX_BROWSER = "ASX Browser";
+const ASX_BROWSER = "ASX Satellite";
 const OBSERVER = "ASX Web Observer (legacy Chromium)";
 const PLUGIN_STORAGE_KEY = "asx-browser-plugins";
 const PLUGIN_CATALOG = [
@@ -99,7 +99,7 @@ function ensurePluginDialog() {
 
   const title = document.createElement("h2");
   title.id = "asx-browser-plugin-title";
-  title.textContent = "ASX Browser plugins";
+  title.textContent = "ASX Satellite plugins";
 
   const list = document.createElement("div");
   list.className = "asx-browser-plugin-list";
@@ -329,7 +329,7 @@ export function openStorybook(wm) {
   return openLiveBrowser(wm, { title: STORY_TITLE, initialUrl: STORY_URL });
 }
 
-/** Primary guest Browser: Alison Scorpion / ASX Browser (WebKit one-field). */
+/** Primary guest Browser: Alison Scorpion / ASX Satellite (WebKit one-field). */
 export function openLiveBrowser(wm, opts = {}) {
   if (opts.legacyChromium) {
     return openLegacyChromiumObserver(wm, opts);
@@ -346,7 +346,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
   urlIn.spellcheck = false;
   urlIn.autocomplete = "off";
   urlIn.setAttribute("aria-label", "Address or search");
-  urlIn.placeholder = "Address or search — ASX Browser (one field)";
+  urlIn.placeholder = "Address or search — ASX Satellite (one field)";
   const pluginButton = button("Plugins", "Choose lightweight browser plugins", () => {
     const dialog = ensurePluginDialog();
     if (typeof dialog.showModal === "function") {
@@ -361,8 +361,8 @@ function openAsxBrowserWindow(wm, opts = {}) {
   bar.append(
     button("↻", "Refresh bridge status", () => refreshHealth()),
     urlIn,
-    button("Go", "Open in ASX Browser", () => go(urlIn.value)),
-    button("Native", "Focus native ASX Browser window", () => go(urlIn.value || "https://example.com", true)),
+    button("Go", "Open in ASX Satellite", () => go(urlIn.value)),
+    button("Native", "Focus native ASX Satellite window", () => go(urlIn.value || "https://example.com", true)),
     askButton,
     pluginButton
   );
@@ -396,7 +396,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
   function fillStart() {
     start.replaceChildren();
     start.append(
-      el("h2", "", "ASX Browser"),
+      el("h2", "", "ASX Satellite"),
       el(
         "p",
         "",
@@ -405,7 +405,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
       el(
         "p",
         "",
-        "Go opens the URL in the native ASX Browser via the local bridge (127.0.0.1:4124 → asx-browser)."
+        "Go opens the URL in the native ASX Satellite via the local bridge (127.0.0.1:4124 → asx-browser)."
       ),
       el(
         "p",
@@ -434,7 +434,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
   function fillOffline() {
     offline.replaceChildren();
     offline.append(
-      el("h2", "", "ASX Browser bridge is not running"),
+      el("h2", "", "ASX Satellite bridge is not running"),
       el(
         "p",
         "",
@@ -460,14 +460,14 @@ function openAsxBrowserWindow(wm, opts = {}) {
       const res = await fetch(ASX_BRIDGE + "/health", { method: "GET" });
       const data = await res.json();
       if (data && data.ok) {
-        setStatus("ASX Browser bridge OK · WebKit via copper · " + (data.health || "").split("\n")[0]);
+        setStatus("ASX Satellite bridge OK · WebKit via copper · " + (data.health || "").split("\n")[0]);
         return true;
       }
-      setStatus("ASX Browser bridge responded but copper health failed");
+      setStatus("ASX Satellite bridge responded but copper health failed");
       return false;
     } catch {
       show("offline");
-      setStatus("ASX Browser bridge not reachable on 127.0.0.1:4124");
+      setStatus("ASX Satellite bridge not reachable on 127.0.0.1:4124");
       return false;
     }
   }
@@ -480,7 +480,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
       return;
     }
     pending = url;
-    setStatus("Opening in ASX Browser… " + url);
+    setStatus("Opening in ASX Satellite… " + url);
     try {
       const res = await fetch(ASX_BRIDGE + "/open", {
         method: "POST",
@@ -490,13 +490,13 @@ function openAsxBrowserWindow(wm, opts = {}) {
       const data = await res.json();
       if (!data.ok) {
         show("offline");
-        setStatus("ASX Browser open failed — is the bridge and copper running?");
+        setStatus("ASX Satellite open failed — is the bridge and copper running?");
         fillOffline();
         return;
       }
       panel.replaceChildren();
       panel.append(
-        el("h2", "", "Opened in ASX Browser"),
+        el("h2", "", "Opened in ASX Satellite"),
         el("p", "live-url", url),
         el("p", "", "Native Copper-class WebKit window / agent tab. One-field UX lives in the native browser.")
       );
@@ -506,11 +506,11 @@ function openAsxBrowserWindow(wm, opts = {}) {
       pre.textContent = String(data.output || "").slice(0, 2500);
       panel.appendChild(pre);
       show("page");
-      setStatus("ASX Browser · " + url);
+      setStatus("ASX Satellite · " + url);
     } catch {
       show("offline");
       fillOffline();
-      setStatus("ASX Browser bridge not reachable on 127.0.0.1:4124");
+      setStatus("ASX Satellite bridge not reachable on 127.0.0.1:4124");
     }
   }
 
@@ -524,7 +524,7 @@ function openAsxBrowserWindow(wm, opts = {}) {
   fillStart();
   fillOffline();
   show("start");
-  setStatus("ASX Browser — checking local bridge…");
+  setStatus("ASX Satellite — checking local bridge…");
 
   const initial = opts.initialUrl || "";
   const already = wm.windows.has("browser");
@@ -615,7 +615,7 @@ function openLegacyChromiumObserver(wm, opts = {}) {
       el(
         "p",
         "",
-        "Legacy path: Chromium on this computer drawn into the window. Prefer ASX Browser (WebKit) for the product guest Browser."
+        "Legacy path: Chromium on this computer drawn into the window. Prefer ASX Satellite (WebKit) for the product guest Browser."
       )
     );
   }
@@ -624,7 +624,7 @@ function openLegacyChromiumObserver(wm, opts = {}) {
     offline.replaceChildren();
     offline.append(
       el("h2", "", "Legacy Web Observer is not running"),
-      el("p", "", "Chromium bridge on 127.0.0.1:8791 is down. Use ASX Browser instead.")
+      el("p", "", "Chromium bridge on 127.0.0.1:8791 is down. Use ASX Satellite instead.")
     );
   }
 

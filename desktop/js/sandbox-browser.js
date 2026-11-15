@@ -2,7 +2,7 @@
  * Site sandboxes. Each one shows its address and cannot leave that website.
  * Search happens on the page. The sandbox is separate from ASX Web Observer.
  */
-import { isBlockedUrl } from "./blocklist.js?v=20261028wiki1";
+import { isBlockedUrl } from "./blocklist.js?v=20261115sat2";
 import { rememberAction, recentActions } from "./local-memory.js?v=20261028mem1";
 
 const BRIDGE_WS = "ws://127.0.0.1:8791/session";
