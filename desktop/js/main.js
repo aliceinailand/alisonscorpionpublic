@@ -50,7 +50,7 @@ import {
   resetPrefs,
   onPrefsChange,
   snapIcon,
-} from "./prefs.js?v=20261115dt3";
+} from "./prefs.js?v=20261115dt4";
 import {
   showMenu,
   closeMenus,

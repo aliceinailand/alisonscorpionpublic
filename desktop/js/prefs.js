@@ -6,7 +6,7 @@
  * just to flip a setting (Lubuntuesque File / Settings menus).
  */
 import { applyTheme, getTheme, normalizeTheme } from "./themes.js?v=20260815t210000z";
-import { computeChromeTokens, VOID_HEX } from "./chrome-tokens.js?v=20261115dt3";
+import { computeChromeTokens, VOID_HEX } from "./chrome-tokens.js?v=20261115dt4";
 
 export const PREFS_KEY = "asx-desktop-prefs-v1";
 
