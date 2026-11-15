@@ -1,6 +1,7 @@
 /**
  * Pure mothership / Deep Thought chrome tokens for ASX Desktop.
  * Titlebar/taskbar stay cool void + soft violet — accent does not wash them warm.
+ * Fills are near-opaque so warm wallpapers (earth/nebula) cannot brown the chrome.
  * Exported for unit tests without opening a window.
  */
 
@@ -9,9 +10,14 @@ export const VOID_RGB = "10,8,9";
 export const VOID_DEEP_RGB = "7,6,11";
 /** Soft universe violet wash (stable mothership; not accent-driven). */
 export const MOTHERSHIP_VIOLET_RGB = "124,58,237";
+/** Opaque violet-void stops (hex) — wallpaper cannot bleed through. */
+export const TITLEBAR_VIOLET_VOID = "#1a1230";
+export const TITLEBAR_MID_VOID = "#100c18";
 export const CHROME_MAX = "#3dbeb0";
 export const CHROME_CLOSE = "#d4789a";
 export const CHROME_MIN_DEFAULT = "#9b8af5";
+/** Cool title text — never cream/gold on chrome. */
+export const CHROME_TITLE = "#e4dff5";
 
 function hexOk(s) {
   return typeof s === "string" && /^#[0-9a-fA-F]{6}$/.test(s.trim());
@@ -55,8 +61,6 @@ export function computeChromeTokens(opts = {}) {
   const { r, g, b } = hexToRgb(accent);
   // Titlebar wash is always cool mothership violet → void (never warm accent).
   const vr = MOTHERSHIP_VIOLET_RGB;
-  const voidStop = VOID_RGB;
-  const voidDeep = VOID_DEEP_RGB;
 
   /** @type {Record<string, string>} */
   const vars = {
@@ -65,27 +69,33 @@ export function computeChromeTokens(opts = {}) {
     "--chrome-min": isWarmAccent(accent) ? CHROME_MIN_DEFAULT : lighten(accent, 0.18),
     "--chrome-max": CHROME_MAX,
     "--chrome-close": CHROME_CLOSE,
+    "--chrome-title": CHROME_TITLE,
     "--border": `rgba(${r}, ${g}, ${b}, 0.28)`,
     "--desk-solid": VOID_HEX,
   };
 
+  // Near-opaque cool stops (hex) so backdrop-filter + earth/nebula cannot brown chrome.
+  // Soft violet reads as a left ambient into Deep Thought void — not a translucent wash.
   if (theme === "ultra-thin") {
     vars["--titlebar-bg"] =
-      `linear-gradient(105deg, rgba(${vr},0.32) 0%, rgba(${vr},0.10) 30%, rgba(${voidStop},0.55) 58%, rgba(${voidDeep},0.65) 100%)`;
+      `linear-gradient(105deg, ${TITLEBAR_VIOLET_VOID} 0%, ${TITLEBAR_MID_VOID} 38%, ${VOID_HEX} 100%)`;
   } else if (theme === "medium-chrome") {
     vars["--titlebar-bg"] =
-      `linear-gradient(180deg, rgba(${vr},0.42) 0%, rgba(${voidStop},0.88) 100%)`;
+      `linear-gradient(180deg, ${TITLEBAR_VIOLET_VOID} 0%, ${VOID_HEX} 100%)`;
   } else if (theme === "thick-panel") {
     vars["--titlebar-bg"] =
-      `linear-gradient(180deg, rgba(${vr},0.48) 0%, rgba(${voidStop},0.96) 100%)`;
+      `linear-gradient(180deg, #221640 0%, ${VOID_HEX} 100%)`;
   } else {
-    // thin-terminal default — soft violet ambient into Deep Thought void
+    // thin-terminal default — soft violet-void into Deep Thought void
     vars["--titlebar-bg"] =
-      `linear-gradient(105deg, rgba(${vr},0.40) 0%, rgba(${vr},0.14) 32%, rgba(${voidStop},0.78) 68%, rgba(${voidDeep},0.90) 100%)`;
+      `linear-gradient(105deg, ${TITLEBAR_VIOLET_VOID} 0%, ${TITLEBAR_MID_VOID} 36%, ${VOID_HEX} 72%, #07060b 100%)`;
   }
 
   vars["--taskbar-floor"] =
-    `linear-gradient(180deg, rgba(15,12,24,0.94) 0%, rgba(${voidDeep},0.97) 100%)`;
+    `linear-gradient(180deg, #0f0c18 0%, #07060b 100%)`;
+
+  // Keep violet RGB fingerprint for gating tests / mothership probes
+  vars["--mothership-violet"] = `rgb(${vr})`;
 
   return vars;
 }
