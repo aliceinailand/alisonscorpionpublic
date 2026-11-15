@@ -20,6 +20,34 @@ const STORY_TITLE = "The Alice and the Scorpion Framework Storybook";
 const STORY_URL = "https://trippyalice.com";
 const ASX_BROWSER = "ASX Browser";
 const OBSERVER = "ASX Web Observer (legacy Chromium)";
+const PLUGIN_STORAGE_KEY = "asx-browser-plugins";
+const PLUGIN_CATALOG = [
+  {
+    id: "ai-sidebar",
+    label: "AI Sidebar",
+    summary: "Keep an always-available provenance and source-monitor panel alongside the page.",
+  },
+  {
+    id: "tab-groups",
+    label: "Tab Groups",
+    summary: "Organize work into lightweight workspaces without forcing a heavy browser shell.",
+  },
+  {
+    id: "provenance-ledger",
+    label: "Provenance Ledger",
+    summary: "Record source, audit, and verification metadata for each browsing session.",
+  },
+  {
+    id: "split-view",
+    label: "Split View",
+    summary: "Compare sources side-by-side while keeping the shell one-window and minimal.",
+  },
+  {
+    id: "filters",
+    label: "Source Filters",
+    summary: "Reduce noise with blocklists, safe-domain allowlists, and filter-by-source tools.",
+  },
+];
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -34,6 +62,267 @@ function button(label, title, onClick) {
   if (title) node.title = title;
   node.addEventListener("click", onClick);
   return node;
+}
+
+function loadPluginState() {
+  try {
+    const raw = localStorage.getItem(PLUGIN_STORAGE_KEY);
+    if (!raw) return Object.fromEntries(PLUGIN_CATALOG.map((plugin) => [plugin.id, false]));
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return Object.fromEntries(PLUGIN_CATALOG.map((plugin) => [plugin.id, false]));
+    }
+    return Object.fromEntries(
+      PLUGIN_CATALOG.map((plugin) => [plugin.id, Boolean(parsed[plugin.id])])
+    );
+  } catch {
+    return Object.fromEntries(PLUGIN_CATALOG.map((plugin) => [plugin.id, false]));
+  }
+}
+
+function persistPluginState(state) {
+  try {
+    localStorage.setItem(PLUGIN_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage failures in private or restricted browsing modes.
+  }
+}
+
+function ensurePluginDialog() {
+  let dialog = document.getElementById("asx-browser-plugin-dialog");
+  if (dialog) return dialog;
+
+  dialog = document.createElement("dialog");
+  dialog.id = "asx-browser-plugin-dialog";
+  dialog.setAttribute("aria-labelledby", "asx-browser-plugin-title");
+  dialog.className = "asx-browser-plugin-dialog";
+
+  const title = document.createElement("h2");
+  title.id = "asx-browser-plugin-title";
+  title.textContent = "ASX Browser plugins";
+
+  const list = document.createElement("div");
+  list.className = "asx-browser-plugin-list";
+
+  const state = loadPluginState();
+  for (const plugin of PLUGIN_CATALOG) {
+    const row = document.createElement("label");
+    row.className = "asx-browser-plugin-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = Boolean(state[plugin.id]);
+    checkbox.setAttribute("aria-label", `${plugin.label} plugin toggle`);
+
+    checkbox.addEventListener("change", () => {
+      const nextState = loadPluginState();
+      nextState[plugin.id] = checkbox.checked;
+      persistPluginState(nextState);
+    });
+
+    const info = document.createElement("div");
+    info.className = "asx-browser-plugin-info";
+    const name = document.createElement("strong");
+    name.textContent = plugin.label;
+    const summary = document.createElement("span");
+    summary.textContent = plugin.summary;
+    info.append(name, summary);
+
+    row.append(checkbox, info);
+    list.appendChild(row);
+  }
+
+  const form = document.createElement("form");
+  form.method = "dialog";
+  form.className = "asx-browser-plugin-actions";
+
+  const closeButton = document.createElement("button");
+  closeButton.type = "submit";
+  closeButton.textContent = "Close";
+  closeButton.autofocus = true;
+  form.appendChild(closeButton);
+
+  dialog.append(title, list, form);
+  document.body.appendChild(dialog);
+  return dialog;
+}
+
+/** Guest-desktop Ask ASX panel — calls bridge /agent/* (external asx, not embedded). */
+function ensureAskAsxDialog() {
+  let dialog = document.getElementById("asx-browser-ask-dialog");
+  if (dialog) return dialog;
+
+  dialog = document.createElement("dialog");
+  dialog.id = "asx-browser-ask-dialog";
+  dialog.setAttribute("aria-labelledby", "asx-browser-ask-title");
+  dialog.className = "asx-browser-ask-dialog";
+
+  const title = document.createElement("h2");
+  title.id = "asx-browser-ask-title";
+  title.textContent = "Ask ASX";
+
+  const blurb = el(
+    "p",
+    "asx-browser-ask-blurb",
+    "Alison Scorpion via the local bridge (127.0.0.1:4124 → asx query). Same path as native Ctrl+E."
+  );
+
+  const health = el("p", "asx-browser-ask-health", "Checking bridge…");
+  health.setAttribute("aria-live", "polite");
+
+  const log = document.createElement("ol");
+  log.className = "asx-browser-ask-log";
+  log.setAttribute("aria-live", "polite");
+  log.setAttribute("aria-relevant", "additions");
+
+  const form = document.createElement("form");
+  form.className = "asx-browser-ask-form";
+  form.id = "asx-browser-ask-form";
+
+  const label = document.createElement("label");
+  label.className = "sr-only";
+  label.htmlFor = "asx-browser-ask-q";
+  label.textContent = "Ask ASX";
+
+  const q = document.createElement("textarea");
+  q.id = "asx-browser-ask-q";
+  q.name = "q";
+  q.rows = 3;
+  q.required = true;
+  q.setAttribute("enterkeyhint", "send");
+  q.placeholder = "Ask Alison Scorpion…";
+
+  const hint = el("p", "asx-browser-ask-hint", "Enter to send · Shift+Enter for newline");
+
+  const actions = el("div", "asx-browser-ask-actions");
+  const refresh = document.createElement("button");
+  refresh.type = "button";
+  refresh.textContent = "Health";
+  const send = document.createElement("button");
+  send.type = "submit";
+  send.textContent = "Ask ASX";
+  actions.append(refresh, send);
+  form.append(label, q, hint, actions);
+
+  const closeForm = document.createElement("form");
+  closeForm.method = "dialog";
+  closeForm.className = "asx-browser-ask-close-form";
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "submit";
+  closeBtn.value = "close";
+  closeBtn.textContent = "Close";
+  closeForm.appendChild(closeBtn);
+
+  dialog.append(title, blurb, health, log, form, closeForm);
+  document.body.appendChild(dialog);
+
+  const addBubble = (who, text) => {
+    const li = document.createElement("li");
+    const whoEl = el("div", "who" + (who === "ASX" ? " asx" : ""), who);
+    const pre = document.createElement("pre");
+    pre.textContent = text;
+    li.append(whoEl, pre);
+    log.appendChild(li);
+    li.scrollIntoView({ block: "end" });
+  };
+
+  const setHealth = (ok, message) => {
+    health.classList.toggle("ok", !!ok);
+    health.classList.toggle("bad", !ok);
+    health.textContent = message;
+  };
+
+  const checkHealth = async () => {
+    setHealth(false, "Checking ASX bridge…");
+    try {
+      const res = await fetch(ASX_BRIDGE + "/agent/health", { method: "GET" });
+      const data = await res.json();
+      if (data && data.ok) {
+        setHealth(true, "Bridge OK · external asx · not embedded");
+        return true;
+      }
+      setHealth(false, (data && (data.error || data.status_preview)) || "Agent unhealthy");
+      return false;
+    } catch {
+      setHealth(false, "Bridge unreachable — start asx_browser_bridge.py on :4124");
+      return false;
+    }
+  };
+
+  const ask = async (query) => {
+    send.disabled = true;
+    refresh.disabled = true;
+    addBubble("You", query);
+    try {
+      const res = await fetch(ASX_BRIDGE + "/agent/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      if (data && data.ok) {
+        addBubble("ASX", String(data.output || "").trim() || "(empty reply)");
+      } else {
+        addBubble("ASX", (data && (data.error || data.stderr || data.output)) || "Ask failed");
+      }
+    } catch (err) {
+      addBubble("ASX", "Bridge error: " + (err && err.message ? err.message : String(err)));
+    } finally {
+      send.disabled = false;
+      refresh.disabled = false;
+      q.focus();
+    }
+  };
+
+  form.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const text = q.value.trim();
+    if (!text) return;
+    q.value = "";
+    ask(text);
+  });
+
+  q.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Enter" || ev.shiftKey) return;
+    ev.preventDefault();
+    if (ev.isComposing || ev.keyCode === 229) return;
+    form.requestSubmit();
+  });
+
+  refresh.addEventListener("click", () => {
+    checkHealth();
+  });
+
+  dialog.addEventListener("close", () => {
+    /* keep log across reopen */
+  });
+
+  dialog._asxPrepare = async () => {
+    if (!log.children.length) {
+      addBubble(
+        "ASX",
+        "Ready. Native Copper: Ctrl+E opens the Agent sidebar. Settings › Extensions lists the ASX Agent addon."
+      );
+    }
+    await checkHealth();
+    q.focus();
+  };
+
+  return dialog;
+}
+
+function openAskAsxDialog() {
+  const dialog = ensureAskAsxDialog();
+  const open = () => {
+    if (typeof dialog._asxPrepare === "function") dialog._asxPrepare();
+  };
+  if (typeof dialog.showModal === "function") {
+    if (!dialog.open) dialog.showModal();
+    open();
+    return;
+  }
+  dialog.setAttribute("open", "open");
+  open();
 }
 
 export function openStorybook(wm) {
@@ -58,11 +347,24 @@ function openAsxBrowserWindow(wm, opts = {}) {
   urlIn.autocomplete = "off";
   urlIn.setAttribute("aria-label", "Address or search");
   urlIn.placeholder = "Address or search — ASX Browser (one field)";
+  const pluginButton = button("Plugins", "Choose lightweight browser plugins", () => {
+    const dialog = ensurePluginDialog();
+    if (typeof dialog.showModal === "function") {
+      dialog.showModal();
+      return;
+    }
+    dialog.setAttribute("open", "open");
+  });
+  const askButton = button("Ask ASX", "Ask Alison Scorpion via local bridge", () => {
+    openAskAsxDialog();
+  });
   bar.append(
     button("↻", "Refresh bridge status", () => refreshHealth()),
     urlIn,
     button("Go", "Open in ASX Browser", () => go(urlIn.value)),
-    button("Native", "Focus native ASX Browser window", () => go(urlIn.value || "https://example.com", true))
+    button("Native", "Focus native ASX Browser window", () => go(urlIn.value || "https://example.com", true)),
+    askButton,
+    pluginButton
   );
 
   const view = el("div", "live-view");
@@ -104,6 +406,11 @@ function openAsxBrowserWindow(wm, opts = {}) {
         "p",
         "",
         "Go opens the URL in the native ASX Browser via the local bridge (127.0.0.1:4124 → asx-browser)."
+      ),
+      el(
+        "p",
+        "",
+        "Ask ASX (toolbar) talks to the same bridge. In the native window: Ctrl+E toggles the Agent sidebar; Settings › Extensions lists the ASX Agent addon."
       )
     );
     const list = document.createElement("div");

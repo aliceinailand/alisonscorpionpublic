@@ -28,18 +28,36 @@ body.asx-lite #three-bg canvas {
 }
 
 :root {
-  --void: #0a0618;
+  /* Dark universe (style-guide data-edition=dark) */
+  --void: #0a0809;
+  --universe-elevated: #0f0c14;
+  --universe-deep: #0c0a12;
+  --universe-panel: #13111a;
+  --universe-border: #2d1b4e;
+  --universe-text: #e8e6f0;
+  --universe-muted: #c4bfd4;
   /* Default = thin terminal glass (Earth/stars show through) */
   --panel: rgba(12, 10, 18, 0.36);
   --panel-body: rgba(6, 5, 10, 0.22);
   --panel-solid: #13111a;
+  /*
+   * asx-mothership-dt2 — Deep Thought / mothership chrome fingerprint.
+   * Soft violet ambient → cool void #0a0809 (10,8,9). No warm/brown fills.
+   * Instrument lights: soft violet min, cool teal max, rose close.
+   */
   --titlebar-bg: linear-gradient(
-    to right,
-    rgba(124, 58, 237, 0.82) 0%,
-    rgba(124, 58, 237, 0.55) 26%,
-    rgba(18, 14, 28, 0.42) 26%
+    105deg,
+    rgba(124, 58, 237, 0.40) 0%,
+    rgba(124, 58, 237, 0.14) 32%,
+    rgba(10, 8, 9, 0.78) 68%,
+    rgba(7, 6, 11, 0.90) 100%
   );
-  --border: rgba(167, 139, 250, 0.42);
+  --taskbar-floor: linear-gradient(
+    180deg,
+    rgba(15, 12, 24, 0.94) 0%,
+    rgba(7, 6, 11, 0.97) 100%
+  );
+  --border: rgba(167, 139, 250, 0.28);
   --border-strong: #4a2f7d;
   --text: #e8e6f0;
   --muted: #8b849c;
@@ -47,6 +65,9 @@ body.asx-lite #three-bg canvas {
   --brand-deep: #7c3aed;
   --gold: #c8a35a;
   --gold-white: #f5edd8;
+  --chrome-min: #9b8af5;
+  --chrome-max: #3dbeb0;
+  --chrome-close: #d4789a;
   --pass: #34d399;
   --fail: #f87171;
   --data: #22d3ee;
@@ -69,17 +90,18 @@ body.asx-theme-thin {
   --panel: rgba(12, 10, 18, 0.36);
   --panel-body: rgba(6, 5, 10, 0.22);
   --titlebar-bg: linear-gradient(
-    to right,
-    rgba(124, 58, 237, 0.82) 0%,
-    rgba(124, 58, 237, 0.55) 26%,
-    rgba(18, 14, 28, 0.42) 26%
+    105deg,
+    rgba(124, 58, 237, 0.40) 0%,
+    rgba(124, 58, 237, 0.14) 32%,
+    rgba(10, 8, 9, 0.78) 68%,
+    rgba(7, 6, 11, 0.90) 100%
   );
   --title-h: 26px;
   --taskbar-h: 40px;
   --win-radius: 3px;
   --win-blur: 20px;
-  --win-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(124, 58, 237, 0.18);
-  --border: rgba(167, 139, 250, 0.42);
+  --win-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(124, 58, 237, 0.14);
+  --border: rgba(167, 139, 250, 0.28);
 }
 
 /* Ultra thin — hairline chrome */
@@ -87,43 +109,52 @@ body.asx-theme-ultra {
   --panel: rgba(12, 10, 18, 0.22);
   --panel-body: rgba(6, 5, 10, 0.12);
   --titlebar-bg: linear-gradient(
-    to right,
-    rgba(124, 58, 237, 0.7) 0%,
-    rgba(124, 58, 237, 0.35) 16%,
-    rgba(18, 14, 28, 0.22) 16%
+    105deg,
+    rgba(124, 58, 237, 0.32) 0%,
+    rgba(124, 58, 237, 0.10) 30%,
+    rgba(10, 8, 9, 0.55) 58%,
+    rgba(7, 6, 11, 0.65) 100%
   );
   --title-h: 22px;
   --taskbar-h: 34px;
   --win-radius: 2px;
   --win-blur: 24px;
-  --win-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(124, 58, 237, 0.14);
-  --border: rgba(167, 139, 250, 0.32);
+  --win-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(124, 58, 237, 0.12);
+  --border: rgba(167, 139, 250, 0.26);
 }
 
 /* Medium — between glass and panel */
 body.asx-theme-medium {
   --panel: rgba(14, 12, 22, 0.62);
   --panel-body: rgba(8, 6, 14, 0.48);
-  --titlebar-bg: linear-gradient(180deg, rgba(88, 40, 190, 0.7), rgba(18, 14, 28, 0.62));
+  --titlebar-bg: linear-gradient(
+    180deg,
+    rgba(124, 58, 237, 0.42) 0%,
+    rgba(10, 8, 9, 0.88) 100%
+  );
   --title-h: 30px;
   --taskbar-h: 44px;
   --win-radius: 6px;
   --win-blur: 16px;
-  --win-shadow: 0 10px 32px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(124, 58, 237, 0.16);
-  --border: rgba(167, 139, 250, 0.38);
+  --win-shadow: 0 10px 32px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(124, 58, 237, 0.14);
+  --border: rgba(167, 139, 250, 0.28);
 }
 
 /* Panel desktop — previous denser look (kept as optional theme) */
 body.asx-theme-panel {
   --panel: rgba(19, 17, 26, 0.88);
   --panel-body: rgba(10, 8, 9, 0.72);
-  --titlebar-bg: linear-gradient(180deg, rgba(45, 27, 78, 0.72), rgba(19, 17, 26, 0.94));
+  --titlebar-bg: linear-gradient(
+    180deg,
+    rgba(124, 58, 237, 0.48) 0%,
+    rgba(10, 8, 9, 0.96) 100%
+  );
   --title-h: 36px;
   --taskbar-h: 50px;
   --win-radius: 12px;
   --win-blur: 12px;
   --win-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(124, 58, 237, 0.12);
-  --border: rgba(167, 139, 250, 0.35);
+  --border: rgba(167, 139, 250, 0.28);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -805,12 +836,14 @@ body.asx-wall-travel #ambient-bg {
   flex: 1 1 auto;
   min-width: 0; /* critical: allow title to shrink so controls never clip */
   font-size: 11px;
-  color: var(--brand);
-  letter-spacing: 0.06em;
+  color: var(--gold-white);
+  letter-spacing: 0.08em;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
+  opacity: 0.92;
 }
 .titlebar .btns,
 .titlebar .win-controls {
@@ -827,34 +860,41 @@ body.asx-wall-travel #ambient-bg {
 }
 .titlebar .btn {
   box-sizing: border-box;
-  width: max(28px, calc(var(--title-h) - 4px));
-  height: max(28px, calc(var(--title-h) - 4px));
-  min-width: 28px;
-  min-height: 28px;
+  width: max(26px, calc(var(--title-h) - 6px));
+  height: max(26px, calc(var(--title-h) - 6px));
+  min-width: 26px;
+  min-height: 26px;
   pointer-events: auto;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 999px;
+  border: 1px solid rgba(245, 237, 216, 0.12);
   cursor: pointer;
-  opacity: 1;
+  opacity: 0.92;
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1;
-  color: #0a0809;
+  color: rgba(10, 8, 9, 0.82);
   padding: 0;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   z-index: 7;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.35);
 }
-.titlebar .btn:hover { filter: brightness(1.08); }
+.titlebar .btn:hover { filter: brightness(1.12); opacity: 1; }
 .titlebar .btn:active { transform: scale(0.96); }
-.btn-min { background: #c8a35a; }
-.btn-max { background: #34d399; }
-.btn-close { background: #f87171; color: #1a0505; font-size: 18px; }
+/* Soft mothership instrument lights */
+.btn-min { background: var(--chrome-min, #9b8af5); }
+.btn-max { background: var(--chrome-max, #3dbeb0); }
+.btn-close {
+  background: var(--chrome-close, #d4789a);
+  color: rgba(10, 8, 9, 0.88);
+  font-size: 15px;
+}
 
 /* Taskbar window chip + close escape hatch */
 .tb-win {
@@ -930,9 +970,14 @@ body.asx-theme-panel .win-body iframe {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(10, 8, 9, 0.92);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border);
+  /* Deep Thought floor — cool void (asx-mothership-dt2), never warm/brown */
+  background: var(
+    --taskbar-floor,
+    linear-gradient(180deg, rgba(15, 12, 24, 0.94) 0%, rgba(7, 6, 11, 0.97) 100%)
+  );
+  backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(167, 139, 250, 0.22);
+  box-shadow: inset 0 1px 0 rgba(196, 181, 253, 0.08);
 }
 #taskbar-windows {
   display: flex;
@@ -1000,8 +1045,8 @@ body.asx-theme-panel .win-body iframe {
 .tb-item:hover { color: var(--text); border-color: var(--border); }
 .tb-item.active {
   color: var(--gold-white);
-  background: rgba(124,58,237,0.25);
-  border-color: var(--border);
+  background: rgba(124, 58, 237, 0.28);
+  border-color: rgba(167, 139, 250, 0.55);
 }
 .tb-spacer { flex: 1; }
 .tb-clock { color: var(--brand); font-size: 11px; letter-spacing: 0.04em; }
@@ -1015,7 +1060,7 @@ body.asx-theme-panel .win-body iframe {
 }
 .tb-visitors { color: #86efac; }
 .tb-session {
-  color: var(--gold);
+  color: var(--brand);
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, monospace;
 }
@@ -2136,8 +2181,15 @@ body.asx-theme-thin .asx-window.active {
   border-color: rgba(167, 139, 250, 0.65);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(124, 58, 237, 0.22);
 }
-body.asx-theme-thin #taskbar {
-  background: rgba(8, 6, 14, 0.55);
+body.asx-theme-thin #taskbar,
+body.asx-theme-ultra #taskbar,
+body.asx-theme-medium #taskbar,
+body.asx-theme-panel #taskbar {
+  /* Keep mothership void floor — do not override with warm/opaque fills */
+  background: var(
+    --taskbar-floor,
+    linear-gradient(180deg, rgba(15, 12, 24, 0.94) 0%, rgba(7, 6, 11, 0.97) 100%)
+  );
   backdrop-filter: blur(16px) saturate(1.2);
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
@@ -3954,13 +4006,15 @@ body.asx-icon-lg .desk-icon-wide { width: 220px; }
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: #0c0a10;
+  background: var(--void);
+  color: var(--universe-text, var(--text));
+  color-scheme: dark;
 }
 .live-view {
   position: relative;
   flex: 1;
   min-height: 0;
-  background: #111;
+  background: var(--universe-deep, #0c0a12);
 }
 .live-view canvas {
   width: 100%;
@@ -3975,8 +4029,8 @@ body.asx-icon-lg .desk-icon-wide { width: 220px; }
   inset: 0;
   overflow: auto;
   padding: 22px 24px;
-  background: #0c0a10;
-  color: #e8e4f0;
+  background: var(--void);
+  color: var(--universe-text, var(--text));
 }
 .live-start h2,
 .live-offline h2,
@@ -4232,4 +4286,255 @@ html {
     max-height: 28vh;
   }
   .settings-nav-group { width: 100%; margin-top: 8px; }
+}
+
+/* ASX Browser — plugin picker + Ask ASX dialog (universe dark / white invert) */
+.asx-browser-plugin-dialog,
+.asx-browser-ask-dialog {
+  --ask-bg: var(--universe-elevated, #0f0c14);
+  --ask-panel: var(--universe-panel, #13111a);
+  --ask-deep: var(--universe-deep, #0c0a12);
+  --ask-border: var(--universe-border, #2d1b4e);
+  --ask-text: var(--universe-text, #e8e6f0);
+  --ask-muted: var(--dim, #8b849c);
+  --ask-brand: var(--brand-deep, #7c3aed);
+  --ask-bright: var(--brand, #a78bfa);
+  --ask-ivory: var(--gold-white, #f5edd8);
+  --ask-pass: var(--pass, #34d399);
+  --ask-fail: var(--fail, #f87171);
+  --ask-data: var(--data, #22d3ee);
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(80vh, 640px);
+  padding: 16px 18px;
+  border: 1px solid var(--ask-border);
+  border-radius: 10px;
+  background: var(--ask-bg);
+  color: var(--ask-text);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+.asx-browser-ask-dialog {
+  width: min(520px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.asx-browser-plugin-dialog::backdrop,
+.asx-browser-ask-dialog::backdrop {
+  background: rgba(10, 8, 9, 0.72);
+}
+.asx-browser-plugin-dialog h2,
+.asx-browser-ask-dialog h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ask-ivory);
+}
+.asx-browser-plugin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  max-height: 50vh;
+  overflow: auto;
+}
+.asx-browser-plugin-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid var(--ask-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ask-brand) 12%, transparent);
+  cursor: pointer;
+}
+.asx-browser-plugin-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+.asx-browser-plugin-info span { color: var(--ask-muted); }
+.asx-browser-plugin-actions,
+.asx-browser-ask-actions,
+.asx-browser-ask-close-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.asx-browser-ask-blurb,
+.asx-browser-ask-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ask-muted);
+  line-height: 1.4;
+}
+.asx-browser-ask-health {
+  margin: 0;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ask-brand) 14%, transparent);
+  border: 1px solid var(--ask-border);
+}
+.asx-browser-ask-health.ok { color: var(--ask-pass); border-color: color-mix(in srgb, var(--ask-pass) 35%, transparent); }
+.asx-browser-ask-health.bad { color: var(--ask-fail); border-color: color-mix(in srgb, var(--ask-fail) 35%, transparent); }
+.asx-browser-ask-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: 36vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.asx-browser-ask-log li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--ask-deep);
+  border: 1px solid var(--ask-border);
+}
+.asx-browser-ask-log .who {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ask-muted);
+  margin-bottom: 4px;
+}
+.asx-browser-ask-log .who.asx { color: var(--ask-bright); }
+.asx-browser-ask-log pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 12px/1.4 ui-monospace, monospace;
+  color: var(--ask-text);
+}
+.asx-browser-ask-form textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 64px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ask-border);
+  background: var(--ask-deep);
+  color: var(--ask-text);
+  font: 13px/1.4 var(--sans, system-ui, sans-serif);
+}
+.asx-browser-ask-form textarea:focus-visible {
+  outline: 2px solid var(--ask-data);
+  outline-offset: 1px;
+}
+.asx-browser-plugin-actions button,
+.asx-browser-ask-actions button,
+.asx-browser-ask-close-form button {
+  background: color-mix(in srgb, var(--ask-brand) 28%, transparent);
+  border: 1px solid var(--ask-border);
+  color: var(--ask-ivory);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font: 12px var(--sans, system-ui, sans-serif);
+}
+.asx-browser-ask-actions button[type="submit"] {
+  background: var(--ask-brand);
+  border-color: var(--ask-brand);
+  color: var(--ask-ivory);
+}
+
+/* White invert when OS / desktop prefers light */
+@media (prefers-color-scheme: light) {
+  .live-browser,
+  .asx-browser-plugin-dialog,
+  .asx-browser-ask-dialog {
+    --void: #ffffff;
+    --universe-elevated: #ffffff;
+    --universe-deep: #ffffff;
+    --universe-panel: #ffffff;
+    --universe-border: #e8e4f0;
+    --universe-text: #0f0a1a;
+    --universe-muted: #2a2040;
+    --ask-bg: #ffffff;
+    --ask-panel: #ffffff;
+    --ask-deep: #ffffff;
+    --ask-border: #e8e4f0;
+    --ask-text: #0f0a1a;
+    --ask-muted: #5c5470;
+    --ask-brand: #5b21b6;
+    --ask-bright: #7c3aed;
+    --ask-ivory: #ffffff;
+    --ask-pass: #047857;
+    --ask-fail: #b91c1c;
+    --ask-data: #0e7490;
+    color-scheme: light;
+  }
+  .asx-browser-plugin-dialog::backdrop,
+  .asx-browser-ask-dialog::backdrop {
+    background: rgba(15, 10, 26, 0.35);
+  }
+  .live-start h2,
+  .live-offline h2,
+  .live-block h2 {
+    color: #0f0a1a;
+  }
+  .live-url { color: #5b21b6; }
+  .live-picks button,
+  .asx-browser-plugin-actions button,
+  .asx-browser-ask-actions button,
+  .asx-browser-ask-close-form button {
+    color: #0f0a1a;
+    border-color: #e8e4f0;
+  }
+  .asx-browser-ask-actions button[type="submit"] {
+    color: #ffffff;
+  }
+}
+
+html[data-edition="white"] .live-browser,
+html[data-edition="light"] .live-browser,
+html[data-asx-theme="white"] .live-browser,
+html[data-asx-theme="light"] .live-browser,
+body.asx-color-white .live-browser,
+body.asx-color-light .live-browser,
+html[data-edition="white"] .asx-browser-plugin-dialog,
+html[data-edition="white"] .asx-browser-ask-dialog,
+html[data-edition="light"] .asx-browser-plugin-dialog,
+html[data-edition="light"] .asx-browser-ask-dialog,
+body.asx-color-white .asx-browser-plugin-dialog,
+body.asx-color-white .asx-browser-ask-dialog,
+body.asx-color-light .asx-browser-plugin-dialog,
+body.asx-color-light .asx-browser-ask-dialog {
+  --void: #ffffff;
+  --universe-elevated: #ffffff;
+  --universe-deep: #ffffff;
+  --universe-panel: #ffffff;
+  --universe-border: #e8e4f0;
+  --universe-text: #0f0a1a;
+  --ask-bg: #ffffff;
+  --ask-panel: #ffffff;
+  --ask-deep: #ffffff;
+  --ask-border: #e8e4f0;
+  --ask-text: #0f0a1a;
+  --ask-muted: #5c5470;
+  --ask-brand: #5b21b6;
+  --ask-bright: #7c3aed;
+  --ask-ivory: #ffffff;
+  --ask-pass: #047857;
+  --ask-fail: #b91c1c;
+  --ask-data: #0e7490;
+  color-scheme: light;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

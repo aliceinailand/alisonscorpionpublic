@@ -95,7 +95,7 @@ import {
   resetPrefs,
   WALLPAPERS,
   ACCENTS,
-} from "./prefs.js?v=20260815t210000z";
+} from "./prefs.js?v=20261115dt3";
 import { bindMenubar, pickLocalFiles, fileToDataUrl, showMenu } from "./menus.js?v=20260815t220000z";
 import { applyTheme, THEMES } from "./themes.js?v=20260815t210000z";
 import {

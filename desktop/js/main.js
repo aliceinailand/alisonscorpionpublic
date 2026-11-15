@@ -52,7 +52,7 @@ import {
   resetPrefs,
   onPrefsChange,
   snapIcon,
-} from "./prefs.js?v=20261026bgmotion1";
+} from "./prefs.js?v=20261115dt3";
 import {
   showMenu,
   closeMenus,
