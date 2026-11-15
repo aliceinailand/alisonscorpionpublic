@@ -11,6 +11,8 @@
  * Soft client UX — not a network firewall.
  * Research: safety/readme.md · browser_blocklist_and_iframe_20260810.md
  */
+import { buildSearchUrl, getDefaultSearchEngine } from "./search-engines.js";
+
 export const BLOCKED_HOSTS = new Set([
   "pornhub.com", "www.pornhub.com",
   "xvideos.com", "www.xvideos.com",
@@ -386,6 +388,11 @@ export async function isBlockedUrlAsync(url) {
   return isBlockedUrl(url);
 }
 
+/**
+ * Turn an address-bar string into a navigable URL.
+ * Non-URL queries use the Settings › Search engine selection
+ * (Brave by default, or a custom `{query}` template).
+ */
 export function normalizeNavUrl(input) {
   let s = String(input || "").trim();
   if (!s) return "https://example.com";
@@ -394,7 +401,11 @@ export function normalizeNavUrl(input) {
     if (s.startsWith("//")) {
       s = `https:${s}`;
     } else if (s.includes(" ") || !s.includes(".")) {
-      s = `https://duckduckgo.com/?q=${encodeURIComponent(s)}`;
+      try {
+        s = buildSearchUrl(s, getDefaultSearchEngine());
+      } catch {
+        s = `https://search.brave.com/search?q=${encodeURIComponent(s)}`;
+      }
     } else {
       s = `https://${s}`;
     }

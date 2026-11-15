@@ -1,0 +1,280 @@
+/* DSPE Observatory — shared by standalone page and desktop window app.
+   Theme tokens live on .obs-shell so the desktop OS theme is not overwritten. */
+
+.obs-shell,
+.obs-standalone {
+  color-scheme: dark;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  --obs-bg: #0b0d12;
+  --obs-panel: #12161f;
+  --obs-panel-2: #171a21;
+  --obs-border: #2a3140;
+  --obs-text: #e8eaed;
+  --obs-muted: #9aa3b2;
+  --obs-accent: #5b4bdb;
+  --obs-accent-2: #3d8bfd;
+  --obs-ok: #3dd68c;
+  box-sizing: border-box;
+  color: var(--obs-text);
+}
+
+.obs-standalone {
+  margin: 0;
+  background: var(--obs-bg);
+  line-height: 1.45;
+  min-height: 100dvh;
+}
+
+.obs-standalone *,
+.obs-shell * {
+  box-sizing: border-box;
+}
+
+.obs-standalone .wrap {
+  width: min(1120px, 100% - 2rem);
+  margin-inline: auto;
+  padding-block: 1.25rem 2.5rem;
+}
+
+.obs-shell a,
+.obs-standalone a {
+  color: #9bbcff;
+}
+
+.obs-standalone .nav {
+  margin-block-end: 1rem;
+  font-size: 0.9rem;
+}
+
+.obs-header h1 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  margin: 0 0 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+.obs-shell .lede,
+.obs-standalone .lede {
+  color: var(--obs-muted);
+  margin: 0 0 1rem;
+  max-width: 70ch;
+}
+
+.obs-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block-end: 1rem;
+  border-bottom: 1px solid var(--obs-border);
+  padding-bottom: 0.65rem;
+}
+
+.obs-tab,
+.obs-actions button,
+.obs-export button,
+.obs-archive-item {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid var(--obs-border);
+  background: var(--obs-panel);
+  color: var(--obs-text);
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+}
+
+.obs-tab[aria-selected="true"] {
+  background: var(--obs-accent);
+  border-color: transparent;
+  color: #f7f5ff;
+}
+
+.obs-tab:focus-visible,
+.obs-actions button:focus-visible,
+.obs-export button:focus-visible,
+.obs-archive-item:focus-visible,
+.obs-shell textarea:focus-visible,
+.obs-shell select:focus-visible,
+.obs-shell input[type="file"]:focus-visible,
+.obs-standalone textarea:focus-visible,
+.obs-standalone select:focus-visible,
+.obs-standalone input[type="file"]:focus-visible,
+.obs-drop:focus-visible {
+  outline: 3px solid #9bbcff;
+  outline-offset: 2px;
+}
+
+.obs-workspace {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.obs-panel {
+  background: var(--obs-panel);
+  border: 1px solid var(--obs-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.25rem;
+}
+
+.obs-shell .field,
+.obs-standalone .field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  margin-block-end: 1rem;
+}
+
+.obs-shell fieldset.field,
+.obs-standalone fieldset.field {
+  border: 1px solid var(--obs-border);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.obs-shell legend,
+.obs-shell label,
+.obs-standalone legend,
+.obs-standalone label {
+  font-size: 0.95rem;
+}
+
+.obs-shell .hint,
+.obs-standalone .hint {
+  margin: 0;
+  color: var(--obs-muted);
+  font-size: 0.85rem;
+}
+
+.obs-shell textarea,
+.obs-shell select,
+.obs-shell input[type="file"],
+.obs-shell pre,
+.obs-standalone textarea,
+.obs-standalone select,
+.obs-standalone input[type="file"],
+.obs-standalone pre {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: max(1rem, 1em);
+  background: var(--obs-panel-2);
+  border: 1px solid var(--obs-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: inherit;
+}
+
+.obs-shell textarea,
+.obs-standalone textarea {
+  resize: vertical;
+  min-height: 12rem;
+}
+
+.obs-drop {
+  border: 1.5px dashed var(--obs-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-block-end: 1rem;
+  color: var(--obs-muted);
+  background: #0e1219;
+}
+
+.obs-drop.dragover {
+  border-color: var(--obs-accent-2);
+  color: var(--obs-text);
+  background: #152033;
+}
+
+.obs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.obs-actions .primary {
+  background: var(--obs-accent);
+  color: #f7f5ff;
+  border-color: transparent;
+  min-height: 48px;
+}
+
+.obs-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  gap: 0.55rem;
+  margin-block-end: 1rem;
+}
+
+.obs-score-card {
+  background: var(--obs-panel-2);
+  border: 1px solid var(--obs-border);
+  border-radius: 10px;
+  padding: 0.65rem 0.55rem;
+  text-align: center;
+}
+
+.obs-score-card.composite {
+  border-color: var(--obs-ok);
+}
+
+.obs-score-id {
+  font-size: 0.75rem;
+  color: var(--obs-muted);
+  letter-spacing: 0.06em;
+}
+
+.obs-score-val {
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.obs-score-name {
+  font-size: 0.72rem;
+  color: var(--obs-muted);
+}
+
+pre.report {
+  white-space: pre-wrap;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+  max-height: min(50vh, 28rem);
+  overflow: auto;
+}
+
+.obs-export {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.obs-export button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.obs-archive {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.obs-archive-item {
+  width: 100%;
+  text-align: left;
+}
+
+.obs-panel h2 {
+  font-size: 1.1rem;
+  margin-top: 0;
+}
+
+/* Desktop window: slightly tighter chrome */
+.dspe-window .obs-shell {
+  padding: 0.15rem 0.1rem 0.35rem;
+}

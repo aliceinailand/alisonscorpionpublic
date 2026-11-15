@@ -1185,9 +1185,10 @@ body.asx-net-offline .tb-status {
 .sm-power {
   display: flex;
   flex-wrap: wrap;
+  flex: 0 0 auto;
   gap: 6px;
   padding: 10px;
-  margin-top: 6px;
+  margin: 0 -8px 0;
   border-top: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.25);
 }
@@ -1345,46 +1346,133 @@ body.asx-locked #start-menu {
   margin: 8px 0;
 }
 
-/* Start menu */
+/* Start menu — folder tree (collapsed categories, pinned power bar) */
 #start-menu {
   display: none;
   position: fixed;
   left: max(10px, var(--safe-left));
   bottom: calc(var(--taskbar-h) + var(--safe-bottom) + 8px);
-  width: min(280px, calc(100vw - 20px));
-  max-height: min(60vh, 70dvh);
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  width: min(300px, calc(100vw - 20px));
+  max-height: min(70vh, 78dvh);
+  overflow: hidden;
   z-index: 120;
   background: var(--panel);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 10px;
+  padding: 8px 8px 0;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
-#start-menu.open { display: block; }
+#start-menu.open {
+  display: flex;
+  flex-direction: column;
+}
 #start-menu h3 {
   font-size: 10px;
   color: var(--gold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin: 6px 8px 10px;
+  margin: 6px 8px 8px;
+}
+.sm-head {
+  flex: 0 0 auto;
+}
+.sm-folders {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
 }
 .sm-item {
   display: flex;
   gap: 10px;
   align-items: center;
+  width: 100%;
+  padding: 10px;
+  min-height: var(--touch-min);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  touch-action: manipulation;
+}
+.sm-item:hover,
+.sm-item:focus-visible {
+  background: rgba(124,58,237,0.2);
+  outline: none;
+}
+.sm-item:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(196, 181, 253, 0.7);
+}
+.sm-item .g { width: 22px; text-align: center; flex: 0 0 auto; }
+
+/* Category folders (Games ▶ Pac-Man, …) */
+.sm-folder {
+  border-radius: 8px;
+  margin: 1px 0;
+}
+.sm-folder-sum {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  list-style: none;
   padding: 10px;
   min-height: var(--touch-min);
   border-radius: 8px;
   cursor: pointer;
   color: var(--text);
   font-size: 12px;
+  font-weight: 600;
   touch-action: manipulation;
+  user-select: none;
 }
-.sm-item:hover { background: rgba(124,58,237,0.2); }
-.sm-item .g { width: 22px; text-align: center; }
+.sm-folder-sum::-webkit-details-marker { display: none; }
+.sm-folder-sum::marker { content: ""; }
+.sm-folder-sum::after {
+  content: "▸";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 120ms ease;
+}
+.sm-folder[open] > .sm-folder-sum::after {
+  transform: rotate(90deg);
+}
+.sm-folder-sum:hover,
+.sm-folder-sum:focus-visible {
+  background: rgba(124,58,237,0.18);
+  outline: none;
+}
+.sm-folder-sum:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(196, 181, 253, 0.7);
+}
+.sm-folder-label { flex: 1 1 auto; min-width: 0; }
+.sm-folder-count {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.sm-folder-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 4px 12px;
+  border-left: 1px solid var(--border);
+  margin: 0 8px 4px 18px;
+}
+.sm-folder-body .sm-item {
+  padding-left: 8px;
+  font-weight: 400;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-folder-sum::after { transition: none; }
+}
 
 /* Terminal — inherits window glass; thin theme stays see-through */
 .term {

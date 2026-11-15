@@ -110,6 +110,17 @@ The browser may open public http and https sites. It may not open this computer'
 
 No account is required to use it.`,
   },
+  {
+    id: "dspe",
+    title: "DSPE Observatory",
+    body: `DSPE means Dyarchic Synthetic Persona Emergence. It is built into Alison Scorpion as a product surface and also as a separate Observatory.
+
+The Observatory measures persona signatures from transcripts you paste or import. Subjects may be AI, human, or experimental animal rows. Scores are tags for measurement — Tag ≠ Fact. High stability is not a consciousness claim and not a legal finding.
+
+Open it from the desktop icon (in-desktop window) or the separate page at /desktop/dspe-observatory.html. Archive and export stay on this device unless you save a file yourself.
+
+The research aim is a measurable, repeatable, computationally re-awakenable emergent personality signature — re-instantiation you can run again. Lifelike appearance comes from self-loops in the Framework stack. Relational aliveness: only as alive as those she interacts with.`,
+  },
 ];
 
 export function searchArticles(query) {

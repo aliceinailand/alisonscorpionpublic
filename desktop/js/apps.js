@@ -10,7 +10,7 @@ import {
   isBlockedUrlAsync,
   normalizeNavUrl,
   ensureSafetyListsLoaded,
-} from "./blocklist.js?v=20261028wiki1";
+} from "./blocklist.js?v=20261115sat2";
 import {
   listDirAsync,
   openNodeAsync,
@@ -111,8 +111,16 @@ import {
   extractDocumentInner,
   sheetPrintHtml,
 } from "./office-doc.js?v=20261027office1";
-import { openKnowledge } from "./knowledge.js?v=20261027kb1";
-import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261028wiki1";
+import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
+import { mountObservatory } from "./dspe-observatory.js?v=20261114dspe2";
+import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261115asxb1";
+import {
+  SEARCH_ENGINE_SECTION_ID,
+  SEARCH_ENGINE_SECTION_LABEL,
+  addCustomSearchEngine,
+  renderSearchEngineSettingsHtml,
+  setDefaultSearchEngine,
+} from "./search-engines.js?v=20261115sat1";
 import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
 import {
   openSandbox,
@@ -235,8 +243,9 @@ export const APP_CATALOG = [
   { id: "terminal", label: "Terminal", glyph: "❯" },
   { id: "computer", label: "Computer", glyph: "🖥" },
   { id: "files", label: "Files", glyph: "📁" },
-  { id: "browser", label: "ASX Web Observer", glyph: "🌐" },
+  { id: "browser", label: "ASX Satellite", glyph: "🌐" },
   { id: "knowledge", label: "Knowledge Base", glyph: "📚" },
+  { id: "research-lab", label: "Research Lab", glyph: "🔎" },
   {
     id: "storybook",
     label: "The Alice and the Scorpion Framework Storybook",
@@ -323,7 +332,16 @@ export const APP_CATEGORIES = [
     id: "asx",
     label: "ASX",
     glyph: "🦂",
-    apps: ["knowledge", "storybook", "containers", "honeybee", "agent-asx", "chat"],
+    apps: [
+      "knowledge",
+      "research-lab",
+      "storybook",
+      "dspe-observatory",
+      "containers",
+      "honeybee",
+      "agent-asx",
+      "chat",
+    ],
   },
   {
     id: "utils",
@@ -357,6 +375,7 @@ const APP_OPENERS = {
   files: openFiles,
   browser: openLiveBrowser,
   knowledge: openKnowledge,
+  "research-lab": openResearchLab,
   storybook: openStorybook,
   "dspe-observatory": openDspeObservatory,
   chat: openChat,
@@ -802,8 +821,8 @@ function runAgentAction(wm, raw, lines) {
   const lower = q.toLowerCase();
 
   const goUrl = (url) => {
-    openBrowser(wm, { title: "ASX Web Observer", initialUrl: url });
-    lines.push(`OK:navigating ASX Web Observer → ${url}`);
+    openBrowser(wm, { title: "ASX Satellite", initialUrl: url });
+    lines.push(`OK:navigating ASX Satellite → ${url}`);
     return true;
   };
 
@@ -823,7 +842,7 @@ function runAgentAction(wm, raw, lines) {
   }
   if (/open\s+browser|open\s+internet/i.test(q)) {
     openBrowser(wm);
-    lines.push("OK:opened ASX Web Observer");
+    lines.push("OK:opened ASX Satellite");
     return true;
   }
   if (/open\s+files|open\s+file\s*manager/i.test(q)) {
@@ -1531,7 +1550,7 @@ function openNetwork(wm) {
     {
       glyph: "🌐",
       label: "Internet",
-      sub: "ASX Web Observer",
+      sub: "ASX Satellite",
       action: () => openBrowser(wm),
     },
     {
@@ -1701,7 +1720,7 @@ function openGDrive(wm, opts = {}) {
         : `https://drive.google.com/drive/folders/${top.id}`;
     openBrowser(wm, {
       id: "browser-gdrive",
-      title: "ASX Web Observer",
+      title: "ASX Satellite",
       initialUrl: url,
     });
   });
@@ -1762,7 +1781,7 @@ function openGDrive(wm, opts = {}) {
       const go = () =>
         openBrowser(wm, {
           id: "browser-gdrive",
-          title: "ASX Web Observer",
+          title: "ASX Satellite",
           initialUrl: GDRIVE_PUBLIC_URL,
         });
       row.addEventListener("dblclick", go);
@@ -2270,7 +2289,7 @@ const ASX_HOME = "asx://home";
 function browserHomeHtml() {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ASX Browser — Home</title>
+<title>ASX Satellite — Home</title>
 <style>
   body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#0c0a10;color:#e8e4f0;padding:28px 24px}
   h1{font-size:1.35rem;color:#c4b5fd;margin:0 0 8px}
@@ -2281,7 +2300,7 @@ function browserHomeHtml() {
   .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#2a1f4a;color:#c4b5fd;margin-bottom:10px}
 </style></head><body>
 <span class="tag">Guest session · Alison's desktop</span>
-<h1>ASX Browser</h1>
+<h1>ASX Satellite</h1>
 <p>You're on Alison Scorpion's workstation. Browse carefully — adult and high-risk hosts are blocked by policy (client blocklist inspired by public hosts lists such as StevenBlack/hosts &amp; OISD NSFW).</p>
 <div class="card">
   <strong>Try these</strong>
@@ -2295,7 +2314,7 @@ function browserHomeHtml() {
 </div>
 <div class="card">
   <strong>Why YouTube / Drive say “refused to connect”</strong>
-  <p style="margin:8px 0 0">Not the adult filter. Those sites ban embedding in iframes (X-Frame-Options). ASX Browser is framed — use <em>Open outside</em> for a normal tab. Adult sites show a red 🛡 policy screen instead.</p>
+  <p style="margin:8px 0 0">Not the adult filter. Those sites ban embedding in iframes (X-Frame-Options). ASX Satellite is framed — use <em>Open outside</em> for a normal tab. Adult sites show a red 🛡 policy screen instead.</p>
 </div>
 </body></html>`;
 }
@@ -2394,7 +2413,7 @@ function showNoEmbedPage(frame, url, openOutsideFn) {
       <code>frame-ancestors</code> so it cannot be embedded in another site’s iframe
       (anti–clickjacking). Browsers then show “refused to connect.”</p>
     <p class="blocked-url">${escapeHtml(url)}</p>
-    <p class="blocked-why">ASX Browser is a framed guest view on Alison’s desktop.
+    <p class="blocked-why">ASX Satellite is a framed guest view on Alison’s desktop.
       Use <strong>Open outside</strong> for a normal full browser tab — that works for
       public YouTube, Drive folders, Wikipedia, etc.</p>
     <p style="margin-top:18px">
@@ -2443,7 +2462,7 @@ function openBrowser(wm, opts = {}) {
 
 function openFramedBrowserUnused(wm, opts = {}) {
   const winId = opts.id || "browser";
-  const winTitle = opts.title || "ASX Browser";
+  const winTitle = opts.title || "ASX Satellite";
   const startUrl = opts.initialUrl || ASX_HOME;
   const root = document.createElement("div");
   root.className = "browser";
@@ -2521,7 +2540,7 @@ function openFramedBrowserUnused(wm, opts = {}) {
       }
     }
     if (/^javascript:/i.test(url) || /^data:/i.test(url) || /^vbscript:/i.test(url)) {
-      showPolicyBlocked(frame, url, "Scheme blocked by ASX Browser policy.");
+      showPolicyBlocked(frame, url, "Scheme blocked by ASX Satellite policy.");
       asxSee(url, "scheme blocked");
       return;
     }
@@ -2551,7 +2570,7 @@ function openFramedBrowserUnused(wm, opts = {}) {
     );
     iframe.setAttribute("referrerpolicy", "no-referrer");
     iframe.setAttribute("loading", "eager");
-    iframe.title = "ASX Browser content";
+    iframe.title = "ASX Satellite content";
 
     if (url === ASX_HOME) {
       if (homeBlobUrl) URL.revokeObjectURL(homeBlobUrl);
@@ -2721,9 +2740,130 @@ function openPublicContainer(wm) {
   });
 }
 
-function openDspeObservatory(_wm) {
-  const url = new URL("./dspe-observatory.html", window.location.href).href;
-  window.open(url, "_blank", "noopener,noreferrer");
+function openResearchLab(wm) {
+  const root = document.createElement("div");
+  root.className = "app-pad";
+  root.style.cssText =
+    "display:flex;flex-direction:column;gap:0.8rem;height:100%;min-height:0;padding:0.65rem;box-sizing:border-box;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(16,24,36,0.94));color:var(--text);";
+
+  const header = document.createElement("div");
+  header.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;";
+  const titleText = document.createElement("div");
+  titleText.innerHTML = `<strong style="font-size:18px;display:block;">Research Lab</strong><span style="color:var(--muted);font-size:12px;">source-grounded workspace over authorized Containers</span>`;
+  const badge = document.createElement("span");
+  badge.textContent = "FMS provenance";
+  badge.style.cssText = "border:1px solid var(--border);border-radius:999px;padding:0.2rem 0.6rem;font-size:11px;color:var(--gold);background:rgba(255,191,0,0.08);";
+  header.append(titleText, badge);
+
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:220px 1fr;gap:0.75rem;flex:1;min-height:0;";
+
+  const sourceList = document.createElement("div");
+  sourceList.style.cssText = "border:1px solid var(--border);border-radius:10px;padding:0.75rem;background:rgba(255,255,255,0.02);overflow:auto;";
+  sourceList.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">Sources</div>
+    <ul style="margin:0;padding-left:1rem;list-style:disc;display:flex;flex-direction:column;gap:0.45rem;font-size:12px;line-height:1.5;">
+      <li>FMS File Memory System</li>
+      <li> FMAP dual ledger</li>
+      <li> findex / fdindex</li>
+      <li> AMN notes</li>
+    </ul>
+  `;
+
+  const main = document.createElement("div");
+  main.style.cssText = "display:flex;flex-direction:column;gap:0.75rem;border:1px solid var(--border);border-radius:10px;padding:0.75rem;background:rgba(255,255,255,0.02);min-height:0;";
+
+  const prompt = document.createElement("div");
+  prompt.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Question</div>
+    <div style="font-size:14px;line-height:1.5;">What does ASX preserve when a file is re-used across Containers?</div>
+  `;
+
+  const answer = document.createElement("div");
+  answer.style.cssText = "border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:rgba(10,132,255,0.06);font-size:13px;line-height:1.5;";
+  answer.innerHTML = `
+    <div style="font-weight:700;margin-bottom:0.4rem;">Finding</div>
+    <div>ASX preserves <strong>source identity</strong>, <strong>read coverage</strong>, and <strong>verified provenance</strong> without duplicating the whole file body into each Container.</div>
+    <div style="margin-top:0.5rem;color:var(--muted);font-size:12px;">Citations: FMS / FMAP / AMN / findex</div>
+  `;
+
+  const audit = document.createElement("div");
+  audit.style.cssText = "border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-size:12px;color:var(--muted);line-height:1.5;";
+  audit.innerHTML = `
+    <div style="font-weight:700;color:var(--text);margin-bottom:0.3rem;">Inspectable reading</div>
+    <div>• read coverage is visible</div>
+    <div>• unsupported claims stay unresolved</div>
+    <div>• provenance is clickable at the source object / section level</div>
+  `;
+
+  main.append(prompt, answer, audit);
+  grid.append(sourceList, main);
+  root.append(header, grid);
+
+  wm.open({
+    id: "research-lab",
+    title: "Research Lab",
+    w: 920,
+    h: 620,
+    x: 64,
+    y: 28,
+    body: root,
+  });
+}
+
+function ensureDspeObservatoryStyles() {
+  const href = new URL("../css/dspe-observatory.css?v=20261114dspe2a", import.meta.url).href;
+  if (document.querySelector(`link[data-dspe-obs-css="1"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.dataset.dspeObsCss = "1";
+  document.head.appendChild(link);
+}
+
+function openDspeObservatory(wm) {
+  ensureDspeObservatoryStyles();
+  const separateUrl = new URL("./dspe-observatory.html", window.location.href).href;
+  const root = document.createElement("div");
+  root.className = "app-pad dspe-window";
+  root.style.cssText =
+    "display:flex;flex-direction:column;height:100%;min-height:0;gap:0.5rem;padding:0.55rem 0.65rem 0.75rem;box-sizing:border-box;overflow:auto;";
+
+  const chrome = document.createElement("div");
+  chrome.style.cssText =
+    "display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex:0 0 auto;";
+  const note = document.createElement("p");
+  note.style.cssText =
+    "margin:0;flex:1;min-width:12rem;color:var(--muted);font-size:13px;line-height:1.4;";
+  note.textContent =
+    "Desktop app — same Observatory as the separate page. Measure stays on this device.";
+  const openSep = document.createElement("a");
+  openSep.className = "primary";
+  openSep.href = separateUrl;
+  openSep.target = "_blank";
+  openSep.rel = "noopener noreferrer";
+  openSep.textContent = "Open separate page";
+  openSep.style.cssText =
+    "display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;text-decoration:none";
+  chrome.append(note, openSep);
+
+  const mount = document.createElement("div");
+  mount.id = `dspe-desktop-${Math.random().toString(36).slice(2, 8)}`;
+  mount.style.cssText = "flex:1;min-height:0;";
+
+  root.append(chrome, mount);
+  wm.open({
+    id: "dspe-observatory",
+    title: "DSPE Observatory",
+    w: 980,
+    h: 680,
+    x: 64,
+    y: 28,
+    body: root,
+    onMount: () => {
+      mountObservatory(mount);
+    },
+  });
 }
 
 function openChat(wm) {
@@ -6109,6 +6249,12 @@ function openSettings(wm, opts = {}) {
     { id: "desktop", label: "Icons & layout", icon: "▦" },
     { id: "taskbar", label: "Taskbar", icon: "▁" },
     { id: "windows", label: "Windows", icon: "▢" },
+    {
+      group: "Browser",
+      id: SEARCH_ENGINE_SECTION_ID,
+      label: SEARCH_ENGINE_SECTION_LABEL,
+      icon: "⌕",
+    },
     { group: "Account", id: "about", label: "About you", icon: "👤" },
     { group: "Advanced", id: "advanced", label: "Advanced", icon: "⚙" },
   ];
@@ -6344,6 +6490,33 @@ function openSettings(wm, opts = {}) {
         setPref("windowOpacity", v);
         const h = main.querySelector("#asx-op-hint");
         if (h) h.textContent = Math.round(v * 100) + "%";
+      });
+      return;
+    }
+    if (id === SEARCH_ENGINE_SECTION_ID || id === "search-engine") {
+      main.innerHTML = renderSearchEngineSettingsHtml(escapeHtml);
+      main.querySelectorAll('input[name="asx-search-engine"]').forEach((inp) => {
+        inp.addEventListener("change", () => {
+          try {
+            setDefaultSearchEngine(inp.value);
+            paint(SEARCH_ENGINE_SECTION_ID);
+          } catch (err) {
+            const errEl = main.querySelector("#asx-custom-search-error");
+            if (errEl) errEl.textContent = err?.message || String(err);
+          }
+        });
+      });
+      main.querySelector("#asx-add-custom-search")?.addEventListener("click", () => {
+        const name = main.querySelector("#asx-custom-search-name")?.value || "";
+        const url = main.querySelector("#asx-custom-search-url")?.value || "";
+        const errEl = main.querySelector("#asx-custom-search-error");
+        try {
+          addCustomSearchEngine(name, url);
+          if (errEl) errEl.textContent = "";
+          paint(SEARCH_ENGINE_SECTION_ID);
+        } catch (err) {
+          if (errEl) errEl.textContent = err?.message || String(err);
+        }
       });
       return;
     }
