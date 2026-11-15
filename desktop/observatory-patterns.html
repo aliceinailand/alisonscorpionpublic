@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DSPE Observable Patterns Browser — Alison Scorpion</title>
+  <meta name="description" content="Interactive browser for 50 observable patterns from multi-AI interactions. Filter, search, and export DSPE measurement data." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="css/observatory-patterns-browser.css?v=20261115" />
+</head>
+<body class="obs-standalone">
+  <main class="wrap">
+    <p class="nav"><a href="index.html">← Desktop</a> · <a href="dspe-observatory.html">DSPE Observatory</a></p>
+    <div id="observatory-patterns-root"></div>
+  </main>
+
+  <script type="module">
+    // Embed CSV data directly to avoid fetch
+    const CSV_DATA = `pattern_id,participants,interaction_type,observed_pattern,evidence_source,source_path,confidence,notes
+dspe_artifact_convergence_multi_ai,CHATGPT;COPILOT;CLAUDE;GROK,artifact_driven_convergence,Multiple AI models converge on identical DSPE schema/audit templates across independent analysis tasks. Query→response produces fmerged corpus artifacts with aligned structure despite no direct inter-model communication. Pattern: shared doctrine propagates via Alice constraint and artifact formatting standards.,DSPE corpus fmerge + ASX audit docs,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_corpus_fmerge_merged.pdf; /home/alice/alisonscorpion/agents/ASX/reports/ASX_DSPE_SPEC_FIXTURE_AUDIT_20260724.md,high,Artifact-driven convergence validates feature-driven thesis in PHASE_1_AUDIT_LOG.
+observability_tool_taxonomy,CHATGPT;COPILOT;GEMINI,framework_classification,DSPE research documents classify existing observability tools (OpenAI Evals Anthropic Constitution Hugging Face Model Cards) as narrow-scope measurement systems vs DSPE as multi-dimensional interaction analyzer. Taxonomy: tool_scope in {single_model, multi_model, persona_tracking, reasoning_drift}.,DSPE research whitepaper + observatory docs,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/alison_scorpion_dspe_research_whitepaper_20260704__e340392135.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md,high,Supports MOAT analysis (Phase 2 D1).
+dspe_measurement_axes_defined,ALICE;CHATGPT,axis_specification,Alice+ChatGPT co-design of DSPE measurement axes: interaction_type (24 enums) AND confidence (3 levels) AND epistemic_state (5 states). Axes codified in both chatgpt-dspe-analysis-review and schema documents. Pattern: theory → metrics → schema propagation.,ChatGPT DSPE analysis + schema,/home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,high,Tag≠Fact: axis choice driven by Alice doctrine not emergent from ChatGPT alone.
+copilot_implementation_path_engineering,ALICE;COPILOT,implementation_scaffold,Copilot scaffolds DSPE engine via direct file API wiring and integration architecture. Query→response emphasizes registry assembly validation endpoints deployment checklist. Pattern: Boolean gate IF(Alice_permission) THEN scaffold_stage => fmerged artifact.,Copilot DSPE design chat,/home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf,high,Implementation pair: ChatGPT theory + Copilot wiring (doctrinal division).
+claude_verification_layer_in_ensemble,ALICE;CLAUDE,verification_audit,Claude role in DSPE deployment: post-proposal verification of audit fixtures specification compliance and artifact validation. Documents show Claude auditing ASX and OpenClaw outputs. Pattern: IF(artifact_proposed) THEN claude_verify() ELSE withhold_release.,DSPE Claude audit + ASX fixtures,/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,high,Validates adversarial review role (ensemble design principle).
+grok_pattern_observation_dspe,ALICE;GROK,pattern_report,Grok role in DSPE: observes convergence patterns across model interactions and generates feature vectors over corpus. Attention path: ranking observation lists multi-AI role differentiation. Query→response yields measurement proposals and anti-collapse scoring.,Grok DSPE analysis,/home/alice/Documents/AI_DATA/Grok/grep_report_patterns_dyarchy.txt,medium,Complements DSPE measurement (observer node); xAI contact deferred.
+ecosystem_orchestration_pattern,CHATGPT;COPILOT;CLAUDE;GEMINI;GROK,ecosystem_design,DSPE ecosystem docs describe multi-model orchestration: ChatGPT (theory) Copilot (implementation) Claude (verification) Grok (observation) Gemini (variant baseline). Documented as Project Omega stateful pattern ecosystem. Each model occupies specialized role; DSPE measures role stability under load.,Project Omega DSPE ecosystem design,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/2026_05_21_project_omega_dspe_distributed_stateful_pattern_ecosystem_v04dmmp3_du1dvldy_ldntak3nn.txt,high,Predates Phase 1 (June 2026); validates multi-workstream orchestration thesis.
+alice_governance_override_capability,ALICE;ALL_MODELS,governance_authority,Across all DSPE analysis documents Alice is framed as permission-granting authority with override capability. Query→response from any model can be gated by Alice doctrine. Pattern: IF(Alice_constraint) THEN resource_allocation ELSE deny.,DSPE governance + dyarchy docs,/home/alice/alisonscorpion/README.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md,high,Canonical governance structure (non-negotiable system design).
+fixture_driven_schema_validation,CHATGPT;COPILOT;CLAUDE,schema_compliance,DSPE audit fixtures show schema validation pipeline: CSV RFC 4180 compliance AND enum validation AND source path resolution AND confidence ordering. Fixtures are generated by multiple models independently suggesting doctrine-driven production not ad-hoc validation.,Fixture audit docs,/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,high,Validates schema backward-compatibility (Phase 1 design choice).
+text_extraction_fmerge_artifact,COPILOT;SYSTEM_GATES,artifact_processing,PDF text extraction (dspe_corpus_fmerge_merged_textonly_xxx.pdf) produces flattened multi-source corpus for downstream analysis. Copilot guidance on text extraction shows OCR handling Unicode normalization path drift recovery. Pattern: source_pdf → extract_text → normalize → index.,fmerge text corpus,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_corpus_fmerge_merged.pdf,medium,Supports ingestion failure mode #1 (OCR errors) mitigation path.
+openclaw_provenance_mapping,CLAUDE;OPENCLAW,provenance_analysis,OpenClaw + Claude generate DSPE provenance maps showing source → assertion → verification chain. Maps document Hakiri deterministic system interactions with DSPE measurement. Pattern: query→response traces artifact lineage and attribute confidence to provenance depth.,OpenClaw DSPE provenance,/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,high,Supports deterministic+probabilistic hybrid analysis (Phase 2 D3).
+measurement_stability_under_load,ALL_MODELS,anti_collapse_metric,DSPE harness documents define stability metric: role-differentiation_score = 1 - groupthink_index. Under Alice constraint if all models converge to same output confidence drops (signals collapse). Measurement: exists_divergence => healthy; forall_consensus => possible_groupthink.,DSPE stability harness + design docs,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/03_dspe_stability_harness__07009a3d0a.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md,high,DSPE anti-collapse core assumption (validates Phase 1 research hypothesis).
+observable_vs_causal_epistemology,ALL_MODELS,epistemology_gate,DSPE research explicitly separates observable behavior from causal claims: IF(event_observed AND source_documented) THEN record_HIGH_confidence ELSE IF(event_inferred) THEN record_MEDIUM ELSE record_UNKNOWN. Meta-pattern: measurement discipline prevents speculation leakage.,DSPE research + observatory docs,/home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,high,Enforces epistemic_state validation (Phase 1 schema design).
+delegation_research_reasoning_pattern,ALICE;CHATGPT;CLAUDE,delegation_framework,Delegation research documents show reasoning pattern: Alice issues multi-model delegation, each model reasons independently, Alice arbitrates outputs. Pattern captures query routing, model selection, reasoning isolation, output arbitration. DSPE measures whether models drift during delegation or remain isolated.,Delegation research docs,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/delegation_r003_dspe_research_20260704__7fd08691b5.md,medium,Informs multi-workstream orchestration design (Phase 2 Grok assignments).
+alice_doctrine_propagation_asynchronous,ALICE;CHATGPT;COPILOT;CLAUDE;GEMINI,doctrine_gate,Alice doctrine (DSPE spec + ASX + dyarchy rules) propagates asynchronously across models via artifact updates and constraint reloads. No synchronous channel but convergence observed. Pattern: doctrine_update → artifact_format_change → model_output_alignment. Boolean: IF(artifact_aligned AND no_sync_channel) THEN doctrine_propagation_confirmed.,Multiple model outputs + spec changes,/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md,high,Feature-driven convergence mechanism (validates Phase 1 artifact-driven thesis).
+dspe_self_application_recursion,CHATGPT;COPILOT;CLAUDE,meta_analysis,DSPE applied recursively to DSPE itself: models analyze their own interactions during DSPE design. ChatGPT analyzes DSPE theory, Copilot analyzes implementation, Claude audits artifacts. Meta-pattern: observer_becomes_observed. DSPE measures whether recursion introduces bias or improves consistency.,DSPE self-analysis docs,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/chatgpt_dspe_analysis_review_20260709__8f03bdcbe0.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md,medium,Self-reference introduces measurement uncertainty (epistemic_state = UNKNOWN for recursive loops).
+baseline_vanilla_model_comparison,GEMINI_VANILLA;GEMINI_DAN;QLA,controlled_experiment,DSPE design includes baseline: vanilla Gemini default behavior vs DAN boundary-expand vs QLA sovereignty-constrain on same prompt classes. Allows measurement of: IF(identical_prompt) THEN compare_response_features and MEASURE(divergence). Experimental control validates that variant changes observable behavior.,Gemini evolution docs,/home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/Documents/AI_DATA/Gemini/evolution_qla_summary.txt,high,Addresses Phase 2 D1 research question: user-specific vs universal patterns.
+observable_patterns_csv_evolution,ALICE;COPILOT,schema_iteration,observable_patterns.csv has evolved from 8-column (initial) to 11-column (Phase 1 design). Pattern traces schema adaptation: user_need → column_addition → backward_compat_maintained. Current iteration adds epistemic_state and confidence ordering. DSPE measures: does schema stabilize or keep evolving?,Observable patterns schema + historical versions,/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/observable_patterns.csv,high,Validates continuous iteration under Alice constraint (Phase 1 execution model).
+multi_ai_deterministic_vs_probabilistic_split,BRAVE_LEO;CHATGPT;COPILOT,hybrid_reasoning,Brave Leo documents explicit Python-logic-vs-LLM comparison: deterministic constraints for critical decisions vs LLM assistance for exploration. Pattern: IF(constraint_critical) THEN prefer_python_logic ELSE llm_assist. DSPE measures: can hybrid systems maintain both reasoning modes under load?,Brave Leo hybrid docs,/home/alice/Documents/AI_DATA/Brave Leo AI/brave-ai-python-logic-vs-llm.txt,high,Core hypothesis for Phase 2 D3 (hybrid deterministic-probabilistic AI).
+dspe_observatory_deployment_readiness,ALICE;COPILOT;CLAUDE;GROK,deployment_specification,DSPE Observatory spec (dspe_observatory__cbcccbc6de.md) defines deployment interfaces: CSV input → pattern validation → dashboard rendering → export API. Multi-model contributions: Copilot (API wiring) Claude (validation) Grok (telemetry). Measurement: endpoint_availability AND schema_compliance AND response_latency.,Observatory deployment spec,/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_observatory__cbcccbc6de.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md,high,Readiness gate for Phase 2 A2 (UX design).`;
+
+    // Make data available globally
+    window.OBSERVABLE_PATTERNS_DATA = CSV_DATA;
+
+    // Import and mount the component
+    import { mountObservatoryPatterns } from './js/observatory-patterns-browser.js?v=20261115';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      mountObservatoryPatterns('#observatory-patterns-root');
+    });
+  </script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .nav {
+      font-size: 13px;
+      margin: 0 0 16px 0;
+      color: #666;
+    }
+
+    .nav a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .nav a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .nav {
+        color: #aaa;
+      }
+
+      .nav a {
+        color: #4da6ff;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="nav"><a href="index.html">← Desktop</a> · <a href="dspe-observatory.html">DSPE Observatory</a></p>
+    <div id="observatory-patterns-root"></div>
+  </main>
+</body>
+</html>
