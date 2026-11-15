@@ -1,9 +1,10 @@
 /**
- * Desktop browser. The page is a live Chromium on this computer, drawn into
- * the window as a picture. It is not an iframe of the site.
+ * Desktop Browser — primary: ASX / Alison Scorpion Browser (Copper-class WebKit
+ * via localhost bridge). Legacy Chromium Web Observer remains a secondary path.
  */
 import { isBlockedUrlAsync, normalizeNavUrl } from "./blocklist.js?v=20261028wiki1";
 
+const ASX_BRIDGE = "http://127.0.0.1:4124";
 const BRIDGE_HTTP = "http://127.0.0.1:8791";
 const BRIDGE_WS = "ws://127.0.0.1:8791/session";
 const GO = "asx-live-browser-go";
@@ -17,7 +18,8 @@ window.addEventListener(GO, (ev) => {
 
 const STORY_TITLE = "The Alice and the Scorpion Framework Storybook";
 const STORY_URL = "https://trippyalice.com";
-const OBSERVER = "ASX Web Observer";
+const ASX_BROWSER = "ASX Browser";
+const OBSERVER = "ASX Web Observer (legacy Chromium)";
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -38,7 +40,217 @@ export function openStorybook(wm) {
   return openLiveBrowser(wm, { title: STORY_TITLE, initialUrl: STORY_URL });
 }
 
+/** Primary guest Browser: Alison Scorpion / ASX Browser (WebKit one-field). */
 export function openLiveBrowser(wm, opts = {}) {
+  if (opts.legacyChromium) {
+    return openLegacyChromiumObserver(wm, opts);
+  }
+  return openAsxBrowserWindow(wm, opts);
+}
+
+function openAsxBrowserWindow(wm, opts = {}) {
+  const root = el("div", "live-browser asx-browser");
+  const bar = el("div", "browser-bar");
+  const urlIn = document.createElement("input");
+  urlIn.type = "text";
+  urlIn.className = "url";
+  urlIn.spellcheck = false;
+  urlIn.autocomplete = "off";
+  urlIn.setAttribute("aria-label", "Address or search");
+  urlIn.placeholder = "Address or search — ASX Browser (one field)";
+  bar.append(
+    button("↻", "Refresh bridge status", () => refreshHealth()),
+    urlIn,
+    button("Go", "Open in ASX Browser", () => go(urlIn.value)),
+    button("Native", "Focus native ASX Browser window", () => go(urlIn.value || "https://example.com", true))
+  );
+
+  const view = el("div", "live-view");
+  const start = el("div", "live-start");
+  const offline = el("div", "live-offline");
+  const blocked = el("div", "live-block");
+  const panel = el("div", "live-start");
+  panel.style.overflow = "auto";
+  panel.style.padding = "16px";
+  view.append(start, offline, blocked, panel);
+
+  const status = el("div", "live-status");
+  root.append(bar, view, status);
+
+  let closed = false;
+  let pending = "";
+
+  const setStatus = (text) => {
+    status.textContent = text;
+  };
+
+  const show = (which) => {
+    start.hidden = which !== "start";
+    offline.hidden = which !== "offline";
+    blocked.hidden = which !== "blocked";
+    panel.hidden = which !== "page";
+  };
+
+  function fillStart() {
+    start.replaceChildren();
+    start.append(
+      el("h2", "", "ASX Browser"),
+      el(
+        "p",
+        "",
+        "Alison Scorpion Browser — Copper-class minimal WebKit (system WebKitGTK). One address field. Not BrowserOS; no bundled Chromium."
+      ),
+      el(
+        "p",
+        "",
+        "Go opens the URL in the native ASX Browser via the local bridge (127.0.0.1:4124 → asx-browser)."
+      )
+    );
+    const list = document.createElement("div");
+    list.className = "live-picks";
+    [
+      ["example.com", "https://example.com"],
+      ["trippyalice.com", STORY_URL],
+      ["alisonscorpion.com", "https://alisonscorpion.com"],
+      ["info.cern.ch", "https://info.cern.ch"],
+    ].forEach(([label, href]) => {
+      list.appendChild(button(label, href, () => go(href)));
+    });
+    start.appendChild(list);
+    start.appendChild(
+      button("Legacy Chromium Web Observer…", "Optional fallback", () => {
+        openLegacyChromiumObserver(wm, { title: OBSERVER });
+      })
+    );
+  }
+
+  function fillOffline() {
+    offline.replaceChildren();
+    offline.append(
+      el("h2", "", "ASX Browser bridge is not running"),
+      el(
+        "p",
+        "",
+        "Start the bridge on this machine: python3 external-tools/asx-browser/bridge/asx_browser_bridge.py"
+      ),
+      el("p", "", "And ensure Copper / asx-browser is installed (WebKitGTK).")
+    );
+  }
+
+  function showBlocked(url, reason) {
+    blocked.replaceChildren();
+    blocked.append(
+      el("h2", "", "This address is blocked"),
+      el("p", "live-url", url),
+      el("p", "", reason || "Alison Scorpion refused this address.")
+    );
+    show("blocked");
+    setStatus(reason || "Blocked");
+  }
+
+  async function refreshHealth() {
+    try {
+      const res = await fetch(ASX_BRIDGE + "/health", { method: "GET" });
+      const data = await res.json();
+      if (data && data.ok) {
+        setStatus("ASX Browser bridge OK · WebKit via copper · " + (data.health || "").split("\n")[0]);
+        return true;
+      }
+      setStatus("ASX Browser bridge responded but copper health failed");
+      return false;
+    } catch {
+      show("offline");
+      setStatus("ASX Browser bridge not reachable on 127.0.0.1:4124");
+      return false;
+    }
+  }
+
+  async function go(raw, focus) {
+    const url = normalizeNavUrl(raw);
+    urlIn.value = url;
+    if (await isBlockedUrlAsync(url)) {
+      showBlocked(url, "category detection: adult website, blocked");
+      return;
+    }
+    pending = url;
+    setStatus("Opening in ASX Browser… " + url);
+    try {
+      const res = await fetch(ASX_BRIDGE + "/open", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, focus: !!focus }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        show("offline");
+        setStatus("ASX Browser open failed — is the bridge and copper running?");
+        fillOffline();
+        return;
+      }
+      panel.replaceChildren();
+      panel.append(
+        el("h2", "", "Opened in ASX Browser"),
+        el("p", "live-url", url),
+        el("p", "", "Native Copper-class WebKit window / agent tab. One-field UX lives in the native browser.")
+      );
+      const pre = document.createElement("pre");
+      pre.style.whiteSpace = "pre-wrap";
+      pre.style.fontSize = "11px";
+      pre.textContent = String(data.output || "").slice(0, 2500);
+      panel.appendChild(pre);
+      show("page");
+      setStatus("ASX Browser · " + url);
+    } catch {
+      show("offline");
+      fillOffline();
+      setStatus("ASX Browser bridge not reachable on 127.0.0.1:4124");
+    }
+  }
+
+  urlIn.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") {
+      if (ev.isComposing || ev.keyCode === 229) return;
+      go(urlIn.value);
+    }
+  });
+
+  fillStart();
+  fillOffline();
+  show("start");
+  setStatus("ASX Browser — checking local bridge…");
+
+  const initial = opts.initialUrl || "";
+  const already = wm.windows.has("browser");
+  wm.open({
+    id: "browser",
+    title: opts.title || ASX_BROWSER,
+    w: 960,
+    h: 640,
+    x: 48,
+    y: 24,
+    body: root,
+    onMount: () => {
+      session = { go, ensure: refreshHealth };
+      activeGo = go;
+      refreshHealth().then((ok) => {
+        if (ok) show("start");
+        if (initial) go(initial);
+      });
+    },
+    onClose: () => {
+      closed = true;
+      if (activeGo === go) activeGo = null;
+      if (session && session.go === go) session = null;
+    },
+  });
+  if (already && initial && session) {
+    session.ensure();
+    session.go(initial);
+  }
+}
+
+/** Legacy Chromium live-view bridge (optional fallback). */
+function openLegacyChromiumObserver(wm, opts = {}) {
   const root = el("div", "live-browser");
   const bar = el("div", "browser-bar");
   const urlIn = document.createElement("input");
@@ -96,36 +308,16 @@ export function openLiveBrowser(wm, opts = {}) {
       el(
         "p",
         "",
-        "ASX Web Observer launches the Chromium installed on this computer and draws its window here. The page is not loaded inside a frame, and it does not need an account. Adult sites, private addresses, other ports, and downloads are refused."
+        "Legacy path: Chromium on this computer drawn into the window. Prefer ASX Browser (WebKit) for the product guest Browser."
       )
     );
-    const list = document.createElement("div");
-    list.className = "live-picks";
-    [
-      ["example.com", "https://example.com"],
-      ["trippyalice.com", STORY_URL],
-      ["alisonscorpion.com", "https://alisonscorpion.com"],
-      ["info.cern.ch", "https://info.cern.ch"],
-    ].forEach(([label, href]) => {
-      list.appendChild(button(label, href, () => go(href)));
-    });
-    start.appendChild(list);
   }
 
   function fillOffline() {
     offline.replaceChildren();
     offline.append(
-      el("h2", "", "ASX Web Observer is not running"),
-      el(
-        "p",
-        "",
-        "The desktop is waiting for the Chromium installed on this computer. Websites are not placed in a frame while it is down."
-      ),
-      el(
-        "p",
-        "",
-        "On this machine the engine listens only on 127.0.0.1. A public website cannot drive it."
-      )
+      el("h2", "", "Legacy Web Observer is not running"),
+      el("p", "", "Chromium bridge on 127.0.0.1:8791 is down. Use ASX Browser instead.")
     );
   }
 
@@ -165,7 +357,7 @@ export function openLiveBrowser(wm, opts = {}) {
     holdFrames = true;
     show("page");
     if (!send({ type: "navigate", url })) {
-      setStatus("Waiting for ASX Web Observer…");
+      setStatus("Waiting for legacy Web Observer…");
     } else {
       setStatus("Opening " + url);
     }
@@ -178,7 +370,7 @@ export function openLiveBrowser(wm, opts = {}) {
         : engineMode === "headless"
           ? "headless Chromium"
           : "Chromium on this computer";
-    return OBSERVER + " · " + mode + " · no account · pages are not loaded in a frame";
+    return OBSERVER + " · " + mode;
   }
 
   function goHome() {
@@ -193,7 +385,6 @@ export function openLiveBrowser(wm, opts = {}) {
     if (typeof jpeg !== "string" || !jpeg.startsWith("/9j/") || jpeg.length > 1500000) return;
     viewW = Number(w) || viewW;
     viewH = Number(h) || viewH;
-    // A slower older picture must not cover the keys just typed.
     const generation = ++paintGeneration;
     const image = new Image();
     image.onload = () => {
@@ -213,43 +404,27 @@ export function openLiveBrowser(wm, opts = {}) {
 
   function point(ev) {
     const rect = canvas.getBoundingClientRect();
-    const sx = viewW > 0 ? viewW / rect.width : 1;
-    const sy = viewH > 0 ? viewH / rect.height : 1;
-    return {
-      x: (ev.clientX - rect.left) * sx,
-      y: (ev.clientY - rect.top) * sy,
-    };
+    const x = ((ev.clientX - rect.left) / Math.max(1, rect.width)) * (viewW || rect.width);
+    const y = ((ev.clientY - rect.top) / Math.max(1, rect.height)) * (viewH || rect.height);
+    return { x, y };
   }
 
   canvas.addEventListener("mousedown", (ev) => {
-    canvas.focus();
     const p = point(ev);
-    const buttonName = ev.button === 2 ? "right" : ev.button === 1 ? "middle" : "left";
-    send({ type: "click", x: p.x, y: p.y, button: buttonName });
-    ev.preventDefault();
+    send({ type: "mouse", action: "down", button: ev.button, x: p.x, y: p.y });
   });
-  canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
-  let moving = false;
-  canvas.addEventListener("mousemove", (ev) => {
-    if (moving) return;
-    moving = true;
+  canvas.addEventListener("mouseup", (ev) => {
     const p = point(ev);
-    requestAnimationFrame(() => {
-      moving = false;
-      send({ type: "move", x: p.x, y: p.y });
-    });
+    send({ type: "mouse", action: "up", button: ev.button, x: p.x, y: p.y });
+  });
+  canvas.addEventListener("mousemove", (ev) => {
+    const p = point(ev);
+    send({ type: "mouse", action: "move", x: p.x, y: p.y });
   });
   canvas.addEventListener(
     "wheel",
     (ev) => {
-      const p = point(ev);
-      send({
-        type: "wheel",
-        x: p.x,
-        y: p.y,
-        deltaX: ev.deltaX,
-        deltaY: ev.deltaY,
-      });
+      send({ type: "wheel", deltaX: ev.deltaX, deltaY: ev.deltaY });
       ev.preventDefault();
     },
     { passive: false }
@@ -277,13 +452,13 @@ export function openLiveBrowser(wm, opts = {}) {
       ws = new WebSocket(BRIDGE_WS);
     } catch {
       show("offline");
-      setStatus("ASX Web Observer is not running on this computer.");
+      setStatus("Legacy Web Observer is not running.");
       return;
     }
     socket = ws;
     ws.onopen = () => {
       show(pending ? "page" : "start");
-      setStatus("ASX Web Observer connected · the page is Chromium’s own window");
+      setStatus("Legacy Web Observer connected");
       resize();
       if (pending) send({ type: "navigate", url: pending });
     };
@@ -302,7 +477,6 @@ export function openLiveBrowser(wm, opts = {}) {
       } else if (message.type === "status") {
         if (typeof message.url === "string" && message.url && message.url !== "about:blank") {
           holdFrames = false;
-          // A late page address must not erase characters still being typed.
           if (document.activeElement !== urlIn) urlIn.value = message.url;
           setStatus(message.url);
         }
@@ -315,47 +489,37 @@ export function openLiveBrowser(wm, opts = {}) {
     };
     ws.onerror = () => {
       show("offline");
-      setStatus("ASX Web Observer is not running on this computer.");
+      setStatus("Legacy Web Observer is not running.");
     };
     ws.onclose = () => {
       if (closed) return;
       socket = null;
       show("offline");
-      setStatus("ASX Web Observer disconnected.");
+      setStatus("Legacy Web Observer disconnected.");
     };
   }
 
   fillStart();
   fillOffline();
   show("start");
-  setStatus("Looking for ASX Web Observer…");
+  setStatus("Looking for legacy Web Observer…");
 
   const initial = opts.initialUrl || "";
-  const ensure = () => {
-    if (!socket || socket.readyState === WebSocket.CLOSING || socket.readyState === WebSocket.CLOSED) {
-      connect();
-    }
-  };
-  const already = wm.windows.has("browser");
   wm.open({
-    id: "browser",
+    id: opts.id || "browser-legacy",
     title: opts.title || OBSERVER,
     w: 1040,
     h: 680,
-    x: 48,
-    y: 24,
+    x: 64,
+    y: 36,
     body: root,
     onMount: () => {
-      session = { go, ensure };
-      activeGo = go;
-      ensure();
+      connect();
       if (initial) go(initial);
       else goHome();
     },
     onClose: () => {
       closed = true;
-      if (activeGo === go) activeGo = null;
-      if (session && session.go === go) session = null;
       try {
         socket && socket.close();
       } catch {
@@ -363,9 +527,5 @@ export function openLiveBrowser(wm, opts = {}) {
       }
     },
   });
-  // One observer window. A second click navigates it instead of opening a dead icon.
-  if (already && initial && session) {
-    session.ensure();
-    session.go(initial);
-  }
+  void BRIDGE_HTTP;
 }

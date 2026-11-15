@@ -113,7 +113,7 @@ import {
 } from "./office-doc.js?v=20261027office1";
 import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
 import { mountObservatory } from "./dspe-observatory.js?v=20261114dspe2";
-import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261028wiki1";
+import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261115asxb1";
 import { openUrlDownloader } from "./url-downloader.js?v=20261028dl2";
 import {
   openSandbox,
@@ -236,8 +236,9 @@ export const APP_CATALOG = [
   { id: "terminal", label: "Terminal", glyph: "❯" },
   { id: "computer", label: "Computer", glyph: "🖥" },
   { id: "files", label: "Files", glyph: "📁" },
-  { id: "browser", label: "ASX Web Observer", glyph: "🌐" },
+  { id: "browser", label: "ASX Browser", glyph: "🌐" },
   { id: "knowledge", label: "Knowledge Base", glyph: "📚" },
+  { id: "research-lab", label: "Research Lab", glyph: "🔎" },
   {
     id: "storybook",
     label: "The Alice and the Scorpion Framework Storybook",
@@ -326,6 +327,7 @@ export const APP_CATEGORIES = [
     glyph: "🦂",
     apps: [
       "knowledge",
+      "research-lab",
       "storybook",
       "dspe-observatory",
       "containers",
@@ -366,6 +368,7 @@ const APP_OPENERS = {
   files: openFiles,
   browser: openLiveBrowser,
   knowledge: openKnowledge,
+  "research-lab": openResearchLab,
   storybook: openStorybook,
   "dspe-observatory": openDspeObservatory,
   chat: openChat,
@@ -811,8 +814,8 @@ function runAgentAction(wm, raw, lines) {
   const lower = q.toLowerCase();
 
   const goUrl = (url) => {
-    openBrowser(wm, { title: "ASX Web Observer", initialUrl: url });
-    lines.push(`OK:navigating ASX Web Observer → ${url}`);
+    openBrowser(wm, { title: "ASX Browser", initialUrl: url });
+    lines.push(`OK:navigating ASX Browser → ${url}`);
     return true;
   };
 
@@ -832,7 +835,7 @@ function runAgentAction(wm, raw, lines) {
   }
   if (/open\s+browser|open\s+internet/i.test(q)) {
     openBrowser(wm);
-    lines.push("OK:opened ASX Web Observer");
+    lines.push("OK:opened ASX Browser");
     return true;
   }
   if (/open\s+files|open\s+file\s*manager/i.test(q)) {
@@ -1540,7 +1543,7 @@ function openNetwork(wm) {
     {
       glyph: "🌐",
       label: "Internet",
-      sub: "ASX Web Observer",
+      sub: "ASX Browser",
       action: () => openBrowser(wm),
     },
     {
@@ -1710,7 +1713,7 @@ function openGDrive(wm, opts = {}) {
         : `https://drive.google.com/drive/folders/${top.id}`;
     openBrowser(wm, {
       id: "browser-gdrive",
-      title: "ASX Web Observer",
+      title: "ASX Browser",
       initialUrl: url,
     });
   });
@@ -1771,7 +1774,7 @@ function openGDrive(wm, opts = {}) {
       const go = () =>
         openBrowser(wm, {
           id: "browser-gdrive",
-          title: "ASX Web Observer",
+          title: "ASX Browser",
           initialUrl: GDRIVE_PUBLIC_URL,
         });
       row.addEventListener("dblclick", go);
@@ -2727,6 +2730,77 @@ function openPublicContainer(wm) {
       });
       root.querySelector("[data-public-chat-input]")?.focus();
     },
+  });
+}
+
+function openResearchLab(wm) {
+  const root = document.createElement("div");
+  root.className = "app-pad";
+  root.style.cssText =
+    "display:flex;flex-direction:column;gap:0.8rem;height:100%;min-height:0;padding:0.65rem;box-sizing:border-box;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(16,24,36,0.94));color:var(--text);";
+
+  const header = document.createElement("div");
+  header.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;";
+  const titleText = document.createElement("div");
+  titleText.innerHTML = `<strong style="font-size:18px;display:block;">Research Lab</strong><span style="color:var(--muted);font-size:12px;">source-grounded workspace over authorized Containers</span>`;
+  const badge = document.createElement("span");
+  badge.textContent = "FMS provenance";
+  badge.style.cssText = "border:1px solid var(--border);border-radius:999px;padding:0.2rem 0.6rem;font-size:11px;color:var(--gold);background:rgba(255,191,0,0.08);";
+  header.append(titleText, badge);
+
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:220px 1fr;gap:0.75rem;flex:1;min-height:0;";
+
+  const sourceList = document.createElement("div");
+  sourceList.style.cssText = "border:1px solid var(--border);border-radius:10px;padding:0.75rem;background:rgba(255,255,255,0.02);overflow:auto;";
+  sourceList.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">Sources</div>
+    <ul style="margin:0;padding-left:1rem;list-style:disc;display:flex;flex-direction:column;gap:0.45rem;font-size:12px;line-height:1.5;">
+      <li>FMS File Memory System</li>
+      <li> FMAP dual ledger</li>
+      <li> findex / fdindex</li>
+      <li> AMN notes</li>
+    </ul>
+  `;
+
+  const main = document.createElement("div");
+  main.style.cssText = "display:flex;flex-direction:column;gap:0.75rem;border:1px solid var(--border);border-radius:10px;padding:0.75rem;background:rgba(255,255,255,0.02);min-height:0;";
+
+  const prompt = document.createElement("div");
+  prompt.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Question</div>
+    <div style="font-size:14px;line-height:1.5;">What does ASX preserve when a file is re-used across Containers?</div>
+  `;
+
+  const answer = document.createElement("div");
+  answer.style.cssText = "border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:rgba(10,132,255,0.06);font-size:13px;line-height:1.5;";
+  answer.innerHTML = `
+    <div style="font-weight:700;margin-bottom:0.4rem;">Finding</div>
+    <div>ASX preserves <strong>source identity</strong>, <strong>read coverage</strong>, and <strong>verified provenance</strong> without duplicating the whole file body into each Container.</div>
+    <div style="margin-top:0.5rem;color:var(--muted);font-size:12px;">Citations: FMS / FMAP / AMN / findex</div>
+  `;
+
+  const audit = document.createElement("div");
+  audit.style.cssText = "border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-size:12px;color:var(--muted);line-height:1.5;";
+  audit.innerHTML = `
+    <div style="font-weight:700;color:var(--text);margin-bottom:0.3rem;">Inspectable reading</div>
+    <div>• read coverage is visible</div>
+    <div>• unsupported claims stay unresolved</div>
+    <div>• provenance is clickable at the source object / section level</div>
+  `;
+
+  main.append(prompt, answer, audit);
+  grid.append(sourceList, main);
+  root.append(header, grid);
+
+  wm.open({
+    id: "research-lab",
+    title: "Research Lab",
+    w: 920,
+    h: 620,
+    x: 64,
+    y: 28,
+    body: root,
   });
 }
 
