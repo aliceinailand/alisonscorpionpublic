@@ -39,4 +39,24 @@ for (const banned of ["Lady Alpha", "Scorpus", "Aletheia", "QLA", "Queen Lady Al
   }
 }
 
+const limits = KB_ARTICLES.find((article) => article.id === "dspe-limits");
+if (!limits) throw new Error("dspe-limits article missing");
+if (!limits.body.includes("Tag ≠ Fact")) {
+  throw new Error("dspe-limits must keep Tag ≠ Fact");
+}
+if (!limits.body.includes("biological consciousness")) {
+  throw new Error("dspe-limits must state consciousness is out of scope");
+}
+
+const mathGates = KB_ARTICLES.find((article) => article.id === "math-gates");
+if (!mathGates) throw new Error("math-gates article missing");
+for (const token of ["FORMAL_TESTABLE", "EXPERIMENTAL", "HISTORICAL_BROKEN"]) {
+  if (!mathGates.body.includes(token)) {
+    throw new Error(`math-gates missing ${token}`);
+  }
+}
+if (!searchArticles("falsification").some((article) => article.id === "math-gates")) {
+  throw new Error("falsification search should hit math-gates");
+}
+
 console.log("knowledge base tests passed");

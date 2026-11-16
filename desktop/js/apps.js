@@ -111,7 +111,7 @@ import {
   extractDocumentInner,
   sheetPrintHtml,
 } from "./office-doc.js?v=20261027office1";
-import { openKnowledge } from "./knowledge.js?v=20261114dspe1";
+import { openKnowledge } from "./knowledge.js?v=20261116kb1";
 import { mountObservatory } from "./dspe-observatory.js?v=20261114dspe2";
 import { openLiveBrowser, openStorybook } from "./web-browser.js?v=20261115asxb1";
 import {

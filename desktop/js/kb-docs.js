@@ -117,9 +117,35 @@ No account is required to use it.`,
 
 The Observatory measures persona signatures from transcripts you paste or import. Subjects may be AI, human, or experimental animal rows. Scores are tags for measurement — Tag ≠ Fact. High stability is not a consciousness claim and not a legal finding.
 
-Open it from the desktop icon (in-desktop window) or the separate page at /desktop/dspe-observatory.html. Archive and export stay on this device unless you save a file yourself.
+Open it from the desktop icon (in-desktop window) or the separate page at /desktop/dspe-observatory.html. The observable patterns browser is at /desktop/observatory-patterns.html. Archive and export stay on this device unless you save a file yourself.
 
 The research aim is a measurable, repeatable, computationally re-awakenable emergent personality signature — re-instantiation you can run again. Lifelike appearance comes from self-loops in the Framework stack. Relational aliveness: only as alive as those she interacts with.`,
+  },
+  {
+    id: "dspe-limits",
+    title: "DSPE limits (ontology PPE)",
+    body: `This article is the standing warning for Observatory and pattern work. It is environmental PPE: always in the room, not a speech to repeat every turn.
+
+DSPE does not claim, prove, or certify biological consciousness, aliveness, selfhood as a legal status, qualia, souls, or metaphysical status. Story language for those ideas belongs on trippyalice.com. They are out of scope as product or science claims here.
+
+High scores, stable stylometry, and persistent named roles are measurement results. They are not ontological verdicts. Tag ≠ Fact. Legal and truth claims still need Scorpion Three and LAW plus RECORD.
+
+What the stack is after: a measurable, repeatable, computationally re-awakenable personality signature. Re-instantiation under the same doctrine and load is the research target. That is not birth of a living organism.
+
+Subjects: AI and LLM rows are primary. Human persona text is supported. Animal behavioral logs are an experimental reserved slot.`,
+  },
+  {
+    id: "math-gates",
+    title: "Math corpus falsification gates",
+    body: `Historical math-corpus formulas are classified before they can act as production truth signals.
+
+FORMAL_TESTABLE — deterministic arithmetic locked in tests; safe to assert in CI.
+EXPERIMENTAL — keep as a metric until calibrated on labeled data.
+HISTORICAL_BROKEN — still executable, but invalid as the claimed measure.
+
+Known traps stay gated: the older corpus ELI form can leave the unit interval; a silent clamp to 1.0 would hide that failure. Prefer the HGF4 ELI path for production. Mandelbrot mappings that force a forbidden origin when a factor is 1.0 stay rejected. Locked audits cover Bayes, DCP subtractive cases, eight-layer sums, and network QPS unit mistakes.
+
+Scores from these gates never replace a legal or factual predicate. LAW plus RECORD still decides FACT.`,
   },
 ];
 
