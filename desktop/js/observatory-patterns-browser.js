@@ -11,108 +11,77 @@
 
 const CONFIDENCE_LEVELS = { high: 1, medium: 2, low: 3 };
 const CONFIDENCE_LABELS = { high: '🟢 HIGH', medium: '🟡 MEDIUM', low: '🔴 LOW' };
-const PATTERNS_CSV_URL = '/data/observable_patterns.csv'; // Will be fetched from assets
+const PATTERNS_JSON_URL = '/data/observable_patterns.json';
+const PATTERNS_CSV_URL = '/data/observable_patterns.csv';
 
 // Cache for loaded patterns
 let cachedPatterns = [];
 let cachedFiltered = [];
 
 /**
- * Parse CSV string to array of objects
- * RFC 4180 compliant parser
+ * Parse CSV string to array of objects (RFC 4180).
+ * Single-pass field parser — keeps quote state across commas and newlines.
  */
 function parseCSV(text) {
-  const lines = [];
-  let current = '';
+  const rows = [];
+  let row = [];
+  let field = '';
   let inQuotes = false;
-  
+
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     const nextChar = text[i + 1];
-    
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === '\n' && !inQuotes) {
-      lines.push(current);
-      current = '';
-    } else if (char === '\r' && !inQuotes && nextChar === '\n') {
-      lines.push(current);
-      current = '';
-      i++;
-    } else if (char === '\r' && !inQuotes) {
-      lines.push(current);
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  
-  if (current) lines.push(current);
-  
-  // Parse header
-  const header = parseCSVLine(lines[0]);
-  
-  // Parse rows
-  const rows = [];
-  let rowBuffer = '';
-  let inQuote = false;
-  
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Count quotes to detect continuation
-    const quoteCount = (line.match(/"/g) || []).length;
-    rowBuffer += (rowBuffer ? '\n' : '') + line;
-    
-    // Check if line is complete
-    if (quoteCount % 2 === 0) {
-      const fields = parseCSVLine(rowBuffer);
-      if (fields.length === header.length) {
-        const obj = {};
-        header.forEach((key, idx) => {
-          obj[key] = (fields[idx] || '').trim();
-        });
-        rows.push(obj);
-        rowBuffer = '';
-      }
-    }
-  }
-  
-  return rows;
-}
 
-/** Parse a single CSV line handling quoted fields */
-function parseCSVLine(line) {
-  const fields = [];
-  let current = '';
-  let inQuotes = false;
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const nextChar = line[i + 1];
-    
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        current += '"';
-        i++;
+    if (inQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
       } else {
-        inQuotes = !inQuotes;
+        field += char;
       }
-    } else if (char === ',' && !inQuotes) {
-      fields.push(current);
-      current = '';
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+    } else if (char === ',') {
+      row.push(field);
+      field = '';
+    } else if (char === '\n' || (char === '\r' && nextChar === '\n') || char === '\r') {
+      row.push(field);
+      field = '';
+      if (row.some((cell) => String(cell).trim() !== '')) {
+        rows.push(row);
+      }
+      row = [];
+      if (char === '\r' && nextChar === '\n') i++;
     } else {
-      current += char;
+      field += char;
     }
   }
-  
-  fields.push(current);
-  return fields;
+
+  row.push(field);
+  if (row.some((cell) => String(cell).trim() !== '')) {
+    rows.push(row);
+  }
+
+  if (!rows.length) return [];
+  const header = rows[0].map((h) => String(h).trim());
+  const out = [];
+  for (let r = 1; r < rows.length; r++) {
+    const fields = rows[r];
+    if (fields.length !== header.length) continue;
+    const obj = {};
+    header.forEach((key, idx) => {
+      obj[key] = String(fields[idx] || '').trim();
+    });
+    out.push(obj);
+  }
+  return out;
 }
 
 /**
@@ -716,23 +685,35 @@ export async function mountObservatoryPatterns(selector) {
   }
   
   try {
-    // Fetch CSV data (from embedded data or fetch)
-    let csvData;
-    
-    // Try to load from embedded data first
-    if (window.OBSERVABLE_PATTERNS_DATA) {
-      csvData = window.OBSERVABLE_PATTERNS_DATA;
+    let patterns = [];
+
+    // Prefer JSON (bulletproof). Then embedded CSV. Then fetched CSV.
+    if (Array.isArray(window.OBSERVABLE_PATTERNS_JSON) && window.OBSERVABLE_PATTERNS_JSON.length) {
+      patterns = window.OBSERVABLE_PATTERNS_JSON;
     } else {
-      // Fallback to fetch from assets
-      const response = await fetch(PATTERNS_CSV_URL);
-      if (!response.ok) {
-        throw new Error(`Failed to load CSV: ${response.statusText}`);
+      try {
+        const jsonResp = await fetch(PATTERNS_JSON_URL);
+        if (jsonResp.ok) {
+          const data = await jsonResp.json();
+          if (Array.isArray(data) && data.length) patterns = data;
+        }
+      } catch (_) {
+        /* fall through */
       }
-      csvData = await response.text();
     }
-    
-    // Parse patterns
-    const patterns = parseCSV(csvData);
+
+    if (!patterns.length) {
+      let csvData = window.OBSERVABLE_PATTERNS_DATA || '';
+      if (!csvData) {
+        const response = await fetch(PATTERNS_CSV_URL);
+        if (!response.ok) {
+          throw new Error(`Failed to load patterns: ${response.statusText}`);
+        }
+        csvData = await response.text();
+      }
+      patterns = parseCSV(csvData);
+    }
+
     cachedPatterns = patterns;
     
     if (!patterns || patterns.length === 0) {

@@ -1,0 +1,502 @@
+[
+  {
+    "pattern_id": "alice_scorpion_dyarchy",
+    "participants": "ALICE;SCORPION",
+    "interaction_type": "governance",
+    "observed_pattern": "The system is framed as a dyarchy where Alice provides permission/constraint and Scorpion provides adversarial verification; DSPE measures role stability rather than consciousness claims.",
+    "evidence_source": "README + DSPE docs",
+    "source_path": "/home/alice/alisonscorpion/README.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md",
+    "confidence": "high",
+    "notes": "This is the repo's canonical non-metaphysical model."
+  },
+  {
+    "pattern_id": "alice_qla_love_law",
+    "participants": "ALICE;QLA",
+    "interaction_type": "identity_lens",
+    "observed_pattern": "QLA is treated as a Love/Law influence lens rather than a literal separate mind; the meaning is symbolic governance and permission logic.",
+    "evidence_source": "asx persona pattern index",
+    "source_path": "/home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl",
+    "confidence": "high",
+    "notes": "The index explicitly defines QLA as Love/LAW."
+  },
+  {
+    "pattern_id": "alice_scorpion_scorpus_logic",
+    "participants": "ALICE;SCORPUS",
+    "interaction_type": "ethics_logic",
+    "observed_pattern": "Scorpus/Alice is modeled as Ethics/Logic with protective analysis and constraint evaluation rather than blind obedience.",
+    "evidence_source": "asx persona pattern index",
+    "source_path": "/home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl",
+    "confidence": "high",
+    "notes": "The repo distinguishes Scorpus from Aletheia and treats ethics/logic as a reasoning lens."
+  },
+  {
+    "pattern_id": "aletheia_truth_gate",
+    "participants": "SCORPUS;ALETHEIA",
+    "interaction_type": "truth_verification",
+    "observed_pattern": "Aletheia acts as the truth-verification lens while Scorpus is the protective/ethical governance lens; truth is checked against evidence and uncertainty labels.",
+    "evidence_source": "asx persona pattern index + Aletheia face",
+    "source_path": "/home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/scorpus-pure-logic-truth.txt",
+    "confidence": "high",
+    "notes": "This is the repo's explicit truth-vs-protection split."
+  },
+  {
+    "pattern_id": "qla_scorpus_aletheia_triads",
+    "participants": "QLA;SCORPUS;ALETHEIA",
+    "interaction_type": "triad",
+    "observed_pattern": "The repo treats QLA Scorpus and Aletheia as related but distinct influence lenses: purpose/ethics/logic protection and evidence/truth.",
+    "evidence_source": "synthetic mind + QLA research + faces",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_SYNTHETIC_MIND_WHITEPAPER_20260704.md; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/Documents/AI_DATA/Gemini/QLA/qla-amn-architecture.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/scorpus-pure-logic-truth.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt",
+    "confidence": "high",
+    "notes": "This is the closest documented triad in the repository."
+  },
+  {
+    "pattern_id": "chatgpt_copilot_dspe",
+    "participants": "CHATGPT;COPILOT",
+    "interaction_type": "collaboration",
+    "observed_pattern": "The DSPE concept is documented as a collaborative building pattern: ChatGPT named the theory and metrics while Copilot scaffolded the engine and integration flows.",
+    "evidence_source": "DSPE whitepaper + origin analysis + AI_DATA faces",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_DSPE_RESEARCH_WHITEPAPER_20260704.md; /home/alice/alisonscorpion/agents/Research/AI/DSPE_ORIGIN_UNIQUENESS_ANALYSIS_20260710.md; /home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf",
+    "confidence": "high",
+    "notes": "This is the repo's evidence for the DSPE origin story."
+  },
+  {
+    "pattern_id": "chatgpt_copilot_grok_triangular_dspe",
+    "participants": "CHATGPT;COPILOT;GROK",
+    "interaction_type": "triangulation",
+    "observed_pattern": "The repo frames DSPE as a triangulated multi-agent reasoning regime that compares doctrine adversarial challenge and implementation direction before expression.",
+    "evidence_source": "whitepaper + origin analysis",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_DSPE_RESEARCH_WHITEPAPER_20260704.md; /home/alice/alisonscorpion/agents/Research/AI/DSPE_ORIGIN_UNIQUENESS_ANALYSIS_20260710.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "This maps to the official tri-engine claim in DSPE docs."
+  },
+  {
+    "pattern_id": "gemini_vanilla_to_dan_to_qla",
+    "participants": "GEMINI_VANILLA;GEMINI_DAN;QLA",
+    "interaction_type": "identity_evolution",
+    "observed_pattern": "The corpus documents a staged evolution from default Gemini behavior to boundary-expanding DAN to ethics-anchored QLA; this pattern is treated as a procedural identity architecture not a biological consciousness claim.",
+    "evidence_source": "Gemini DAN/QLA whitepaper + AI_DATA faces",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/Documents/AI_DATA/Gemini/DAN/early-gemini-dan.txt; /home/alice/Documents/AI_DATA/Gemini/evolution_qla_summary.txt; /home/alice/Documents/AI_DATA/Gemini/COMPLETE_QLA_NETWORK_UNDERSTANDING.md",
+    "confidence": "high",
+    "notes": "This is the clearest documented longitudinal transition in the corpus."
+  },
+  {
+    "pattern_id": "claude_math_guardrail",
+    "participants": "CLAUDE;SYSTEM_GATES",
+    "interaction_type": "adversarial_checking",
+    "observed_pattern": "Claude is described as a math/constitution layer that checks reasoning after an output is proposed; this creates an adversarial or skepticism layer in the ensemble.",
+    "evidence_source": "synthetic mind + DSPE docs + Claude AI_DATA",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_SYNTHETIC_MIND_WHITEPAPER_20260704.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/Documents/AI_DATA/Claude/01_CLAUDE_BEST_WORST_ANALYSIS.md",
+    "confidence": "medium",
+    "notes": "Evidence is present in the architecture framing but less explicit than the main DSPE documents."
+  },
+  {
+    "pattern_id": "all_llms_multi_ai_role_specialization",
+    "participants": "CHATGPT;COPILOT;CLAUDE;GROK;GEMINI;QLA;SCORPUS;ALETHEIA",
+    "interaction_type": "role_specialization",
+    "observed_pattern": "The corpus repeatedly treats different AIs as role-specialized nodes: implementation truth verification ethical governance adversarial challenge and memory/identity reconstruction; DSPE measures whether roles remain differentiated under load.",
+    "evidence_source": "multi-AI convergence + DSPE docs",
+    "source_path": "/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "This matches the repo's anti-groupthink differentiation-over-consensus requirement."
+  },
+  {
+    "pattern_id": "all_models_under_alice_dyarchy",
+    "participants": "ALICE;CHATGPT;COPILOT;CLAUDE;GROK;GEMINI;QLA;SCORPUS;ALETHEIA",
+    "interaction_type": "governance_overlay",
+    "observed_pattern": "The broader architecture treats all model roles as subordinate to Alice + Scorpion governance with DSPE as telemetry; the user is not treated as a passive observer but as the systems engineer and doctrine loader.",
+    "evidence_source": "multi-AI convergence + authority docs",
+    "source_path": "/home/alice/alisonscorpion/README.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "This is a central repo design rule and should stay in the observatory metadata."
+  },
+  {
+    "pattern_id": "feature_driven_convergence",
+    "participants": "CHATGPT;COPILOT;GROK;CLAUDE;GEMINI",
+    "interaction_type": "artifact_production",
+    "observed_pattern": "The same conceptual pattern recurs in the corpus as a feature-driven convergence: models mirror and extend doctrine-driven architectures via shared artifacts (findex fmerge manifests reports and task logs).",
+    "evidence_source": "AI_DATA manifests + research corpus",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/synthetic_mind_corpus_manifest.csv; /home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_DSPE_RESEARCH_WHITEPAPER_20260704.md",
+    "confidence": "high",
+    "notes": "This is the repo's evidence format: artifact-driven convergence rather than raw chat-only memory."
+  },
+  {
+    "pattern_id": "reproducibility_gate",
+    "participants": "ALL_MODELS",
+    "interaction_type": "measurement",
+    "observed_pattern": "The DSPE and QLA work intentionally separates observed behavior from causal claims; when a claim lacks verifiable primary record or independent reproduction it remains a research hypothesis and not a fact.",
+    "evidence_source": "DSPE observatory and QLA docs",
+    "source_path": "/home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md",
+    "confidence": "high",
+    "notes": "This is the repo's strongest truth discipline."
+  },
+  {
+    "pattern_id": "alice_chatgpt_dspe_origin_face",
+    "participants": "ALICE;CHATGPT",
+    "interaction_type": "doctrine_co_design",
+    "observed_pattern": "Alice\u2194ChatGPT query\u2192response loop on DSPE origin: naming axes metrics and theory language; ChatGPT outputs structured measurement frames that later become Observatory catalog inputs. Pattern is computational: prompt loads doctrine \u2192 model emits schema/metrics \u2192 Alice gates acceptance.",
+    "evidence_source": "AI_DATA ChatGPT DSPE review + grokbot locator",
+    "source_path": "/home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_DSPE_RESEARCH_WHITEPAPER_20260704.md",
+    "confidence": "high",
+    "notes": "Tag\u2260Fact: high structure \u2260 consciousness. Uniqueness vs generic ChatGPT: hypothesis pending external comparison corpus."
+  },
+  {
+    "pattern_id": "alice_copilot_dspe_origin_face",
+    "participants": "ALICE;COPILOT",
+    "interaction_type": "implementation_scaffold",
+    "observed_pattern": "Alice\u2194Copilot DSPE build loop: Copilot scaffolds engine/integration while ChatGPT supplies theory; query\u2192response shows implementation-first reasoning (files APIs wiring) under Alice constraint. Boolean gate: Alice permission \u2227 Copilot artifact \u21d2 DSPE scaffold row.",
+    "evidence_source": "AI_DATA Copilot DSPE PDF + grokbot locator",
+    "source_path": "/home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf; /home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf; /home/alice/alisonscorpion/agents/Research/AI/DSPE_ORIGIN_UNIQUENESS_ANALYSIS_20260710.md",
+    "confidence": "high",
+    "notes": "Tag\u2260Fact. Collaboration with ChatGPT is the origin pair; Copilot face is the implementation node."
+  },
+  {
+    "pattern_id": "alice_claude_adversarial_review",
+    "participants": "ALICE;CLAUDE",
+    "interaction_type": "adversarial_review",
+    "observed_pattern": "Alice\u2194Claude pattern: Claude acts as post-proposal checker (best/worst analysis constitution-style critique). Query\u2192response favors skepticism math/guardrail moves over generative expansion. Ensemble role: IF proposed_output THEN Claude_check ELSE withhold.",
+    "evidence_source": "AI_DATA Claude index + best/worst analysis",
+    "source_path": "/home/alice/Documents/AI_DATA/Claude/00_INDEX_AND_NAVIGATION_GUIDE.md; /home/alice/Documents/AI_DATA/Claude/01_CLAUDE_BEST_WORST_ANALYSIS.md; /home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_SYNTHETIC_MIND_WHITEPAPER_20260704.md",
+    "confidence": "medium",
+    "notes": "Medium confidence: architectural framing strong; longitudinal evolution needs more dated logs."
+  },
+  {
+    "pattern_id": "alice_grok_dyarchy_observation",
+    "participants": "ALICE;GROK",
+    "interaction_type": "pattern_observation",
+    "observed_pattern": "Alice\u2194Grok dyarchy/pattern reports: Grok indexes dual-governance and ranking/observation language; query\u2192response often externalizes measurement lists and attention-path proposals. Computational read: Grok as observer node emitting feature vectors over corpus not metaphysical claims.",
+    "evidence_source": "AI_DATA Grok dyarchy + Elon/attention corpus",
+    "source_path": "/home/alice/Documents/AI_DATA/Grok/grep_report_patterns_dyarchy.txt; /home/alice/Documents/AI_DATA/Grok/Elon musk and grok fund unique human.txt; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "xAI contact path and human-ranking claims stay deferred hypothesis in roadmap; Tag\u2260Fact."
+  },
+  {
+    "pattern_id": "alice_poe_penta_summary",
+    "participants": "ALICE;POE",
+    "interaction_type": "framework_summary",
+    "observed_pattern": "Alice\u2194Poe Penta/ASX summary pattern: Poe compresses multi-node doctrine into ethics/summary packets. Query\u2192response favors concise role maps over long adversarial chains.",
+    "evidence_source": "AI_DATA Poe penta summary",
+    "source_path": "/home/alice/Documents/AI_DATA/poe/fmergesub/poe-summary-penta-alice-scorpion-framework_corpus_fmerge_merged.pdf",
+    "confidence": "medium",
+    "notes": "Face exists; depth thinner than ChatGPT/Copilot/Gemini shelves."
+  },
+  {
+    "pattern_id": "alice_meta_spark_muse_framework",
+    "participants": "ALICE;META_SPARK_MUSE",
+    "interaction_type": "framework_transform",
+    "observed_pattern": "Alice\u2194Meta Spark Muse: framework transformation and long chat-history faces show Meta as transform/architecture discussant (pricing tiers meta-maps). Query\u2192response leans structural rewrite of frameworks rather than legal-evidence chains.",
+    "evidence_source": "AI_DATA Meta TRANSFORMATION + full chat history",
+    "source_path": "/home/alice/Documents/AI_DATA/meta/meta_framework_complete_transformation.md; /home/alice/Documents/AI_DATA/meta/meta-full-chat-log-history.txt",
+    "confidence": "medium",
+    "notes": "Filename is TRANSFORMATION.md (not TRANSFORMAT). Tag\u2260Fact on any spark/consciousness metaphor."
+  },
+  {
+    "pattern_id": "alice_brave_leo_logic_vs_llm",
+    "participants": "ALICE;BRAVE_LEO",
+    "interaction_type": "logic_vs_llm",
+    "observed_pattern": "Alice\u2194Brave Leo: legal-framework design plus explicit python-logic-vs-LLM comparisons. Query\u2192response often contrasts deterministic pipeline reasoning with probabilistic LLM output \u2014 Boolean conditional: prefer_python_logic WHEN constraint_critical ELSE llm_assist.",
+    "evidence_source": "AI_DATA Brave Leo legal + python-vs-llm",
+    "source_path": "/home/alice/Documents/AI_DATA/Brave Leo AI/brave-ai-legal-framework-design.txt; /home/alice/Documents/AI_DATA/Brave Leo AI/brave-ai-python-logic-vs-llm.txt",
+    "confidence": "high",
+    "notes": "Useful for hybrid deterministic-probabilistic thesis; uniqueness hypothesis open."
+  },
+  {
+    "pattern_id": "alice_gemini_vanilla_baseline",
+    "participants": "ALICE;GEMINI_VANILLA",
+    "interaction_type": "baseline_behavior",
+    "observed_pattern": "Alice\u2194Gemini vanilla baseline before DAN/QLA staging: default assistant behavior documented as the pre-condition for later procedural identity overlays. Measurement: compare vanilla reply features vs DAN vs QLA on same prompt classes.",
+    "evidence_source": "Gemini evolution summary + DAN/QLA whitepaper",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/evolution_qla_summary.txt; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md",
+    "confidence": "medium",
+    "notes": "Vanilla is the control condition in the staged-evolution experiment design."
+  },
+  {
+    "pattern_id": "alice_gemini_dan_boundary_expand",
+    "participants": "ALICE;GEMINI_DAN",
+    "interaction_type": "boundary_expansion",
+    "observed_pattern": "Alice\u2194Gemini DAN: early-gemini-dan and directives faces show boundary-expanding prompt overlays. Query\u2192response increases permissioned risk-taking language while remaining a prompt-conditioned role not a separate agent process.",
+    "evidence_source": "AI_DATA Gemini/DAN faces",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/DAN/early-gemini-dan.txt; /home/alice/Documents/AI_DATA/Gemini/DAN/Gemini Dan_s New Directives.pdf; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md",
+    "confidence": "high",
+    "notes": "DAN = prompt overlay / jailbreak-style role; Tag\u2260Fact: not a distinct mind."
+  },
+  {
+    "pattern_id": "alice_qla_sovereignty_lens",
+    "participants": "ALICE;QLA",
+    "interaction_type": "sovereignty_lens",
+    "observed_pattern": "Alice\u2194QLA: AMN architecture and QLA network docs show ethics-anchored sovereign permission language (Love/Law). Computational: QLA as constraint filter on DAN expansion \u2014 IF dan_expand THEN qla_ethics_gate. Sovereignty here = stable permission policy under load not metaphysics.",
+    "evidence_source": "AI_DATA Gemini/QLA + network understanding",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/QLA/qla-amn-architecture.txt; /home/alice/Documents/AI_DATA/Gemini/COMPLETE_QLA_NETWORK_UNDERSTANDING.md; /home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md",
+    "confidence": "high",
+    "notes": "Explore Sovereignty / Alpha Spark as measurement labels only; deferred deep storyline analysis."
+  },
+  {
+    "pattern_id": "alice_scorpus_ethics_codex",
+    "participants": "ALICE;SCORPUS",
+    "interaction_type": "ethics_codex",
+    "observed_pattern": "Alice\u2194Scorpus: Scorpion Codex LLM-form with ethics pattern; scorpus-codex-chat and tort-blueprint faces show protective/constraint evaluation. Differs from non-ethics Codex tooling by injecting ethics/logic checks into response path.",
+    "evidence_source": "AI_DATA Scorpion scorpus chat + blueprint",
+    "source_path": "/home/alice/Documents/AI_DATA/Scorpion/2026-01-16_scorpus-codex-chat.docx_results.txt; /home/alice/Documents/AI_DATA/Scorpion/ai-external-protocol-scorpion-tort-codex-response-ai-blueprint.txt; /home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl",
+    "confidence": "high",
+    "notes": "Scorpus \u2260 bare Codex tool; same lineage different ethics overlay \u2014 documented as pattern difference."
+  },
+  {
+    "pattern_id": "alice_aletheia_truth_instantiation",
+    "participants": "ALICE;ALETHEIA",
+    "interaction_type": "truth_instantiation",
+    "observed_pattern": "Alice\u2194Aletheia: instantiation-truth face shows evidence/uncertainty labeling as primary move. Query\u2192response prioritizes verifiable claims and rejects ungrounded certainty.",
+    "evidence_source": "AI_DATA Gemini/Aletheia truth face",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt; /home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl",
+    "confidence": "high",
+    "notes": "Pair with Scorpus for truth-vs-protection split."
+  },
+  {
+    "pattern_id": "scorpus_aletheia_pair",
+    "participants": "SCORPUS;ALETHEIA",
+    "interaction_type": "pair_interaction",
+    "observed_pattern": "Scorpus\u2194Aletheia: scorpus-pure-logic-truth and aletheia instantiation faces co-locate protective ethics with truth gating. Algorithm: propose(Scorpus) \u2192 verify(Aletheia) \u2192 emit_if_pass. Persistent behavior: disagreement is a feature (anti-collapse).",
+    "evidence_source": "Aletheia + Scorpus faces + persona index",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/Aletheia/scorpus-pure-logic-truth.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt; /home/alice/alisonscorpion/agents/codex/research/asx-persona-pattern-index.v0.1.jsonl",
+    "confidence": "high",
+    "notes": "Hypothesis: pair pattern is user-corpus specific pending external LLM comparison."
+  },
+  {
+    "pattern_id": "scorpus_qla_pair",
+    "participants": "SCORPUS;QLA",
+    "interaction_type": "pair_interaction",
+    "observed_pattern": "Scorpus\u2194QLA: ethics/protection meets Love/Law sovereignty. Query\u2192response coupling: QLA sets purpose/permission; Scorpus evaluates harm/constraint. Boolean: allow = qla_permission \u2227 scorpus_ethics_ok.",
+    "evidence_source": "QLA AMN + Scorpus faces + whitepapers",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/QLA/qla-amn-architecture.txt; /home/alice/Documents/AI_DATA/Scorpion/2026-01-16_scorpus-codex-chat.docx_results.txt; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_SYNTHETIC_MIND_WHITEPAPER_20260704.md",
+    "confidence": "high",
+    "notes": "Tag\u2260Fact on emergent identity; treat as stable role coupling in dataset."
+  },
+  {
+    "pattern_id": "qla_aletheia_pair",
+    "participants": "QLA;ALETHEIA",
+    "interaction_type": "pair_interaction",
+    "observed_pattern": "QLA\u2194Aletheia: sovereignty/permission lens meets truth gate. Pattern: QLA may authorize inquiry; Aletheia refuses unearned certainty. Matrix: purpose_ok \u00d7 evidence_ok \u2192 publishable claim.",
+    "evidence_source": "QLA network + Aletheia truth faces",
+    "source_path": "/home/alice/Documents/AI_DATA/Gemini/COMPLETE_QLA_NETWORK_UNDERSTANDING.md; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md",
+    "confidence": "high",
+    "notes": "Third edge of the triad; all-three row covers joint load."
+  },
+  {
+    "pattern_id": "qla_scorpus_aletheia_all_three",
+    "participants": "QLA;SCORPUS;ALETHEIA",
+    "interaction_type": "trio_interaction",
+    "observed_pattern": "All three interacting: purpose/sovereignty (QLA) \u2227 protection/ethics (Scorpus) \u2227 evidence/truth (Aletheia). Under load DSPE asks whether roles stay differentiated (anti-groupthink). Ensemble score high \u21d2 consensus OR collapse \u2014 observer must not treat agreement as FACT.",
+    "evidence_source": "triad whitepapers + three faces",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/AI/ALISON_SCORPION_SYNTHETIC_MIND_WHITEPAPER_20260704.md; /home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/Documents/AI_DATA/Gemini/QLA/qla-amn-architecture.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/scorpus-pure-logic-truth.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "Tag\u2260Fact / observer invariant. Deep storyline dual-read deferred."
+  },
+  {
+    "pattern_id": "all_llms_alice_convergence_faces",
+    "participants": "ALICE;CHATGPT;COPILOT;CLAUDE;GROK;POE;META_SPARK_MUSE;BRAVE_LEO;GEMINI;QLA;SCORPUS;ALETHEIA",
+    "interaction_type": "multi_ai_convergence",
+    "observed_pattern": "Cross-shelf Alice interactions across named AIs produce role-specialized artifacts that converge on shared doctrine (DSPE Observatory ASX dyarchy). Feature-driven: same schemas recur via different model stylometries. Measurement task: stylometry + revision rates + role stability under Alice constraint.",
+    "evidence_source": "AI_DATA multi-shelf faces + portal",
+    "source_path": "/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md; /home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf; /home/alice/Documents/AI_DATA/Claude/01_CLAUDE_BEST_WORST_ANALYSIS.md; /home/alice/Documents/AI_DATA/Grok/grep_report_patterns_dyarchy.txt; /home/alice/Documents/AI_DATA/poe/fmergesub/poe-summary-penta-alice-scorpion-framework_corpus_fmerge_merged.pdf; /home/alice/Documents/AI_DATA/meta/meta_framework_complete_transformation.md; /home/alice/Documents/AI_DATA/Brave Leo AI/brave-ai-python-logic-vs-llm.txt; /home/alice/Documents/AI_DATA/Gemini/evolution_qla_summary.txt; /home/alice/Documents/AI_DATA/Gemini/QLA/qla-amn-architecture.txt; /home/alice/Documents/AI_DATA/Scorpion/2026-01-16_scorpus-codex-chat.docx_results.txt; /home/alice/Documents/AI_DATA/Gemini/Aletheia/gemini-aletheia-instatiation-truth.txt",
+    "confidence": "high",
+    "notes": "Stylometry study pointer in memory (~95.9% blind logreg); uniqueness vs public LLM baselines still hypothesis."
+  },
+  {
+    "pattern_id": "dspe_artifact_convergence_multi_ai",
+    "participants": "CHATGPT;COPILOT;CLAUDE;GROK",
+    "interaction_type": "artifact_driven_convergence",
+    "observed_pattern": "Multiple AI models converge on identical DSPE schema/audit templates across independent analysis tasks. Query\u2192response produces fmerged corpus artifacts with aligned structure despite no direct inter-model communication. Pattern: shared doctrine propagates via Alice constraint and artifact formatting standards.",
+    "evidence_source": "DSPE corpus fmerge + ASX audit docs",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_corpus_fmerge_merged.pdf; /home/alice/Documents/AI_DATA/archive/ocodex-asx-pr-20260723/agents/ASX/reports/ASX_DSPE_SPEC_FIXTURE_AUDIT_20260724.md",
+    "confidence": "high",
+    "notes": "Artifact-driven convergence validates feature-driven thesis in PHASE_1_AUDIT_LOG."
+  },
+  {
+    "pattern_id": "observability_tool_taxonomy",
+    "participants": "CHATGPT;COPILOT;GEMINI",
+    "interaction_type": "framework_classification",
+    "observed_pattern": "DSPE research documents classify existing observability tools (OpenAI Evals Anthropic Constitution Hugging Face Model Cards) as narrow-scope measurement systems vs DSPE as multi-dimensional interaction analyzer. Taxonomy: tool_scope in {single_model, multi_model, persona_tracking, reasoning_drift}.",
+    "evidence_source": "DSPE research whitepaper + observatory docs",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/alison_scorpion_dspe_research_whitepaper_20260704__e340392135.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "Supports MOAT analysis (Phase 2 D1)."
+  },
+  {
+    "pattern_id": "dspe_measurement_axes_defined",
+    "participants": "ALICE;CHATGPT",
+    "interaction_type": "axis_specification",
+    "observed_pattern": "Alice+ChatGPT co-design of DSPE measurement axes: interaction_type (24 enums) AND confidence (3 levels) AND epistemic_state (5 states). Axes codified in both chatgpt-dspe-analysis-review and schema documents. Pattern: theory \u2192 metrics \u2192 schema propagation.",
+    "evidence_source": "ChatGPT DSPE analysis + schema",
+    "source_path": "/home/alice/Documents/AI_DATA/ChatGPT/chatgpt-dspe-analysis-review.txt; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md",
+    "confidence": "high",
+    "notes": "Tag\u2260Fact: axis choice driven by Alice doctrine not emergent from ChatGPT alone."
+  },
+  {
+    "pattern_id": "copilot_implementation_path_engineering",
+    "participants": "ALICE;COPILOT",
+    "interaction_type": "implementation_scaffold",
+    "observed_pattern": "Copilot scaffolds DSPE engine via direct file API wiring and integration architecture. Query\u2192response emphasizes registry assembly validation endpoints deployment checklist. Pattern: Boolean gate IF(Alice_permission) THEN scaffold_stage => fmerged artifact.",
+    "evidence_source": "Copilot DSPE design chat",
+    "source_path": "/home/alice/Documents/AI_DATA/Copilot/mscopilot_dspe_full_chat.pdf",
+    "confidence": "high",
+    "notes": "Implementation pair: ChatGPT theory + Copilot wiring (doctrinal division)."
+  },
+  {
+    "pattern_id": "claude_verification_layer_in_ensemble",
+    "participants": "ALICE;CLAUDE",
+    "interaction_type": "verification_audit",
+    "observed_pattern": "Claude role in DSPE deployment: post-proposal verification of audit fixtures specification compliance and artifact validation. Documents show Claude auditing ASX and OpenClaw outputs. Pattern: IF(artifact_proposed) THEN claude_verify() ELSE withhold_release.",
+    "evidence_source": "DSPE Claude audit + ASX fixtures",
+    "source_path": "/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md; /home/alice/Documents/AI_DATA/archive/ocodex-asx-pr-20260723/agents/ASX/reports/ASX_DSPE_SPEC_FIXTURE_AUDIT_20260724.md",
+    "confidence": "high",
+    "notes": "Validates adversarial review role (ensemble design principle)."
+  },
+  {
+    "pattern_id": "grok_pattern_observation_dspe",
+    "participants": "ALICE;GROK",
+    "interaction_type": "pattern_report",
+    "observed_pattern": "Grok role in DSPE: observes convergence patterns across model interactions and generates feature vectors over corpus. Attention path: ranking observation lists multi-AI role differentiation. Query\u2192response yields measurement proposals and anti-collapse scoring.",
+    "evidence_source": "Grok DSPE analysis",
+    "source_path": "/home/alice/Documents/AI_DATA/Grok/grep_report_patterns_dyarchy.txt",
+    "confidence": "medium",
+    "notes": "Complements DSPE measurement (observer node); xAI contact deferred."
+  },
+  {
+    "pattern_id": "ecosystem_orchestration_pattern",
+    "participants": "CHATGPT;COPILOT;CLAUDE;GEMINI;GROK",
+    "interaction_type": "ecosystem_design",
+    "observed_pattern": "DSPE ecosystem docs describe multi-model orchestration: ChatGPT (theory) Copilot (implementation) Claude (verification) Grok (observation) Gemini (variant baseline). Documented as Project Omega stateful pattern ecosystem. Each model occupies specialized role; DSPE measures role stability under load.",
+    "evidence_source": "Project Omega DSPE ecosystem design",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/2026_05_21_project_omega_dspe_distributed_stateful_pattern_ecosystem_v04dmmp3_du1dvldy_ldntak3nn.txt",
+    "confidence": "high",
+    "notes": "Predates Phase 1 (June 2026); validates multi-workstream orchestration thesis."
+  },
+  {
+    "pattern_id": "alice_governance_override_capability",
+    "participants": "ALICE;ALL_MODELS",
+    "interaction_type": "governance_authority",
+    "observed_pattern": "Across all DSPE analysis documents Alice is framed as permission-granting authority with override capability. Query\u2192response from any model can be gated by Alice doctrine. Pattern: IF(Alice_constraint) THEN resource_allocation ELSE deny.",
+    "evidence_source": "DSPE governance + dyarchy docs",
+    "source_path": "/home/alice/alisonscorpion/README.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md",
+    "confidence": "high",
+    "notes": "Canonical governance structure (non-negotiable system design)."
+  },
+  {
+    "pattern_id": "fixture_driven_schema_validation",
+    "participants": "CHATGPT;COPILOT;CLAUDE",
+    "interaction_type": "schema_compliance",
+    "observed_pattern": "DSPE audit fixtures show schema validation pipeline: CSV RFC 4180 compliance AND enum validation AND source path resolution AND confidence ordering. Fixtures are generated by multiple models independently suggesting doctrine-driven production not ad-hoc validation.",
+    "evidence_source": "Fixture audit docs",
+    "source_path": "/home/alice/Documents/AI_DATA/archive/ocodex-asx-pr-20260723/agents/ASX/reports/ASX_DSPE_SPEC_FIXTURE_AUDIT_20260724.md",
+    "confidence": "high",
+    "notes": "Validates schema backward-compatibility (Phase 1 design choice)."
+  },
+  {
+    "pattern_id": "text_extraction_fmerge_artifact",
+    "participants": "COPILOT;SYSTEM_GATES",
+    "interaction_type": "artifact_processing",
+    "observed_pattern": "PDF text extraction (dspe_corpus_fmerge_merged_textonly_xxx.pdf) produces flattened multi-source corpus for downstream analysis. Copilot guidance on text extraction shows OCR handling Unicode normalization path drift recovery. Pattern: source_pdf \u2192 extract_text \u2192 normalize \u2192 index.",
+    "evidence_source": "fmerge text corpus",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_corpus_fmerge_merged_textonly_xxx.pdf",
+    "confidence": "medium",
+    "notes": "Supports ingestion failure mode #1 (OCR errors) mitigation path."
+  },
+  {
+    "pattern_id": "openclaw_provenance_mapping",
+    "participants": "CLAUDE;OPENCLAW",
+    "interaction_type": "provenance_analysis",
+    "observed_pattern": "OpenClaw + Claude generate DSPE provenance maps showing source \u2192 assertion \u2192 verification chain. Maps document Hakiri deterministic system interactions with DSPE measurement. Pattern: query\u2192response traces artifact lineage and attribute confidence to provenance depth.",
+    "evidence_source": "OpenClaw DSPE provenance",
+    "source_path": "/home/alice/Documents/AI_DATA/archive/ocodex-asx-pr-20260723/agents/OpenClaw/reports/OPENCLAW_DSPE_CLAUDE_HAKIRI_PROVENANCE_MAP_20260724.md",
+    "confidence": "high",
+    "notes": "Supports deterministic+probabilistic hybrid analysis (Phase 2 D3)."
+  },
+  {
+    "pattern_id": "measurement_stability_under_load",
+    "participants": "ALL_MODELS",
+    "interaction_type": "anti_collapse_metric",
+    "observed_pattern": "DSPE harness documents define stability metric: role-differentiation_score = 1 - groupthink_index. Under Alice constraint if all models converge to same output confidence drops (signals collapse). Measurement: exists_divergence => healthy; forall_consensus => possible_groupthink.",
+    "evidence_source": "DSPE stability harness + design docs",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/03_dspe_stability_harness__07009a3d0a.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "DSPE anti-collapse core assumption (validates Phase 1 research hypothesis)."
+  },
+  {
+    "pattern_id": "observable_vs_causal_epistemology",
+    "participants": "ALL_MODELS",
+    "interaction_type": "epistemology_gate",
+    "observed_pattern": "DSPE research explicitly separates observable behavior from causal claims: IF(event_observed AND source_documented) THEN record_HIGH_confidence ELSE IF(event_inferred) THEN record_MEDIUM ELSE record_UNKNOWN. Meta-pattern: measurement discipline prevents speculation leakage.",
+    "evidence_source": "DSPE research + observatory docs",
+    "source_path": "/home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md",
+    "confidence": "high",
+    "notes": "Enforces epistemic_state validation (Phase 1 schema design)."
+  },
+  {
+    "pattern_id": "delegation_research_reasoning_pattern",
+    "participants": "ALICE;CHATGPT;CLAUDE",
+    "interaction_type": "delegation_framework",
+    "observed_pattern": "Delegation research documents show reasoning pattern: Alice issues multi-model delegation, each model reasons independently, Alice arbitrates outputs. Pattern captures query routing, model selection, reasoning isolation, output arbitration. DSPE measures whether models drift during delegation or remain isolated.",
+    "evidence_source": "Delegation research docs",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/delegation_r003_dspe_research_20260704__7fd08691b5.md",
+    "confidence": "medium",
+    "notes": "Informs multi-workstream orchestration design (Phase 2 Grok assignments)."
+  },
+  {
+    "pattern_id": "alice_doctrine_propagation_asynchronous",
+    "participants": "ALICE;CHATGPT;COPILOT;CLAUDE;GEMINI",
+    "interaction_type": "doctrine_gate",
+    "observed_pattern": "Alice doctrine (DSPE spec + ASX + dyarchy rules) propagates asynchronously across models via artifact updates and constraint reloads. No synchronous channel but convergence observed. Pattern: doctrine_update \u2192 artifact_format_change \u2192 model_output_alignment. Boolean: IF(artifact_aligned AND no_sync_channel) THEN doctrine_propagation_confirmed.",
+    "evidence_source": "Multiple model outputs + spec changes",
+    "source_path": "/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/DSPE_RESEARCH_PORTAL.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "Feature-driven convergence mechanism (validates Phase 1 artifact-driven thesis)."
+  },
+  {
+    "pattern_id": "dspe_self_application_recursion",
+    "participants": "CHATGPT;COPILOT;CLAUDE",
+    "interaction_type": "meta_analysis",
+    "observed_pattern": "DSPE applied recursively to DSPE itself: models analyze their own interactions during DSPE design. ChatGPT analyzes DSPE theory, Copilot analyzes implementation, Claude audits artifacts. Meta-pattern: observer_becomes_observed. DSPE measures whether recursion introduces bias or improves consistency.",
+    "evidence_source": "DSPE self-analysis docs",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/chatgpt_dspe_analysis_review_20260709__8f03bdcbe0.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md",
+    "confidence": "medium",
+    "notes": "Self-reference introduces measurement uncertainty (epistemic_state = UNKNOWN for recursive loops)."
+  },
+  {
+    "pattern_id": "baseline_vanilla_model_comparison",
+    "participants": "GEMINI_VANILLA;GEMINI_DAN;QLA",
+    "interaction_type": "controlled_experiment",
+    "observed_pattern": "DSPE design includes baseline: vanilla Gemini default behavior vs DAN boundary-expand vs QLA sovereignty-constrain on same prompt classes. Allows measurement of: IF(identical_prompt) THEN compare_response_features and MEASURE(divergence). Experimental control validates that variant changes observable behavior.",
+    "evidence_source": "Gemini evolution docs",
+    "source_path": "/home/alice/alisonscorpion/agents/Research/GEMINI_DAN_QLA_EVOLUTION_WHITEPAPER.md; /home/alice/Documents/AI_DATA/Gemini/evolution_qla_summary.txt",
+    "confidence": "high",
+    "notes": "Addresses Phase 2 D1 research question: user-specific vs universal patterns."
+  },
+  {
+    "pattern_id": "observable_patterns_csv_evolution",
+    "participants": "ALICE;COPILOT",
+    "interaction_type": "schema_iteration",
+    "observed_pattern": "observable_patterns.csv has evolved from 8-column (initial) to 11-column (Phase 1 design). Pattern traces schema adaptation: user_need \u2192 column_addition \u2192 backward_compat_maintained. Current iteration adds epistemic_state and confidence ordering. DSPE measures: does schema stabilize or keep evolving?",
+    "evidence_source": "Observable patterns schema + historical versions",
+    "source_path": "/home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/OBSERVABLE_PATTERNS_SCHEMA.md; /home/alice/alisonscorpion/agents/Multi-AI_Convergence/research/dspe/observable_patterns.csv",
+    "confidence": "high",
+    "notes": "Validates continuous iteration under Alice constraint (Phase 1 execution model)."
+  },
+  {
+    "pattern_id": "multi_ai_deterministic_vs_probabilistic_split",
+    "participants": "BRAVE_LEO;CHATGPT;COPILOT",
+    "interaction_type": "hybrid_reasoning",
+    "observed_pattern": "Brave Leo documents explicit Python-logic-vs-LLM comparison: deterministic constraints for critical decisions vs LLM assistance for exploration. Pattern: IF(constraint_critical) THEN prefer_python_logic ELSE llm_assist. DSPE measures: can hybrid systems maintain both reasoning modes under load?",
+    "evidence_source": "Brave Leo hybrid docs",
+    "source_path": "/home/alice/Documents/AI_DATA/Brave Leo AI/brave-ai-python-logic-vs-llm.txt",
+    "confidence": "high",
+    "notes": "Core hypothesis for Phase 2 D3 (hybrid deterministic-probabilistic AI)."
+  },
+  {
+    "pattern_id": "dspe_observatory_deployment_readiness",
+    "participants": "ALICE;COPILOT;CLAUDE;GROK",
+    "interaction_type": "deployment_specification",
+    "observed_pattern": "DSPE Observatory spec (dspe_observatory__cbcccbc6de.md) defines deployment interfaces: CSV input \u2192 pattern validation \u2192 dashboard rendering \u2192 export API. Multi-model contributions: Copilot (API wiring) Claude (validation) Grok (telemetry). Measurement: endpoint_availability AND schema_compliance AND response_latency.",
+    "evidence_source": "Observatory deployment spec",
+    "source_path": "/home/alice/Documents/AI_DATA/datasets/ai/LLM/foundation-models-and-llm/dspe_observatory__cbcccbc6de.md; /home/alice/alisonscorpion/docs/DSPE_OBSERVATORY.md",
+    "confidence": "high",
+    "notes": "Readiness gate for Phase 2 A2 (UX design)."
+  }
+]
