@@ -9,9 +9,14 @@
   <link rel="stylesheet" href="css/observatory-patterns-browser.css?v=20261115" />
 </head>
 <body class="obs-standalone">
-  <main class="wrap">
-    <p class="nav"><a href="index.html">← Desktop</a> · <a href="dspe-observatory.html">DSPE Observatory</a></p>
-    <div id="observatory-patterns-root"></div>
+  <header class="obs-header" role="banner">
+    <nav class="nav" aria-label="Navigation">
+      <a href="index.html">← Desktop</a> · <a href="dspe-observatory.html">DSPE Observatory</a>
+    </nav>
+  </header>
+
+  <main class="wrap" role="main" aria-label="Observable patterns browser">
+    <div id="observatory-patterns-root" role="application" aria-label="DSPE observable patterns interface"></div>
   </main>
 
   <script type="module">
@@ -96,11 +101,5 @@ dspe_observatory_deployment_readiness,ALICE;COPILOT;CLAUDE;GROK,deployment_speci
       }
     }
   </style>
-</head>
-<body>
-  <main class="wrap">
-    <p class="nav"><a href="index.html">← Desktop</a> · <a href="dspe-observatory.html">DSPE Observatory</a></p>
-    <div id="observatory-patterns-root"></div>
-  </main>
 </body>
 </html>
